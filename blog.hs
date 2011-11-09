@@ -7,8 +7,13 @@ import Data.Monoid
 
 import Hakyll
 
+
 main :: IO ()
-main = hakyll rules
+main =
+  hakyllWith conf rules
+    where
+      conf = defaultHakyllConfiguration { deployCommand = s3deploy }
+      s3deploy = "s3cmd -P sync _site/ s3://blog.emillon.org/"
 
 rules :: Rules
 rules = do
