@@ -1,74 +1,92 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Prelude hiding (id)
-import Control.Arrow ((>>>), (***), arr)
-import Control.Category (id)
-import Data.Monoid (mempty, mconcat)
+import Control.Arrow
+import Control.Monad
+import Data.Monoid
 
 import Hakyll
 
 main :: IO ()
-main = hakyll $ do
-    -- Compress CSS
-    match "css/*" $ do
-        route   idRoute
-        compile compressCssCompiler
+main = hakyll rules
 
-    -- Render posts
-    match "posts/*" $ do
-        route   $ setExtension ".html"
-        compile $ pageCompiler
+rules :: Rules
+rules = do
+  makeCss
+  renderPosts
+  renderPostsList
+  makeIndex
+  makeTags
+  makeRss
+  buildTemplates
+
+makeCss :: Rules
+makeCss =
+  void $ match "css/*" $ do
+      route   idRoute
+      compile compressCssCompiler
+
+renderPosts :: Rules
+renderPosts =
+  void $ match "posts/*" $ do
+      route   $ setExtension ".html"
+      compile $ pageCompiler
             >>> arr (renderDateField "date" "%B %e, %Y" "Date unknown")
             >>> renderTagsField "prettytags" (fromCapture "tags/*")
             >>> applyTemplateCompiler "templates/post.html"
             >>> applyTemplateCompiler "templates/default.html"
             >>> relativizeUrlsCompiler
 
-    -- Render posts list
-    match "posts.html" $ route idRoute
-    create "posts.html" $ constA mempty
-        >>> arr (setField "title" "All posts")
-        >>> requireAllA "posts/*" addPostList
-        >>> applyTemplateCompiler "templates/posts.html"
-        >>> applyTemplateCompiler "templates/default.html"
-        >>> relativizeUrlsCompiler
+renderPostsList :: Rules
+renderPostsList = void $ do
+  match "posts.html" $ route idRoute
+  create "posts.html"
+      $ constA mempty
+    >>> arr (setField "title" "All posts")
+    >>> requireAllA "posts/*" addPostList
+    >>> applyTemplateCompiler "templates/posts.html"
+    >>> applyTemplateCompiler "templates/default.html"
+    >>> relativizeUrlsCompiler
 
-    -- Index
-    match "index.html" $ route idRoute
-    create "index.html" $ constA mempty
-        >>> arr (setField "title" "Home")
-        >>> requireA "tags" (setFieldA "tagcloud" (renderTagCloud'))
-        >>> requireAllA "posts/*" (id *** arr (take 3 . reverse . chronological) >>> addPostList)
-        >>> applyTemplateCompiler "templates/index.html"
-        >>> applyTemplateCompiler "templates/default.html"
-        >>> relativizeUrlsCompiler
+makeIndex :: Rules
+makeIndex = void $ do
+  match "index.html" $ route idRoute
+  create "index.html"
+      $ constA mempty
+    >>> arr (setField "title" "Home")
+    >>> requireA "tags" (setFieldA "tagcloud" renderTagCloud')
+    >>> requireAllA "posts/*" (second (arr (take 3 . reverse . chronological)) >>> addPostList)
+    >>> applyTemplateCompiler "templates/index.html"
+    >>> applyTemplateCompiler "templates/default.html"
+    >>> relativizeUrlsCompiler
 
-    -- Tags
-    create "tags" $
-        requireAll "posts/*" (\_ ps -> readTags ps :: Tags String)
+makeTags :: Rules
+makeTags = do
+  void $ create "tags" $
+      requireAll "posts/*" (\_ ps -> readTags ps :: Tags String)
+  -- Add a tag list compiler for every tag
+  match "tags/*" $ route $ setExtension ".html"
+  metaCompile $ require_ "tags"
+            >>> arr tagsMap
+            >>> arr (map (\(t, p) -> (tagIdentifier t, makeTagList t p)))
 
-    -- Add a tag list compiler for every tag
-    match "tags/*" $ route $ setExtension ".html"
-    metaCompile $ require_ "tags"
-        >>> arr tagsMap
-        >>> arr (map (\(t, p) -> (tagIdentifier t, makeTagList t p)))
+makeRss :: Rules
+makeRss = void $ do
+  -- Render RSS feed
+  match "rss.xml" $ route idRoute
+  create "rss.xml" $ requireAll_ "posts/*"
+                 >>> mapCompiler (arr $ copyBodyToField "description")
+                 >>> renderRss feedConfiguration
 
-    -- Render RSS feed
-    match "rss.xml" $ route idRoute
-    create "rss.xml" $
-        requireAll_ "posts/*"
-            >>> mapCompiler (arr $ copyBodyToField "description")
-            >>> renderRss feedConfiguration
+buildTemplates :: Rules
+buildTemplates =
+  void $ match "templates/*" $ compile templateCompiler
 
-    -- Read templates
-    match "templates/*" $ compile templateCompiler
-  where
-    renderTagCloud' :: Compiler (Tags String) String
-    renderTagCloud' = renderTagCloud tagIdentifier 100 120
+renderTagCloud' :: Compiler (Tags String) String
+renderTagCloud' = renderTagCloud tagIdentifier 100 120
 
-    tagIdentifier :: String -> Identifier (Page String)
-    tagIdentifier = fromCapture "tags/*"
+tagIdentifier :: String -> Identifier (Page String)
+tagIdentifier = fromCapture "tags/*"
 
 -- | Auxiliary compiler: generate a post list from a list of given posts, and
 -- add it to the current page under @$posts@
