@@ -1,0 +1,29 @@
+---
+title: Hello, world !
+author: Etienne Millon
+tags: meta
+---
+
+    blog :: IO ()
+    blog =
+      putStrLn "Hello, world !"
+
+This is my first attempt at blogging, I still don't know what to expect.
+I will probably write about the following topics :
+
+  * Programming, especially using [functional][ocaml] [languages][haskell].
+  * Development of the [Debian] operating system.
+  * [Static analysis] of software.
+  * Computer security.
+
+Like some of [my][chmd-static] [friends][nicdumz-static], I decided to use a
+static blog generator. The first series of posts will be about setting this up
+with [hakyll], git and S3. Stay tuned !
+
+[ocaml]:           http://caml.inria.fr/
+[haskell]:         http://haskell.org/
+[debian]:          http://debian.org/
+[static analysis]: http://en.wikipedia.org/wiki/Static_program_analysis
+[chmd-static]:     http://blog.chmd.fr/going-static.html
+[nicdumz-static]:  http://nicdumz.fr/blog/2010/12/why-blogofile/
+[hakyll]:          http://jaspervdj.be/hakyll/
