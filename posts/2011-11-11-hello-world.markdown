@@ -4,9 +4,11 @@ author: Etienne Millon
 tags: meta
 ---
 
-    blog :: IO ()
-    blog =
-      putStrLn "Hello, world !"
+~~~~ {.haskell}
+blog :: IO ()
+blog =
+  putStrLn "Hello, world !"
+~~~~
 
 This is my first attempt at blogging, I still don't know what to expect.
 I will probably write about the following topics :
