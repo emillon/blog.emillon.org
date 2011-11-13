@@ -1,0 +1,8 @@
+---
+title: This is only a test
+author: Etienne Millon
+tags: meta
+---
+
+Hakyll seems to push every article in the RSS feed, so just a meaningless
+article to check if it still happens :)
