@@ -1,6 +1,7 @@
 body {
     width: 600px;
     margin: 0px auto 0px auto;
+    font-family: Ubuntu, UbuntuBeta, 'Droid Sans', Arial, sans-serif;
 }
 
 div#navigation {
@@ -14,4 +15,18 @@ div#navigation a {
     background-color: black;
     padding: 3px 10px 3px 10px;
     margin: 0px 10px 0px 10px;
+}
+
+a {outline: 0;}
+a img {border: 0px; text-decoration: none;}
+a:link, a:visited {
+  color: #0091AB;
+  padding: 0 1px;
+  text-decoration: none;
+}
+a:hover, a:active {
+  background-color: #0091AB;
+  color: #fff;
+  text-decoration: none;
+  text-shadow: 1px 1px 1px #333;
 }
