@@ -1,0 +1,75 @@
+---
+title: Hakyll 101
+author: Etienne Millon
+tags: meta, haskell
+---
+
+So, the recent trend seems to be static blogging. Indeed, as a web application,
+a blog is mostly read-only. By generating static `.html` files, one can
+eliminate :
+
+  * CPU load : static content is what's easiest to serve, especially with modern
+    servers using [sendfile(2)].
+  * security issues : without dynamic page generation, the attack surface is
+    also vastly reduced. Authentication is moved from a PHP or Python script to
+    the Unix way.
+  * deployment problems : I don't know a free host that won't serve static
+    files. I use [S3] (and the free tier will often be enough !) but if I am not
+    satisfied, it's dead simple to migrate.
+
+Basically, it's like moving from a dynamic language to a static one ☺. The only
+problem is if you want to add comments. The popular solution is [Disqus] but it
+is unfortunately a non-free application. I'll probably stick to it but I fear
+data lock-in.
+
+As it is fashionable, a *lot* of tools have appeared : [pelican], [blogofile],
+[ikiwiki], [jekyll]… Being a haskeller, I decided to give [hakyll] a try.
+
+Hakyll is a haskell library for writing and deploying static websites ; that's about
+it. As in a dynamic application, you define routes and how to serve them :
+
+~~~~ {.haskell}
+makeCss :: Rules
+makeCss =
+  void $ match "css/*" $ do
+      route   idRoute
+      compile compressCssCompiler
+~~~~
+
+Most rules consist of compiling [markdown] to HTML (with the fantastic [pandoc]
+library) and copying stuff around.
+
+The resulting binary, when compiled, can be run to see previews, build files or
+even deploy the site.
+
+~~~~
+ ~/www/blog [master] % ./blog
+ABOUT
+
+This is a Hakyll site generator program. You should always
+run it from the project root directory.
+
+USAGE
+
+blog build           Generate the site
+blog clean           Clean up and remove cache
+blog help            Show this message
+blog preview [port]  Run a server and autocompile
+blog rebuild         Clean up and build again
+blog server [port]   Run a local test server
+blog deploy          Upload/deploy your site
+~~~~
+
+So far I've found it very easy to use. That's it for this first mini-tour. Stay
+tuned !
+
+[sendfile(2)]: http://manpages.debian.net/cgi-bin/man.cgi?query=sendfile&sektion=2&apropos=0&manpath=Debian+6.0+squeeze
+[S3]:          http://aws.amazon.com/s3/
+[Disqus]:      http://disqus.com
+[pelican]:     https://github.com/ametaireau/pelican/
+[blogofile]:   http://blogofile.com/
+[ikiwiki]:     http://ikiwiki.info/
+[jekyll]:      http://jekyllrb.com/
+[hakyll]:      http://jaspervdj.be/hakyll/
+[markdown]:    http://daringfireball.net/projects/markdown/
+[pandoc]:      http://johnmacfarlane.net/pandoc/
