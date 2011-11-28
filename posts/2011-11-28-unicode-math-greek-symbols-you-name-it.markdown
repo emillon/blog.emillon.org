@@ -1,0 +1,100 @@
+---
+title: Unicode : Math, greek, symbols - you name it !
+author: Etienne Millon
+tags: linux
+---
+
+EBCDIC, ASCII & the power of legacy
+-----------------------------------
+
+… and no, that's not a movie title.
+
+As you know, all your computer knows about is numbers, yet when you type on a
+keyboard, a character appears on your screen. This is thanks to character
+encodings.
+
+There are several norms that defines how characters (ie, glyphs) are encoded
+into numbers. Besides dinosaurs such as [EBCDIC], the "classic" way of encoding
+is [ASCII] -- that is what most modern[^1] operating systems use internally.
+
+The problem with ASCII is that it maps every character to a single byte with
+[MSB] reset, meaning that you can have a maximum of 128 glyphs. It's "good
+enough" for English (hey, the A stands for American) but terrible for
+international characters. This is even worse considering that 32 of them are
+control characters, ie mostly legacy. Did you ever need to interpret `DC2`, `SI`
+or `GS` in a program ?
+
+The eighth bit being "reserved" can be used to support "extended characters".
+Several vendors (including Microsoft) used the concept of "code pages" to use
+extra glyphs in the 128-255 range. For example, Latin-1 was used in western
+europe to display accentuated characters.
+
+If all your data comes from one part of the world, it works fine, but with the
+following limitations if you need to handle international data :
+
+  * it becomes necessary to have metadata specifying which codepage has to be
+    used.
+  * you have to choose exactly one codepage per document.
+
+In other words, a more extensible system is needed. Hopefully, this system
+exists and is called…
+
+Unicode
+-------
+
+Unicode separates two notions :
+
+  * what is a character. Unicode include a large collection of glyph names.
+    For example, version 6.0 includes 109449 characters.
+  * how a character is encoded as bytes. More precisely, this is the role of
+    encodings such as [UTF-8]. Usually, they are compatible with ASCII (the byte
+    representation coincides on characters 0-127).
+
+What's nice is that it's easy to enter Unicode under X11. The last two sections
+explain how you can configure your system to type (for example) √, β and ✈ !
+
+Configure a compose key
+-----------------------
+
+A "compose" key, or `Multi_key` under X11, will begin a character compose
+sequence. For example, when I type `<Multi_key> <s> <q>`, a square root
+(U+221A √) is entered.
+
+To configure a compose key, you can use [xmodmap(1)]. Put the following into
+`~/.Xmodmap` to make your right control key act as a `Multi_key` :
+
+    keysym Control_R = Multi_key
+
+Unfortunately, this file is not loaded automatically, so you have to run
+`xmodmap ~/.Xmodmap` when opening a X session (this can be done automatically if
+you put in in your `~/.xsession`, for example).
+
+Define a .XCompose mapping
+--------------------------
+
+The second part is to define mappings between key sequences and unicode
+codepoints. This is the role of the `~/.XCompose` file.
+
+As described in [xcompose(5)], a line looks like :
+
+    <Multi_key> <ampersand> <p> <l> <a> <n> <e>     : "✈"   U2708     # AIRPLANE
+
+ie, a key sequence, a colon, a string and a character name. The comment does not
+hurt, as usual.
+
+To start your own list of bindings, I suggest [kragen's
+repository](https://github.com/kragen/xcompose), which includes an excellent
+set. And if you need to find a specific unicode character, the
+[unicode](http://kassiopeia.juls.savba.sk/~garabik/software/unicode/) script is
+very useful !
+
+**TL;DR:** Spread the word, ♥ Unicode ☺
+
+[^1]:     Yes, that excludes AS/400.
+
+[ASCII]:       https://secure.wikimedia.org/wikipedia/en/wiki/ASCII
+[EBCDIC]:      https://secure.wikimedia.org/wikipedia/en/wiki/EBCDIC
+[MSB]:         https://secure.wikimedia.org/wikipedia/en/wiki/Most_significant_bit
+[UTF-8]:       https://secure.wikimedia.org/wikipedia/en/wiki/UTF-8
+[xmodmap(1)]:  http://manpages.debian.net/cgi-bin/man.cgi?query=xmodmap&sektion=1
+[xcompose(5)]: http://manpages.ubuntu.com/manpages/precise/en/man5/XCompose.5.html
