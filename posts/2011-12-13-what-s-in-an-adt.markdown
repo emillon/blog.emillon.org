@@ -1,0 +1,279 @@
+---
+title: What's in an ADT ?
+author: Etienne Millon
+tags: haskell, ocaml
+---
+
+Introduction
+------------
+
+Algebraic Data Types, or ADTs for short, are a core feature of functional
+languages such as OCaml or Haskell. They are a handy modelisation of closed
+disjoint unions and unfortunately, outside of the functional realm, they are
+only seldomly used.
+
+In this article, I will explain what ADTs are, how they are used in OCaml and
+Haskell and what trimmed-down versions of them exist in other languages.
+
+I will use OCaml, but the big picture is about the same in Haskell.
+
+Principles
+----------
+
+Functional languages offer a myriad of types for the programmer.
+
+  - some *base* types, such as `int`, `char` or `bool`.
+  - functions, ie *arrow* types. A function with domain `a` and codomain `b` has
+    type `a -> b`.
+  - tuples, ie *product* types. A tuple is an heterogeneous, fixed-width
+    container type (its set-theoretic counterpart is the cartesian product) For
+    example, `(2, true, 'x')` has type `int * bool * char`. *record* types are a
+    (mostly) syntactic extension to give name to their fields.
+  - some *parametric* types. For example, if `t` is a type, `t list` is the type
+    of homogeneous linked list of elements having type `t`.
+  - what we are talking about today, *algebraic* types (or *sum* types, or
+    *variant* types).
+
+If product types represent the cartesian product, algebraic types represent the
+disjoint union. In another words, they are very adapted to represent a case
+analysis.
+
+We will take the example of integer ranges : one can say that an integer range
+is either :
+
+  - the empty range
+  - of the form `]-∞;a]`
+  - of the form `[a;+∞[`
+  - a interal of the form `[a;b]` (where a ≤ b)
+  - the whole range (ie, ℤ)
+
+With the following properties :
+
+  - Disjunction : no range can be of two forms at a time.
+  - Injectivity : if `[a;b]` = `[c;d]`, then `a` = `c` and `b` = `d` (and
+    similarly for other forms).
+  - Exhaustiveness : it cannot be of another form.
+
+Syntax & semantics
+------------------
+
+This can be encoded as an ADT :
+
+~~~~ {.ocaml}
+type range =
+  | Empty
+  | HalfLeft of int
+  | HalfRight of int
+  | Range of int * int
+  | FullRange
+~~~~
+
+`Empty`, `HalfLeft`, `HalfRight`, `Range` and `FullRange` are `t`'s
+*constructors*. They are the only way to build a value of type `t`. For example,
+`Empty`, `HalfLeft 3` and `Range (2, 5)` are all values of type `t`[^1]. They
+each have a specific *arity* (the number of arguments they take).
+
+To *deconstruct* a value of type `t`, we have to use a powerful construct,
+*pattern matching*, which is about matching a value against a sequence of
+patterns (yes, that's about it).
+
+To illustrate this, we will write a function that computes the minimum value of
+such a range. Of course, this can be ±∞ too, so we have to define a type to
+represent the return value. Note that we still need to name the `Finite`
+constructor.
+
+~~~~ {.ocaml}
+type ext_int =
+  | MinusInfinity
+  | Finite of int
+  | PlusInfinity
+~~~~
+
+In a math textbook, we would write the case analysis as :
+
+  - min ∅ = +∞
+  - min ]-∞;a] = -∞
+  - min [a;+∞[ = a
+  - min [a;b] = a
+  - min ℤ = -∞
+
+That translates to the following (executable !) OCaml code :
+
+~~~~ {.ocaml}
+let range_min x =
+  match x with
+  | Empty -> PlusInfinity
+  | HalfLeft a -> MinusInfinity
+  | HalfRight a -> Finite a
+  | Range (a, b) -> Finite a
+  | FullRange -> MinusInfinity
+~~~~
+
+In the pattern `HalfLeft a`, `a` is a variable name, so it get bounds to the
+argument's value. In other words, `match (HalfLeft 2) with HalfLeft x -> e`
+bounds `x` to 2 in `e`.
+
+It's functions all the way down
+-------------------------------
+
+Pattern matching seems magical at first, but it is only a syntactic trick.
+
+Indeed, the definition of the above type is equivalent to the following
+definition :
+
+~~~~ {.ocaml}
+type range
+
+(* The following is not syntactically correct *)
+val Empty : range
+val HalfLeft : int -> range
+val HalfRight : int -> range
+val Range : int * int -> range
+val FullRange : range
+(* Moreover, we know that they are injective and mutually disjoint *)
+
+val deconstruct_range :
+  (unit -> 'a) ->
+  (int -> 'a) ->
+  (int -> 'a) ->
+  (int * int -> 'a) ->
+  (unit -> 'a) ->
+  range ->
+  'a
+~~~~
+
+`deconstruct_range` is what replaces pattern matching. It also embodies the notion of
+exhaustiveness, because given any value of type `range`, we can build a
+deconstructed value out of it.
+
+Its type looks scary at first, but if we look closer, its arguments are a
+sequence of case-specific deconstructors[^2] and the value to get "matched"
+against.
+
+To show the equivalence, we can implement `deconstruct_range` using pattern
+patching and `range_min` using `deconstruct_range`[^3] :
+
+~~~~ {.ocaml}
+let deconstruct_range
+      f_empty
+      f_halfleft
+      f_halfright
+      f_range
+      f_fullrange
+      x
+    =
+  match x with
+  | Empty -> f_empty ()
+  | HalfLeft a -> f_halfleft a
+  | HalfRight a -> f_halfright a
+  | Range (a, b) -> f_range (a, b)
+  | FullRange -> f_fullrange ()
+~~~~
+
+~~~~ {.ocaml}
+let range_min' x =
+  deconstruct_range
+    (fun () -> PlusInfinity)
+    (fun a -> MinusInfinity)
+    (fun a -> Finite a)
+    (fun (a, b) -> Finite a)
+    (fun () -> MinusInfinity)
+    x
+~~~~
+
+Implementation
+--------------
+
+After this trip in denotational-land, let's get back to operational-land : how
+is this implemented ?
+
+In OCaml, no type information exists at runtime. Everything exists with a
+uniform representation and is either an integer or a pointer to a block. Each
+block starts with a tag, a size and a number of fields.
+
+With the `Obj` module (kids, don't try this at home), it is possible to inspect
+blocks at runtime. Let's write a dumper for `range` value and watch outputs :
+
+~~~~ {.ocaml}
+(* Range of integers between a and b *)
+let rec rng a b =
+  if a > b then
+    []
+  else
+    a :: rng (a+1) b
+
+let view_block o =
+  if (Obj.is_block o) then
+    begin
+      let tag = Obj.tag o in
+      let sz = Obj.size o in
+      let f n =
+        let f = Obj.field o n in
+        assert (Obj.is_int f);
+        Obj.obj f
+      in
+      tag :: List.map f (rng 0 (sz-1))
+    end
+  else if Obj.is_int o then
+    [Obj.obj o]
+  else
+    assert false
+
+let examples () =
+  let p_list l =
+    String.concat ";" (List.map string_of_int l)
+  in
+  let explore_range r =
+    print_endline (p_list (view_block (Obj.repr r)))
+  in
+  List.iter explore_range
+    [ Empty
+    ; HalfLeft 8
+    ; HalfRight 13
+    ; Range (2, 5)
+    ; FullRange
+    ]
+~~~~
+
+When we run `examples ()`, it outputs :
+
+~~~~
+0
+0;8
+1;13
+2;2;5
+1
+~~~~
+
+We can see the following distinction :
+
+  - 0-ary constructors (`Empty` and `FullRange`) are encoded are simple
+    integers.
+  - other ones are encoded blocks with a constructor number as tag (0 for
+    `HalfLeft`, 1 for `HalfRight` and 2 for `Range`) and their argument list
+    afterwards.
+
+Conclusion
+----------
+
+Algebraic Data Types are a simple modelisation of disjoint unions, for which
+case analyses are the most natural. In more mainstream languages, some
+alternatives exist but they are more limited to model the same problem.
+
+For example, in object-oriented languages, the Visitor pattern is the natural
+way to do it. But class trees are inherently "open", thus breaking the
+exhaustivity property.
+
+The closest implementation is tagged unions in C, but they require to roll your
+own solution using `enum`s, `struct`s and `union`s. This also means that all
+your hand-allocated blocks will have the same size.
+
+I don't know how this is best done under other paradigms, but I'd love to know !
+
+[^1]: Unfortunately, so is `Range (10, 2)`. The invariant that a ≤ b has to be
+      enforced by the programmer when using this constructor.
+[^2]: For 0-ary constructors, the type has to be `unit -> 'a` instead of `'a` to
+      allow side effects to happen during pattern matching.
+[^3]: More precisely, we would have to show that any function written with
+      pattern matching can be adapted to use the deconstructor instead. I hope
+      that this example is general enough to get the idea.
