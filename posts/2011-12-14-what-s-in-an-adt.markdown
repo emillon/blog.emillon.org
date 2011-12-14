@@ -1,7 +1,7 @@
 ---
 title: What's in an ADT ?
 author: Etienne Millon
-tags: haskell, ocaml
+tags: ocaml, haskell
 ---
 
 Introduction
@@ -13,9 +13,8 @@ disjoint unions and unfortunately, outside of the functional realm, they are
 only seldomly used.
 
 In this article, I will explain what ADTs are, how they are used in OCaml and
-Haskell and what trimmed-down versions of them exist in other languages.
-
-I will use OCaml, but the big picture is about the same in Haskell.
+what trimmed-down versions of them exist in other languages. I will use OCaml,
+but the big picture is about the same in Haskell.
 
 Principles
 ----------
@@ -35,11 +34,11 @@ Functional languages offer a myriad of types for the programmer.
     *variant* types).
 
 If product types represent the cartesian product, algebraic types represent the
-disjoint union. In another words, they are very adapted to represent a case
+disjoint union. In another words, they are very adapted for a case
 analysis.
 
-We will take the example of integer ranges : one can say that an integer range
-is either :
+We will take the example of integer ranges. One can say that an integer range is
+either :
 
   - the empty range
   - of the form `]-∞;a]`
@@ -79,8 +78,7 @@ patterns (yes, that's about it).
 
 To illustrate this, we will write a function that computes the minimum value of
 such a range. Of course, this can be ±∞ too, so we have to define a type to
-represent the return value. Note that we still need to name the `Finite`
-constructor.
+represent the return value.
 
 ~~~~ {.ocaml}
 type ext_int =
@@ -117,7 +115,6 @@ It's functions all the way down
 -------------------------------
 
 Pattern matching seems magical at first, but it is only a syntactic trick.
-
 Indeed, the definition of the above type is equivalent to the following
 definition :
 
@@ -253,6 +250,11 @@ We can see the following distinction :
     `HalfLeft`, 1 for `HalfRight` and 2 for `Range`) and their argument list
     afterwards.
 
+Thanks to this uniform representation, pattern-matching is straightforward : the
+runtime system will only look at the tag number to decide which constructor has
+been used, and if there are arguments to be bound, they are just after in the
+same block.
+
 Conclusion
 ----------
 
@@ -268,7 +270,7 @@ The closest implementation is tagged unions in C, but they require to roll your
 own solution using `enum`s, `struct`s and `union`s. This also means that all
 your hand-allocated blocks will have the same size.
 
-I don't know how this is best done under other paradigms, but I'd love to know !
+Oh, and I would love to know how this problem is solved with other paradigms !
 
 [^1]: Unfortunately, so is `Range (10, 2)`. The invariant that a ≤ b has to be
       enforced by the programmer when using this constructor.
