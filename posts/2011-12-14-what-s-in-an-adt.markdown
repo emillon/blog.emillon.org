@@ -8,9 +8,9 @@ Introduction
 ------------
 
 Algebraic Data Types, or ADTs for short, are a core feature of functional
-languages such as OCaml or Haskell. They are a handy modelisation of closed
-disjoint unions and unfortunately, outside of the functional realm, they are
-only seldomly used.
+languages such as OCaml or Haskell. They are a handy model of closed disjoint
+unions and unfortunately, outside of the functional realm, they are only seldom
+used.
 
 In this article, I will explain what ADTs are, how they are used in OCaml and
 what trimmed-down versions of them exist in other languages. I will use OCaml,
@@ -43,7 +43,7 @@ either :
   - the empty range
   - of the form `]-∞;a]`
   - of the form `[a;+∞[`
-  - a interal of the form `[a;b]` (where a ≤ b)
+  - an interval of the form `[a;b]` (where a ≤ b)
   - the whole range (ie, ℤ)
 
 With the following properties :
@@ -258,7 +258,7 @@ same block.
 Conclusion
 ----------
 
-Algebraic Data Types are a simple modelisation of disjoint unions, for which
+Algebraic Data Types are a simple model of disjoint unions, for which
 case analyses are the most natural. In more mainstream languages, some
 alternatives exist but they are more limited to model the same problem.
 
