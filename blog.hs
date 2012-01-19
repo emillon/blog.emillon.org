@@ -89,7 +89,9 @@ makeRss = void $ do
             >>> mapCompiler (arr tagFeedId *** arr tagFeedRss)
     where
       tagFeedId t = parseIdentifier ("tagfeeds/"++t)
-      tagFeedRss ps = constA ps >>> renderRss feedConfiguration
+      tagFeedRss ps = constA ps
+                  >>> mapCompiler (arr $ copyBodyToField "description")
+                  >>> renderRss feedConfiguration
 
 buildTemplates :: Rules
 buildTemplates =
