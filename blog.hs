@@ -83,6 +83,14 @@ makeRss = void $ do
                  >>> mapCompiler (arr $ copyBodyToField "description")
                  >>> renderRss feedConfiguration
 
+  match "tagfeeds/*" $ route $ setExtension ".xml"
+  metaCompile $ require_ "tags"
+            >>> arr tagsMap
+            >>> mapCompiler (arr tagFeedId *** arr tagFeedRss)
+    where
+      tagFeedId t = parseIdentifier ("tagfeeds/"++t)
+      tagFeedRss ps = constA ps >>> renderRss feedConfiguration
+
 buildTemplates :: Rules
 buildTemplates =
   void $ match "templates/*" $ compile templateCompiler
