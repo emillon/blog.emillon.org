@@ -7,7 +7,6 @@ import Data.Monoid
 
 import Hakyll
 
-
 main :: IO ()
 main =
   hakyllWith conf rules
