@@ -30,15 +30,26 @@ makeCss =
       route   idRoute
       compile compressCssCompiler
 
+pageComp = pageCompiler
+       >>> arr (renderDateField "date" "%B %e, %Y" "Date unknown")
+       >>> renderTagsField "prettytags" (fromCapture "tags/*")
+
+isRaw, isNotRaw :: Pattern a
+isRaw = inGroup $ Just "raw"
+isNotRaw = inGroup Nothing
+
 renderPosts :: Rules
-renderPosts =
+renderPosts = do
   void $ match "posts/*" $ do
       route   $ setExtension ".html"
-      compile $ pageCompiler
-            >>> arr (renderDateField "date" "%B %e, %Y" "Date unknown")
-            >>> renderTagsField "prettytags" (fromCapture "tags/*")
+      compile $ pageComp
             >>> applyTemplateCompiler "templates/post.html"
             >>> applyTemplateCompiler "templates/default.html"
+            >>> relativizeUrlsCompiler
+  void $ group "raw" $
+    match "posts/*" $ do
+      route   $ setExtension ".html"
+      compile $ pageComp
             >>> relativizeUrlsCompiler
 
 renderPostsList :: Rules
@@ -47,7 +58,7 @@ renderPostsList = void $ do
   create "posts.html"
       $ constA mempty
     >>> arr (setField "title" "All posts")
-    >>> requireAllA "posts/*" addPostList
+    >>> requireAllA ("posts/*" `mappend` isNotRaw) addPostList
     >>> applyTemplateCompiler "templates/posts.html"
     >>> applyTemplateCompiler "templates/default.html"
     >>> relativizeUrlsCompiler
@@ -59,7 +70,7 @@ makeIndex = void $ do
       $ constA mempty
     >>> arr (setField "title" "Home")
     >>> requireA "tags" (setFieldA "tagcloud" renderTagCloud')
-    >>> requireAllA "posts/*" (second (arr (take 3 . reverse . chronological)) >>> addPostList)
+    >>> requireAllA ("posts/*" `mappend` isNotRaw) (second (arr (take 3 . reverse . chronological)) >>> addPostList)
     >>> applyTemplateCompiler "templates/index.html"
     >>> applyTemplateCompiler "templates/default.html"
     >>> relativizeUrlsCompiler
@@ -67,7 +78,7 @@ makeIndex = void $ do
 makeTags :: Rules
 makeTags = do
   void $ create "tags" $
-      requireAll "posts/*" (\_ ps -> readTags ps :: Tags String)
+      requireAll ("posts/*" `mappend` isRaw) (\_ ps -> readTags ps :: Tags String)
   -- Add a tag list compiler for every tag
   match "tags/*" $ route $ setExtension ".html"
   metaCompile $ require_ "tags"
@@ -78,7 +89,7 @@ makeRss :: Rules
 makeRss = void $ do
   -- Render RSS feed
   match "rss.xml" $ route idRoute
-  create "rss.xml" $ requireAll_ "posts/*"
+  create "rss.xml" $ requireAll_ ("posts/*" `mappend` isRaw)
                  >>> mapCompiler (arr $ copyBodyToField "description")
                  >>> renderRss feedConfiguration
 
