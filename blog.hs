@@ -58,6 +58,7 @@ renderPostsList = void $ do
   create "posts.html"
       $ constA mempty
     >>> arr (setField "title" "All posts")
+    >>> arr (setField "feed" "/rss.xml")
     >>> requireAllA ("posts/*" `mappend` isNotRaw) addPostList
     >>> applyTemplateCompiler "templates/posts.html"
     >>> applyTemplateCompiler "templates/default.html"
@@ -130,6 +131,7 @@ makeTagList tag posts =
     constA (mempty, posts)
         >>> addPostList
         >>> arr (setField "title" ("Posts tagged &#8216;" ++ tag ++ "&#8217;"))
+        >>> arr (setField "feed" ("/feeds/" ++ tag ++ ".xml"))
         >>> applyTemplateCompiler "templates/posts.html"
         >>> applyTemplateCompiler "templates/default.html"
         >>> relativizeUrlsCompiler
