@@ -4,6 +4,16 @@ body {
     font-family: Ubuntu, UbuntuBeta, 'Droid Sans', Arial, sans-serif;
 }
 
+body:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background-color: #0091AB;
+}
+
 div#navigation {
     text-align: center;
     border-bottom: 4px solid black;
