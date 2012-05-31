@@ -40,3 +40,7 @@ a:hover, a:active {
   text-decoration: none;
   text-shadow: 1px 1px 1px #333;
 }
+
+pre{
+  overflow:auto;
+}
