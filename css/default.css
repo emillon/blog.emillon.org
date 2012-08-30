@@ -23,8 +23,8 @@ div#navigation a {
     color: white;
     text-decoration: none;
     background-color: black;
-    padding: 3px 10px 3px 10px;
-    margin: 0px 10px 0px 10px;
+    padding: 3px 10px;
+    margin: 0px 10px;
 }
 
 a {outline: 0;}
@@ -42,7 +42,7 @@ a:hover, a:active {
 }
 
 pre{
-  overflow:auto;
+  overflow: auto;
   border: solid 1pt #ccc;
   padding: 10pt;
 }
