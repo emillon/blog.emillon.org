@@ -1,5 +1,5 @@
 body {
-    width: 600px;
+    width: 700px;
     margin: 0px auto 0px auto;
     font-family: Ubuntu, UbuntuBeta, 'Droid Sans', Arial, sans-serif;
 }
@@ -43,4 +43,6 @@ a:hover, a:active {
 
 pre{
   overflow:auto;
+  border: solid 1pt #ccc;
+  padding: 10pt;
 }
