@@ -10,7 +10,7 @@ Of monads and comonads
 This post is written in [Literate Haskell]. This means that you can copy it into
 a `.lhs` file[^1] and run it through a Haskell compiler or interpreter.
 
-[^1]: or download the [source on github].
+[^1]: Or download the [source on github].
 
 Today we'll talk about…
 
@@ -242,13 +242,17 @@ compositions (`liftM2 (.)`)[^5].
 >
 > aliveNeighbours :: Z Bool -> Int
 > aliveNeighbours z =
->   card $ map (\dir -> extract $ dir z) neighbours
+>   card $ map (\ dir -> extract $ dir z) neighbours
 >
 > card :: [Bool] -> Int
 > card = length . filter (==True)
 
-The core rule of the game fits in the following function. It is remarkable that
-its type is the dual of that of a Kleisli arrow (`a -> m b`).
+The core rule of the game fits in the following function : if two neighbours are
+alive, return the previous state ; if three neighbours are alive, a new cell is
+born, and any other count causes the cell to die (of under-population or
+overcrowding).
+
+It is remarkable that its type is the dual of that of a Kleisli arrow (`a -> m b`).
 
 > rule :: Z Bool -> Bool
 > rule z =
@@ -257,7 +261,7 @@ its type is the dual of that of a Kleisli arrow (`a -> m b`).
 >     3 -> True
 >     _ -> False
 
-And then the comonadic magic happens in the following function.
+And then the comonadic magic happens with the use of `extend` :
 
 > evolve :: Z Bool -> Z Bool
 > evolve = extend rule
