@@ -10,9 +10,9 @@ Of monads and comonads
 This post is written in [Literate Haskell]. This means that you can copy it into
 a `.lhs` file[^1] and run it through a Haskell compiler or interpreter.
 
-[^1]: TODO I should make the source directly available too.
+[^1]: or download the [source on github].
 
-Today we'll talk about...
+Today we'll talk about…
 
 > import Control.Comonad
 > import Control.Monad
@@ -31,7 +31,8 @@ class Functor w => Comonad w where
   duplicate :: w a -> w (w a)
 ~~~~
 
-The Monad typeclass, for reference, can be described as[^2] :
+`extend` or `duplicate` are optional, as one can be written in terms of the
+other one. The Monad typeclass, for reference, can be described as[^2] :
 
 [^2]: In the real Haskell typeclass, there are the following differences: Monad
       and Functor are not related, `join` is a library function (you can't use
@@ -52,7 +53,7 @@ So what are comonads good for ?
 
 I stumbled upon [an article][sigfpe article] which explains that they can be
 used for computations which depend on some local environment, like [cellular
-automata]. A comment asks whether it's possible to generalize to higher
+automata]. Comments ask whether it's possible to generalize to higher
 dimensions, which I will do by implementing [Conway's Game of Life] in a
 comonadic way.
 
@@ -93,20 +94,28 @@ Reading and writing on a list zipper at the cursor is straightforward :
 > listWrite :: a -> ListZipper a -> ListZipper a
 > listWrite x (LZ ls _ rs) = LZ ls x rs
 
-We can easily define a `Functor` instance for `ListZipper` : to apply a function
+We can also define a function to convert a list zipper to a list, for example
+for printing. As it's infinite on both sizes, it's not possible to convert it to
+the whole list, so we have to pass a size parameter.
+
+> toList :: ListZipper a -> Int -> [a]
+> toList (LZ ls x rs) n =
+>   reverse (take n ls) ++ [x] ++ take n rs
+
+We can easily define a `Functor` instance for `ListZipper`. To apply a function
 on whole zipper, we apply it to the cursor and map it on the two lists :
 
 > instance Functor ListZipper where
 >   fmap f (LZ ls x rs) = LZ (map f ls) (f x) (map f rs)
 
-Time for the `Comonad` instance. The, `extract`, returns an element from the
-structure : we can pick the one at the cursor.
+Time for the `Comonad` instance. The `extract` method returns an element from
+the structure : we can pick the one at the cursor.
 
 `duplicate` is a bit harder to grasp. From a list zipper, we have to build a
 list zipper of list zippers. The signification behind this (confirmed by the
 comonad laws that every instance has to fulfill) is that moving inside the
-duplicated structure returns the original structure, disformed by the same
-move.
+duplicated structure returns the original structure, altered by the same
+move : for example, `listRead (listLeft (duplicate z)) == listLeft z`.
 
 This means that at the cursor of the duplicated structure, there is the original
 structure `z`. And the left list is composed of `listLeft z`, `listLeft
@@ -135,6 +144,10 @@ And finally we can implement the instance.
 >
 >   duplicate = genericMove listLeft listRight
 
+Using this comonad instance we can already implement 1D cellular automata, as
+explained in the [sigfpe article]. Let's see how they can be extended to 2D
+automata.
+
 Plane zippers
 -------------
 
@@ -143,16 +156,9 @@ of cells. We will implement them using a list zipper of list zippers.
 
 > data Z a = Z (ListZipper (ListZipper a))
 
-Let's start by defining movement functions on plane zippers. For left and right,
-it is necessary to alter every line. The `Functor` instance proves useful :
-
-> left :: Z a -> Z a
-> left (Z z) = Z (fmap listLeft z)
->
-> right :: Z a -> Z a
-> right (Z z) = Z (fmap listRight z)
-
-Moving up or down is even easier : just move left or right on the root zipper.
+We start by defining move functions. As a convention, the external list will
+hold lines : to move up and down, we will really move left and right at the root
+level.
 
 > up :: Z a -> Z a
 > up (Z z) = Z (listLeft z)
@@ -160,7 +166,18 @@ Moving up or down is even easier : just move left or right on the root zipper.
 > down :: Z a -> Z a
 > down (Z z) = Z (listRight z)
 
-Finally, editing is straightforward too.
+For left and right, it is necessary to alter every line, using the `Functor`
+instance.
+
+> left :: Z a -> Z a
+> left (Z z) = Z (fmap listLeft z)
+>
+> right :: Z a -> Z a
+> right (Z z) = Z (fmap listRight z)
+
+Finally, editing is quite straightforward : reading is direct (first read the line,
+then the cursor) ; and in order to write, it is necessary to fetch the current
+line, write to it and write the new line.
 
 > zRead :: Z a -> a
 > zRead (Z z) = listRead $ listRead z
@@ -172,8 +189,8 @@ Finally, editing is straightforward too.
 >       newLine = listWrite x oldLine
 >       oldLine = listRead z
 
-Time for algebra, let's define a `Functor` instance : applying a function
-everywhere can be achieved by applying it on every line :
+Time for algebra. Let's define a `Functor` instance : applying a function
+everywhere can be achieved by applying it on every line.
 
 > instance Functor Z where
 >   fmap f (Z z) = Z (fmap (fmap f) z)
@@ -187,7 +204,7 @@ that describe movements in the two axes[^4].
 
 [^4]: At first I thought that it was possible to only use the `Comonad` instance
       of `ListZipper` to define `horizontal` and `vertical`, but I couldn't come
-      up with a solution. But In that case, the `z` generic parameter is
+      up with a solution. But in that case, the `z` generic parameter is
       instanciated to `Z`, not `ListZipper`. For that reason I believe that my
       initial thought can't be implemented. Maybe it's possible with a comonad
       transformer or something like that.
@@ -210,7 +227,7 @@ Conway's (comonadic) Game of Life
 ---------------------------------
 
 Let's define a neighbourhood function. Here, directions are moves on a plane
-zipper. Hence neighbours are horizontal moves, vertical moves and their
+zipper. Neighbours are : horizontal moves, vertical moves and their
 compositions (`liftM2 (.)`)[^5].
 
 [^5]: This could have been written in extension as there are only 8 cases, but
@@ -231,7 +248,7 @@ compositions (`liftM2 (.)`)[^5].
 > card = length . filter (==True)
 
 The core rule of the game fits in the following function. It is remarkable that
-its type is the dual of a Kleisli arrow (`a -> m b`).
+its type is the dual of that of a Kleisli arrow (`a -> m b`).
 
 > rule :: Z Bool -> Bool
 > rule z =
@@ -240,27 +257,29 @@ its type is the dual of a Kleisli arrow (`a -> m b`).
 >     3 -> True
 >     _ -> False
 
-And the comonadic magic happens in the following function.
+And then the comonadic magic happens in the following function.
 
 > evolve :: Z Bool -> Z Bool
 > evolve = extend rule
 
-> disp1 :: ListZipper Bool -> String
-> disp1 z =
->   pp z dispC
+`evolve` is our main transition function between world states, and yet it's only
+defined in terms of the local transition function !
+
+Let's define a small printer to see what's going on.
+
+> dispLine :: ListZipper Bool -> String
+> dispLine z =
+>   map dispC $ toList z 6
 >     where
 >       dispC True  = '*'
 >       dispC False = ' '
-
+>
 > disp :: Z Bool -> String
 > disp (Z z) =
->   unlines $ pp z disp1
+>   unlines $ map dispLine $ toList z 6
 
-> pp :: ListZipper a -> (a -> b) -> [b]
-> pp (LZ ls x rs) f =
->   map f $ reverse (take n ls) ++ [x] ++ take n rs
->     where
->       n = 6
+Here is the classic glider pattern to test. The definition has a lot of
+boilerplate because we did not bother to create a `fromList` function.
 
 > glider :: Z Bool
 > glider =
@@ -272,14 +291,54 @@ And the comonadic magic happens in the following function.
 >            ] ++ repeat fz
 >       t = True
 >       f = False
->
 >       fl = repeat f
 >       fz = LZ fl f fl
->
 >       line l =
 >         LZ fl f (l ++ fl)
 
+~~~~
+*Main> putStr $ disp glider
+             
+             
+             
+             
+             
+             
+             
+        *    
+         *   
+       ***   
+             
+             
+             
+*Main> putStr $ disp $ evolve glider
+             
+             
+             
+             
+             
+             
+             
+             
+       * *   
+        **   
+        *    
+             
+             
+~~~~
+
+We did it ! Implementing Conway's Game of Life is usually full of ad-hoc
+boilerplate code : iterating loops, managing copies of cells, etc. Using the
+comonadic structure of cellular automata, the code can be a lot simpler.
+
+In this example, `ListZipper` and `Z` should be library functions, so the actual
+implementation is only a dozen lines long!
+
+The real benefit is that it has really helped be grasp the concept of comonads.
+I hope that I did not just fall into the comonad tutorial fallacy :)
+
 [Literate Haskell]:          http://www.haskell.org/haskellwiki/Literate_programming
+[source on github]:          https://github.com/emillon/blog.emillon.org
 [Edward Kmett]:              http://comonad.com
 [comonad package]:           http://hackage.haskell.org/packages/archive/comonad/3.0.0.2/doc/html/Control-Comonad.html
 [category-extras package]:   http://hackage.haskell.org/package/category-extras-1.0.2
