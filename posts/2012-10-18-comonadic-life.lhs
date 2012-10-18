@@ -4,14 +4,18 @@ author: Etienne Millon
 tags: haskell, conway, life, comonad, algebra
 ---
 
+Of monads and comonads
+----------------------
+
 This post is written in [Literate Haskell]. This means that you can copy it into
 a `.lhs` file[^1] and run it through a Haskell compiler or interpreter.
 
-[^1]: I should make the source directly available too.
+[^1]: TODO I should make the source directly available too.
 
 Today we'll talk about...
 
 > import Control.Comonad
+> import Control.Monad
 
 Comonads ! They are the categoric dual of monads, which means that the type
 signatures of comonadic functions look like monadic functions, but with the
@@ -112,7 +116,14 @@ list).
 > instance Comonad ListZipper where
 >   extract = listRead
 >
->   duplicate z = LZ (iterate' listLeft z) z (iterate' listRight z)
+>   duplicate = genericMove listLeft listRight
+
+> genericMove :: (z a -> z a)
+>             -> (z a -> z a)
+>             -> z a
+>             -> ListZipper (z a)
+> genericMove a b z =
+>   LZ (iterate' a z) z (iterate' b z)
 
 `iterate'` is a small helper which maps to x, `[f x, f (f x), ...]`.
 
@@ -125,51 +136,94 @@ Plane zippers
 Let's generalize list zippers to plane zippers, which are cursors on a plane
 of cells. We will implement them using a list zipper of list zippers.
 
-> data Z a = Z { unZ :: ListZipper (ListZipper a) }
+> data Z a = Z (ListZipper (ListZipper a))
+
+Let's start by defining movement functions on plane zippers. For left and right,
+it is necessary to alter every line. The `Functor` instance proves useful :
 
 > left :: Z a -> Z a
 > left (Z z) = Z (fmap listLeft z)
-
+>
 > right :: Z a -> Z a
 > right (Z z) = Z (fmap listRight z)
 
+Moving up or down is even easier : just move left or right on the root zipper.
+
 > up :: Z a -> Z a
 > up (Z z) = Z (listLeft z)
-
+>
 > down :: Z a -> Z a
 > down (Z z) = Z (listRight z)
+
+Finally, editing is straightforward too.
+
+> zRead :: Z a -> a
+> zRead (Z z) = listRead $ listRead z
+>
+> zWrite :: a -> Z a -> Z a
+> zWrite x (Z z) =
+>   Z $ listWrite newLine z
+>     where
+>       newLine = listWrite x oldLine 
+>       oldLine = listRead z
+
+Time for algebra, let's define a `Functor` instance : applying a function
+everywhere can be achieved by applying it on every line :
 
 > instance Functor Z where
 >   fmap f (Z z) = Z (fmap (fmap f) z)
 
-> dupLR :: Z a -> ListZipper (Z a)
-> dupLR z =
->   LZ (iterate' left z) z (iterate' right z)
+The idea behind the `Comonad` instance for `Z` is the same that the `ListZipper`
+one : moving "up" in the structure (really, "left" at the root level) returns
+the original structure moved in this direction.
+
+We will reuse the `genericMove` defined earlier in order to build list zippers
+that describe movements in the two axes.
+
+> horizontal :: Z a -> ListZipper (Z a)
+> horizontal = genericMove left right
+> 
+> vertical :: Z a -> ListZipper (Z a)
+> vertical = genericMove up down
+
+This is enough to define the instance.
 
 > instance Comonad Z where
->   extract (Z z) = extract $ extract z
+>   extract = zRead
 >
 >   duplicate z =
->     Z $ fmap dupLR $ LZ (iterate' up z) z (iterate' down z)
+>     Z $ fmap horizontal $ vertical z
 
-> ctx :: Z Bool -> Int
-> ctx z =
->   length $ filter (==True) cells
+Conway's (comonadic) Game of Life
+---------------------------------
+
+Let's define a neighbourhood function. Here, directions are moves on a plane
+zipper. Hence neighbours are horizontal moves, vertical moves and their
+compositions (`liftM2 (.)`)[^4].
+
+[^4]: This could have been written in extension as there are only 8 cases, but
+      it's funnier and arguably less error prone this way :-)
+
+> neighbours :: [Z a -> Z a]
+> neighbours =
+>   horiz ++ vert ++ liftM2 (.) horiz vert
 >     where
->       cells = map (\d -> extract (d z)) dirs
->       dirs = [ up . left
->              , up
->              , up . right
->              , left
->              , right
->              , down . left
->              , down
->              , down . right
->              ]
+>       horiz = [left, right]
+>       vert  = [up, down]
+>
+> aliveNeighbours :: Z Bool -> Int
+> aliveNeighbours z =
+>   card $ map (\dir -> extract $ dir z) neighbours
+>
+> card :: [Bool] -> Int
+> card = length . filter (==True)
+
+The core rule of the game fits in the following function. As we can see, its
+type is the dual of a Kleisli arrow (`a -> m b`).
 
 > rule :: Z Bool -> Bool
 > rule z =
->   case ctx z of
+>   case aliveNeighbours z of
 >     2 -> extract z
 >     3 -> True
 >     _ -> False
@@ -218,3 +272,4 @@ of cells. We will implement them using a list zipper of list zippers.
 [sigfpe article]:            http://blog.sigfpe.com/2006/12/evaluating-cellular-automata-is.html
 [post from Edward Z Yang]:   http://blog.ezyang.com/2010/04/you-could-have-invented-zippers/
 [Huet's article]:            http://www.st.cs.uni-saarland.de/edu/seminare/2005/advanced-fp/docs/huet-zipper.pdf
+[cellular automata]:         http://en.wikipedia.org/wiki/Cellular_automaton
