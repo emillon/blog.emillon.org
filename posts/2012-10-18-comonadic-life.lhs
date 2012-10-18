@@ -113,10 +113,10 @@ structure `z`. And the left list is composed of `listLeft z`, `listLeft
 (listLeft z)`, `listLeft (listLeft (listLeft z))`, etc (same goes for the right
 list).
 
-> instance Comonad ListZipper where
->   extract = listRead
->
->   duplicate = genericMove listLeft listRight
+The following function applies repeatedly two movement functions on each side of
+the zipper (its type is more generic than needed for this specific case but
+we'll instanciate `z` with something other than `ListZipper` in the next
+section).
 
 > genericMove :: (z a -> z a)
 >             -> (z a -> z a)
@@ -124,11 +124,16 @@ list).
 >             -> ListZipper (z a)
 > genericMove a b z =
 >   LZ (iterate' a z) z (iterate' b z)
-
-`iterate'` is a small helper which maps to x, `[f x, f (f x), ...]`.
-
+>
 > iterate' :: (a -> a) -> a -> [a]
 > iterate' f = tail . iterate f
+
+And finally we can implement the instance.
+
+> instance Comonad ListZipper where
+>   extract = listRead
+>
+>   duplicate = genericMove listLeft listRight
 
 Plane zippers
 -------------
@@ -164,7 +169,7 @@ Finally, editing is straightforward too.
 > zWrite x (Z z) =
 >   Z $ listWrite newLine z
 >     where
->       newLine = listWrite x oldLine 
+>       newLine = listWrite x oldLine
 >       oldLine = listRead z
 
 Time for algebra, let's define a `Functor` instance : applying a function
@@ -178,11 +183,18 @@ one : moving "up" in the structure (really, "left" at the root level) returns
 the original structure moved in this direction.
 
 We will reuse the `genericMove` defined earlier in order to build list zippers
-that describe movements in the two axes.
+that describe movements in the two axes[^4].
+
+[^4]: At first I thought that it was possible to only use the `Comonad` instance
+      of `ListZipper` to define `horizontal` and `vertical`, but I couldn't come
+      up with a solution. But In that case, the `z` generic parameter is
+      instanciated to `Z`, not `ListZipper`. For that reason I believe that my
+      initial thought can't be implemented. Maybe it's possible with a comonad
+      transformer or something like that.
 
 > horizontal :: Z a -> ListZipper (Z a)
 > horizontal = genericMove left right
-> 
+>
 > vertical :: Z a -> ListZipper (Z a)
 > vertical = genericMove up down
 
@@ -199,9 +211,9 @@ Conway's (comonadic) Game of Life
 
 Let's define a neighbourhood function. Here, directions are moves on a plane
 zipper. Hence neighbours are horizontal moves, vertical moves and their
-compositions (`liftM2 (.)`)[^4].
+compositions (`liftM2 (.)`)[^5].
 
-[^4]: This could have been written in extension as there are only 8 cases, but
+[^5]: This could have been written in extension as there are only 8 cases, but
       it's funnier and arguably less error prone this way :-)
 
 > neighbours :: [Z a -> Z a]
@@ -218,8 +230,8 @@ compositions (`liftM2 (.)`)[^4].
 > card :: [Bool] -> Int
 > card = length . filter (==True)
 
-The core rule of the game fits in the following function. As we can see, its
-type is the dual of a Kleisli arrow (`a -> m b`).
+The core rule of the game fits in the following function. It is remarkable that
+its type is the dual of a Kleisli arrow (`a -> m b`).
 
 > rule :: Z Bool -> Bool
 > rule z =
@@ -227,6 +239,8 @@ type is the dual of a Kleisli arrow (`a -> m b`).
 >     2 -> extract z
 >     3 -> True
 >     _ -> False
+
+And the comonadic magic happens in the following function.
 
 > evolve :: Z Bool -> Z Bool
 > evolve = extend rule
@@ -273,3 +287,4 @@ type is the dual of a Kleisli arrow (`a -> m b`).
 [post from Edward Z Yang]:   http://blog.ezyang.com/2010/04/you-could-have-invented-zippers/
 [Huet's article]:            http://www.st.cs.uni-saarland.de/edu/seminare/2005/advanced-fp/docs/huet-zipper.pdf
 [cellular automata]:         http://en.wikipedia.org/wiki/Cellular_automaton
+[Conway's Game of Life]:     http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
