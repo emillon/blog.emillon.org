@@ -4,4 +4,4 @@ install:
 before_script:
   - ghc --make blog
   - ./blog build
-script: "linkchecker --no-warnings --check-html --check-css --anchors _site"
+script: "linkchecker --check-html --check-css --anchors _site"

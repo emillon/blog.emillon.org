@@ -23,8 +23,8 @@ static blog generator. The first series of posts will be about setting this up
 with [hakyll], git and S3. Stay tuned !
 
 [ocaml]:           http://caml.inria.fr/
-[haskell]:         http://haskell.org/
-[debian]:          http://debian.org/
+[haskell]:         http://www.haskell.org/
+[debian]:          http://www.debian.org/
 [static analysis]: http://en.wikipedia.org/wiki/Static_program_analysis
 [chmd-static]:     http://blog.chmd.fr/going-static.html
 [nicdumz-static]:  http://nicdumz.fr/blog/2010/12/why-blogofile/

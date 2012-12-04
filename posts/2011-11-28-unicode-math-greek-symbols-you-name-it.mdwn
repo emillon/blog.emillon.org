@@ -92,9 +92,9 @@ very useful !
 
 [^1]:     Yes, that excludes AS/400.
 
-[ASCII]:       https://secure.wikimedia.org/wikipedia/en/wiki/ASCII
-[EBCDIC]:      https://secure.wikimedia.org/wikipedia/en/wiki/EBCDIC
-[MSB]:         https://secure.wikimedia.org/wikipedia/en/wiki/Most_significant_bit
-[UTF-8]:       https://secure.wikimedia.org/wikipedia/en/wiki/UTF-8
+[ASCII]:       https://en.wikipedia.org/wiki/ASCII
+[EBCDIC]:      https://en.wikipedia.org/wiki/EBCDIC
+[MSB]:         https://en.wikipedia.org/wiki/Most_significant_bit
+[UTF-8]:       https://en.wikipedia.org/wiki/UTF-8
 [xmodmap(1)]:  http://manpages.debian.net/cgi-bin/man.cgi?query=xmodmap&sektion=1
 [xcompose(5)]: http://manpages.ubuntu.com/manpages/precise/en/man5/XCompose.5.html
