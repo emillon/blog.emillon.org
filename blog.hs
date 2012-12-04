@@ -17,7 +17,6 @@ main =
 rules :: Rules
 rules = do
   makeCss
-  copyImages
   renderPosts
   renderPostsList
   makeIndex
@@ -33,12 +32,6 @@ makeCss =
   void $ match "static/css/*" $ do
       route $ stripPrefix "static/"
       compile compressCssCompiler
-
-copyImages :: Rules
-copyImages =
-  void $ match "images/*" $ do
-      route idRoute
-      compile copyFileCompiler
 
 pageComp = pageCompiler
        >>> arr (renderDateField "date" "%B %e, %Y" "Date unknown")
