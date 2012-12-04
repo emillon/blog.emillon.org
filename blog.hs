@@ -25,10 +25,13 @@ rules = do
   makeRss
   buildTemplates
 
+stripPrefix :: String -> Routes
+stripPrefix pfx = gsubRoute pfx (const "")
+
 makeCss :: Rules
 makeCss =
-  void $ match "css/*" $ do
-      route   idRoute
+  void $ match "static/css/*" $ do
+      route $ stripPrefix "static/"
       compile compressCssCompiler
 
 copyImages :: Rules
