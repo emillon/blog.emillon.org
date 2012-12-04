@@ -1,6 +1,6 @@
 install:
   - sudo apt-get update -qq
-  - sudo apt-get install -qq ghc libghc-hakyll-dev linkchecker
+  - sudo apt-get install -qq ghc libghc-hakyll-dev linkchecker python-cssutils python-utidylib
 before_script:
   - ghc --make blog
   - ./blog build
