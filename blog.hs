@@ -11,7 +11,7 @@ main :: IO ()
 main =
   hakyllWith conf rules
     where
-      conf = defaultHakyllConfiguration { deployCommand = s3deploy }
+      conf = defaultConfiguration { deployCommand = s3deploy }
       s3deploy = "s3cmd --guess-mime-type -P sync _site/ s3://blog.emillon.org/"
 
 rules :: Rules
@@ -21,8 +21,8 @@ rules = do
   renderPosts
   renderPostsList
   makeIndex
-  makeTags
-  makeRss
+  {-makeTags-}
+  {-makeRss-}
   buildTemplates
 
 stripPrefix :: String -> Routes
@@ -40,79 +40,84 @@ copyStatic =
       route $ stripPrefix "static/"
       compile copyFileCompiler
 
-pageComp = pageCompiler
-       >>> arr (renderDateField "date" "%B %e, %Y" "Date unknown")
-       >>> renderTagsField "prettytags" (fromCapture "tags/*")
+pageComp = pandocCompiler
+
+postCtx :: Context String
+postCtx = dateField "date" "%B %e, %Y" `mappend`
+          tagsField "prettytags" (fromCapture "tags/*")
+-- TODO add defaultContext ?
 
 isRaw, isNotRaw :: Pattern a
-isRaw = inGroup $ Just "raw"
-isNotRaw = inGroup Nothing
+isRaw = hasVersion "raw"
+isNotRaw = hasNoVersion
 
 renderPosts :: Rules
 renderPosts = do
   void $ match "posts/*" $ do
       route   $ setExtension ".html"
       compile $ pageComp
-            >>> applyTemplateCompiler "templates/post.html"
-            >>> applyTemplateCompiler "templates/default.html"
-            >>> relativizeUrlsCompiler
-  void $ group "raw" $
+            >>> loadAndApplyTemplate "templates/post.html"
+            >>> loadAndApplyTemplate "templates/default.html"
+            >>> relativizeUrls
+  void $ version "raw" $
     match "posts/*" $ do
       route   $ setExtension ".html"
       compile $ pageComp
-            >>> relativizeUrlsCompiler
+            >>> relativizeUrls
 
 renderPostsList :: Rules
 renderPostsList = void $ do
   match "posts.html" $ route idRoute
-  create "posts.html"
-      $ constA mempty
-    >>> arr (setField "title" "All posts")
-    >>> arr (setField "feed" "/rss.xml")
-    >>> requireAllA ("posts/*" `mappend` isNotRaw) addPostList
-    >>> applyTemplateCompiler "templates/posts.html"
-    >>> applyTemplateCompiler "templates/default.html"
-    >>> relativizeUrlsCompiler
+  create "posts.html" $ do
+      post <- loadAll ("posts/*" .&&. isNotRaw) addPostList
+      p1 <- loadAndApplyTemplate "templates/posts.html" ctx post
+      p2 <- loadAndApplyTemplate "templates/default.html" ctx p1
+      return $ relativizeUrls p2
+    where
+      ctx = titleField "All posts" `mappend` constField "feed" "/rss.xml"
+-- TODO add postCtx
+        
 
 makeIndex :: Rules
 makeIndex = void $ do
   match "index.html" $ route idRoute
-  create "index.html"
-      $ constA mempty
-    >>> arr (setField "title" "Home")
-    >>> requireA "tags" (setFieldA "tagcloud" renderTagCloud')
-    >>> requireAllA ("posts/*" `mappend` isNotRaw) (second (arr (take 3 . reverse . chronological)) >>> addPostList)
-    >>> applyTemplateCompiler "templates/index.html"
-    >>> applyTemplateCompiler "templates/default.html"
-    >>> relativizeUrlsCompiler
-
-makeTags :: Rules
-makeTags = do
-  void $ create "tags" $
-      requireAll ("posts/*" `mappend` isRaw) (\_ ps -> readTags ps :: Tags String)
-  -- Add a tag list compiler for every tag
-  match "tags/*" $ route $ setExtension ".html"
-  metaCompile $ require_ "tags"
-            >>> arr tagsMap
-            >>> arr (map (\(t, p) -> (tagIdentifier t, makeTagList t p)))
-
-makeRss :: Rules
-makeRss = void $ do
-  -- Render RSS feed
-  match "rss.xml" $ route idRoute
-  create "rss.xml" $ requireAll_ ("posts/*" `mappend` isRaw)
-                 >>> mapCompiler (arr $ copyBodyToField "description")
-                 >>> renderRss feedConfiguration
-
-  match "feeds/*" $ route $ setExtension ".xml"
-  metaCompile $ require_ "tags"
-            >>> arr tagsMap
-            >>> mapCompiler (arr tagFeedId *** arr tagFeedRss)
+  create "index.html" $ do
+        tags <-  load "tags" (constField "tagcloud" renderTagCloud')
+        post <- loadAll ("posts/*" .&&. isNotRaw) (second (arr (take 3 . reverse . chronological)) >>> addPostList)
+        p1 <- loadAndApplyTemplate "templates/index.html" ctx post
+        p2 <- loadAndApplyTemplate "templates/default.html" ctx p1
+        relativizeUrls p2
     where
-      tagFeedId t = parseIdentifier ("feeds/"++t)
-      tagFeedRss ps = constA ps
-                  >>> mapCompiler (arr $ copyBodyToField "description")
-                  >>> renderRss feedConfiguration
+      ctx = titleField "Home"
+
+{-makeTags :: Rules-}
+{-makeTags = do-}
+  {-void $ create "tags" $ do-}
+      {-post <- loadAll ("posts/*" `mappend` isRaw) (\_ ps -> getTags ps :: Tags String)-}
+      {-return post-}
+  {--- Add a tag list compiler for every tag-}
+  {-match "tags/*" $ route $ setExtension ".html"-}
+  {-metaCompile $ require_ "tags"-}
+            {->>> arr tagsMap-}
+            {->>> arr (map (\(t, p) -> (tagIdentifier t, makeTagList t p)))-}
+
+{-makeRss :: Rules-}
+{-makeRss = void $ do-}
+  {--- Render RSS feed-}
+  {-match "rss.xml" $ route idRoute-}
+  {-create "rss.xml" $ dorequireAll_ ("posts/*" `mappend` isRaw)-}
+                 {->>> mapCompiler (arr $ copyBodyToField "description")-}
+                 {->>> renderRss feedConfiguration-}
+
+  {-match "feeds/*" $ route $ setExtension ".xml"-}
+  {-metaCompile $ require_ "tags"-}
+            {->>> arr tagsMap-}
+            {->>> mapCompiler (arr tagFeedId *** arr tagFeedRss)-}
+    {-where-}
+      {-tagFeedId t = parseIdentifier ("feeds/"++t)-}
+      {-tagFeedRss ps = constA ps-}
+                  {->>> mapCompiler (arr $ copyBodyToField "description")-}
+                  {->>> renderRss feedConfiguration-}
 
 buildTemplates :: Rules
 buildTemplates =
@@ -121,30 +126,31 @@ buildTemplates =
 renderTagCloud' :: Compiler (Tags String) String
 renderTagCloud' = renderTagCloud tagIdentifier 100 120
 
-tagIdentifier :: String -> Identifier (Page String)
+tagIdentifier :: String -> Identifier (Item String)
 tagIdentifier = fromCapture "tags/*"
 
 -- | Auxiliary compiler: generate a post list from a list of given posts, and
 -- add it to the current page under @$posts@
 --
-addPostList :: Compiler (Page String, [Page String]) (Page String)
-addPostList = setFieldA "posts" $
-    arr (reverse . chronological)
-        >>> require "templates/postitem.html" (\p t -> map (applyTemplate t) p)
-        >>> arr mconcat
-        >>> arr pageBody
+addPostList :: Compiler (Item String, [Item String]) (Item String)
+addPostList = undefined
+{-addPostList = setFieldA "posts" $-}
+    {-arr (reverse . chronological)-}
+        {->>> require "templates/postitem.html" (\p t -> map (applyTemplate t) p)-}
+        {->>> arr mconcat-}
+        {->>> arr pageBody-}
 
 makeTagList :: String
-            -> [Page String]
-            -> Compiler () (Page String)
+            -> [Item String]
+            -> Compiler () (Item String)
 makeTagList tag posts =
-    constA (mempty, posts)
+    const (mempty, posts)
         >>> addPostList
-        >>> arr (setField "title" ("Posts tagged &#8216;" ++ tag ++ "&#8217;"))
-        >>> arr (setField "feed" ("/feeds/" ++ tag ++ ".xml"))
-        >>> applyTemplateCompiler "templates/posts.html"
-        >>> applyTemplateCompiler "templates/default.html"
-        >>> relativizeUrlsCompiler
+        >>> arr (constField "title" ("Posts tagged &#8216;" ++ tag ++ "&#8217;")) -- TODO use titleField
+        >>> arr (constField "feed" ("/feeds/" ++ tag ++ ".xml"))
+        >>> loadAndApplyTemplate "templates/posts.html"
+        >>> loadAndApplyTemplate "templates/default.html"
+        >>> relativizeUrls
 
 feedConfiguration :: FeedConfiguration
 feedConfiguration = FeedConfiguration
