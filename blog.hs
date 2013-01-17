@@ -164,5 +164,6 @@ feedConfiguration = FeedConfiguration
     { feedTitle       = "Enter the void *"
     , feedDescription = "Yet another random hacker"
     , feedAuthorName  = "Etienne Millon"
+    , feedAuthorEmail = "me@emillon.org"
     , feedRoot        = "http://blog.emillon.org"
     }
