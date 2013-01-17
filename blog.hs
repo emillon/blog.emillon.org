@@ -73,13 +73,18 @@ renderPostsList = void $ do
   match "posts.html" $ route idRoute
   create ["posts.html"] $ compile $ do
       posts :: [Item String] <- loadAll ("posts/*" .&&. isNotRaw)
-      renderedPosts <- forM posts $ \ post -> do
-        p1 <- loadAndApplyTemplate "templates/posts.html" ctx post
-        p2 <- loadAndApplyTemplate "templates/default.html" ctx p1
-        relativizeUrls p2
-      addPostList renderedPosts
-    where
-      ctx = titleField "All posts" `mappend` constField "feed" "/rss.xml"
+      let ctx1 = mconcat [ titleField "All posts"
+                         , constField "feed" "/rss.xml"
+                         , dateField "date" "%B %e, %Y"
+                         , defaultContext
+                         ]
+      postsString <- addPostList ctx1 posts
+      let ctx2 = constField "posts" postsString `mappend` ctx1
+      what <- getUnderlying
+      let p0 = Item what "empty page"
+      p1 <- loadAndApplyTemplate "templates/posts.html" ctx2 p0
+      p2 <- loadAndApplyTemplate "templates/default.html" ctx2 p1
+      relativizeUrls p2
 -- TODO add postCtx
 
 -- makeIndex :: Rules ()
@@ -136,28 +141,27 @@ tagIdentifier = fromCapture "tags/*"
 -- | Auxiliary compiler: generate a post list from a list of given posts, and
 -- add it to the current page under @$posts@
 --
-addPostList :: [Item String] -> Compiler (Item String)
-addPostList = undefined
-{-addPostList = setFieldA "posts" $-}
-    {-arr (reverse . chronological)-}
-        {->>> require "templates/postitem.html" (\p t -> map (applyTemplate t) p)-}
-        {->>> arr mconcat-}
-        {->>> arr pageBody-}
+addPostList :: Context String -> [Item String] -> Compiler String
+addPostList ctx posts = do
+  tpl <- loadBody "templates/postitem.html"
+  let orderedPosts = reverse $ chronological $ posts
+  applyTemplateList tpl ctx orderedPosts
 
 makeTagList :: String
             -> [Item String]
             -> Compiler (Item String)
-makeTagList tag posts =
-    return posts
-        >>= addPostList
-        >>= loadAndApplyTemplate "templates/posts.html" ctx
-        >>= loadAndApplyTemplate "templates/default.html" ctx
-        >>= relativizeUrls
-  where
-    ctx =
-        titleField ("Posts tagged &#8216;" ++ tag ++ "&#8217;") `mappend`
-        constField "feed" ("/feeds/" ++ tag ++ ".xml")
+makeTagList tag posts = do
+  let ctx1 =
+          titleField ("Posts tagged &#8216;" ++ tag ++ "&#8217;") `mappend`
+          constField "feed" ("/feeds/" ++ tag ++ ".xml")
 -- TODO + autre ctx ?
+  postsString <- addPostList ctx1 posts
+  let ctx2 = constField "posts" postsString `mappend` ctx1
+-- TODO facto ce ctx1/2
+  let p0 = error "p0" -- TODO virer error
+  p1 <- loadAndApplyTemplate "templates/posts.html" ctx2 p0
+  p2 <- loadAndApplyTemplate "templates/default.html" ctx2 p1
+  relativizeUrls p2
 
 feedConfiguration :: FeedConfiguration
 feedConfiguration = FeedConfiguration
