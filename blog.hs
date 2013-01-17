@@ -21,7 +21,7 @@ rules = do
   copyStatic
   renderPosts
   renderPostsList
-  --makeIndex
+  makeIndex
   {-makeTags-}
   {-makeRss-}
   buildTemplates
@@ -51,13 +51,15 @@ isRaw, isNotRaw :: Pattern
 isRaw = hasVersion "raw"
 isNotRaw = hasNoVersion
 
+getTags' = buildTags "tag/*" (fromCapture "tag/*")
+
 renderPosts :: Rules ()
 renderPosts = do
   void $ match "posts/*" $ do
       route   $ setExtension ".html"
       compile $ do
         x1 <- pandocCompiler
-        tags <- buildTags "tag/*" (fromCapture "tag/*")
+        tags <- getTags'
         let ctx = postCtx tags
         x2 <- loadAndApplyTemplate "templates/post.html"    ctx x1
         x3 <- loadAndApplyTemplate "templates/default.html" ctx x2
@@ -70,8 +72,9 @@ renderPosts = do
 
 renderPostsList :: Rules ()
 renderPostsList = void $ do
-  match "posts.html" $ route idRoute
-  create ["posts.html"] $ compile $ do
+  create ["posts.html"] $ do
+    route idRoute
+    compile $ do
       posts :: [Item String] <- loadAll ("posts/*" .&&. isNotRaw)
       let ctx1 = mconcat [ titleField "All posts"
                          , constField "feed" "/rss.xml"
@@ -87,17 +90,27 @@ renderPostsList = void $ do
       relativizeUrls p2
 -- TODO add postCtx
 
--- makeIndex :: Rules ()
--- makeIndex = void $ do
---   match "index.html" $ route idRoute
---   create ["index.html"] $ do
---         tags <-  load "tags" (constField "tagcloud" renderTagCloud')
---         post <- loadAll ("posts/*" .&&. isNotRaw) (second (arr (take 3 . reverse . chronological)) >>> addPostList)
---         p1 <- loadAndApplyTemplate "templates/index.html" ctx post
---         p2 <- loadAndApplyTemplate "templates/default.html" ctx p1
---         relativizeUrls p2
---     where
---       ctx = titleField "Home"
+makeIndex :: Rules ()
+makeIndex = void $ do
+  create ["index.html"] $ do
+    route idRoute
+    compile $ do
+        tags <- getTags'
+        tagCloud <- renderTagCloud' tags
+        let ctx1 = mconcat [ titleField "Home"
+                           , constField "tagcloud" tagCloud
+                           , dateField "date" "%B %e, %Y"
+                           , defaultContext
+                           ]
+        allPosts :: [Item String] <- loadAll ("posts/*" .&&. isNotRaw)
+        let posts = take 3 . reverse . chronological $ allPosts
+        postsString <- addPostList ctx1 posts
+        let ctx2 = constField "posts" postsString `mappend` ctx1
+        what <- getUnderlying
+        let post = Item what "empty page"
+        p1 <- loadAndApplyTemplate "templates/index.html" ctx2 post
+        p2 <- loadAndApplyTemplate "templates/default.html" ctx2 p1
+        relativizeUrls p2
 
 {-makeTags :: Rules-}
 {-makeTags = do-}
@@ -132,8 +145,8 @@ buildTemplates :: Rules ()
 buildTemplates =
   void $ match "templates/*" $ compile templateCompiler
 
-{-renderTagCloud' :: Tags -> Compiler String-}
-{-renderTagCloud' = renderTagCloud tagIdentifier 100 120-}
+renderTagCloud' :: Tags -> Compiler String
+renderTagCloud' = renderTagCloud 100 120
 
 tagIdentifier :: String -> Identifier
 tagIdentifier = fromCapture "tags/*"
