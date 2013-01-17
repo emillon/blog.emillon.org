@@ -44,8 +44,8 @@ copyStatic =
 postCtx :: Tags -> Context String
 postCtx t =
   dateField "date" "%B %e, %Y" `mappend`
-  tagsField "prettytags" t
--- TODO add defaultContext ?
+  tagsField "prettytags" t `mappend`
+  defaultContext
 
 isRaw, isNotRaw :: Pattern
 isRaw = hasVersion "raw"
