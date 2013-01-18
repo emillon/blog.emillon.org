@@ -41,12 +41,6 @@ copyStatic =
       route $ stripPrefix "static/"
       compile copyFileCompiler
 
-postCtx :: Tags -> Context String
-postCtx t =
-  dateField "date" "%B %e, %Y" `mappend`
-  tagsField "prettytags" t `mappend`
-  defaultContext
-
 isRaw, isNotRaw :: Pattern
 isRaw = hasVersion "raw"
 isNotRaw = hasNoVersion
@@ -60,7 +54,10 @@ renderPosts = do
       compile $ do
         x1 <- pandocCompiler
         tags <- getTags'
-        let ctx = postCtx tags
+        let ctx = mconcat [ dateField "date" "%B %e, %Y"
+                          , tagsField "prettytags" tags
+                          , defaultContext
+                          ]
         x2 <- loadAndApplyTemplate "templates/post.html"    ctx x1
         x3 <- loadAndApplyTemplate "templates/default.html" ctx x2
         relativizeUrls x3
