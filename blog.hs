@@ -47,8 +47,9 @@ isNotRaw = hasNoVersion
 
 getTags' = buildTags "tag/*" (fromCapture "tag/*")
 
-finalRenderer ctx x = do
-  x3 <- loadAndApplyTemplate "templates/default.html" ctx x
+finalRenderer tplPath ctx x1 = do
+  x2 <- loadAndApplyTemplate tplPath ctx x1
+  x3 <- loadAndApplyTemplate "templates/default.html" ctx x2
   relativizeUrls x3
 
 renderPosts :: Rules ()
@@ -62,8 +63,7 @@ renderPosts = do
                           , tagsField "prettytags" tags
                           , defaultContext
                           ]
-        x2 <- loadAndApplyTemplate "templates/post.html"    ctx x1
-        finalRenderer ctx x2
+        finalRenderer "templates/post.html" ctx x1
   void $ version "raw" $
     match "posts/*" $ do
       compile $ pandocCompiler
@@ -84,8 +84,7 @@ renderPostsList = void $ do
       let ctx2 = constField "posts" postsString `mappend` ctx1
       what <- getUnderlying
       let p0 = Item what "empty page"
-      p1 <- loadAndApplyTemplate "templates/posts.html" ctx2 p0
-      finalRenderer ctx2 p1
+      finalRenderer "templates/posts.html" ctx2 p0
 -- TODO add postCtx
 
 makeIndex :: Rules ()
@@ -106,8 +105,7 @@ makeIndex = void $ do
         let ctx2 = constField "posts" postsString `mappend` ctx1
         what <- getUnderlying
         let post = Item what "empty page"
-        p1 <- loadAndApplyTemplate "templates/index.html" ctx2 post
-        finalRenderer ctx2 p1
+        finalRenderer "templates/index.html" ctx2 post
 
 {-makeTags :: Rules-}
 {-makeTags = do-}
@@ -169,8 +167,7 @@ makeTagList tag posts = do
   let ctx2 = constField "posts" postsString `mappend` ctx1
 -- TODO facto ce ctx1/2
   let p0 = error "p0" -- TODO virer error
-  p1 <- loadAndApplyTemplate "templates/posts.html" ctx2 p0
-  finalRenderer ctx2 p1
+  finalRenderer "templates/posts.html" ctx2 p0
 
 feedConfiguration :: FeedConfiguration
 feedConfiguration = FeedConfiguration
