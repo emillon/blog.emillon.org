@@ -47,6 +47,10 @@ isNotRaw = hasNoVersion
 
 getTags' = buildTags "tag/*" (fromCapture "tag/*")
 
+finalRenderer ctx x = do
+  x3 <- loadAndApplyTemplate "templates/default.html" ctx x
+  relativizeUrls x3
+
 renderPosts :: Rules ()
 renderPosts = do
   void $ match "posts/*" $ do
@@ -59,8 +63,7 @@ renderPosts = do
                           , defaultContext
                           ]
         x2 <- loadAndApplyTemplate "templates/post.html"    ctx x1
-        x3 <- loadAndApplyTemplate "templates/default.html" ctx x2
-        relativizeUrls x3
+        finalRenderer ctx x2
   void $ version "raw" $
     match "posts/*" $ do
       compile $ pandocCompiler
@@ -82,8 +85,7 @@ renderPostsList = void $ do
       what <- getUnderlying
       let p0 = Item what "empty page"
       p1 <- loadAndApplyTemplate "templates/posts.html" ctx2 p0
-      p2 <- loadAndApplyTemplate "templates/default.html" ctx2 p1
-      relativizeUrls p2
+      finalRenderer ctx2 p1
 -- TODO add postCtx
 
 makeIndex :: Rules ()
@@ -105,8 +107,7 @@ makeIndex = void $ do
         what <- getUnderlying
         let post = Item what "empty page"
         p1 <- loadAndApplyTemplate "templates/index.html" ctx2 post
-        p2 <- loadAndApplyTemplate "templates/default.html" ctx2 p1
-        relativizeUrls p2
+        finalRenderer ctx2 p1
 
 {-makeTags :: Rules-}
 {-makeTags = do-}
@@ -169,8 +170,7 @@ makeTagList tag posts = do
 -- TODO facto ce ctx1/2
   let p0 = error "p0" -- TODO virer error
   p1 <- loadAndApplyTemplate "templates/posts.html" ctx2 p0
-  p2 <- loadAndApplyTemplate "templates/default.html" ctx2 p1
-  relativizeUrls p2
+  finalRenderer ctx2 p1
 
 feedConfiguration :: FeedConfiguration
 feedConfiguration = FeedConfiguration
