@@ -2,7 +2,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
-import Control.Arrow
 import Control.Monad
 import Data.Monoid
 
@@ -45,8 +44,11 @@ isRaw, isNotRaw :: Pattern
 isRaw = hasVersion "raw"
 isNotRaw = hasNoVersion
 
+getTags' :: Compiler Tags
 getTags' = buildTags "tag/*" (fromCapture "tag/*")
 
+finalRenderer :: Identifier -> Context String -> Item String
+              -> Compiler (Item String)
 finalRenderer tplPath ctx x1 = do
   x2 <- loadAndApplyTemplate tplPath ctx x1
   x3 <- loadAndApplyTemplate "templates/default.html" ctx x2
@@ -85,7 +87,6 @@ renderPostsList = void $ do
       what <- getUnderlying
       let p0 = Item what "empty page"
       finalRenderer "templates/posts.html" ctx2 p0
--- TODO add postCtx
 
 makeIndex :: Rules ()
 makeIndex = void $ do
