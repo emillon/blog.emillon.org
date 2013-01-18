@@ -66,7 +66,6 @@ renderPosts = do
         relativizeUrls x3
   void $ version "raw" $
     match "posts/*" $ do
-      route   $ setExtension ".html"
       compile $ pandocCompiler
             >>= relativizeUrls
 
