@@ -23,7 +23,7 @@ rules = do
   renderPostsList
   makeIndex tags
   makeTags tags
-  {-makeRss-}
+  makeRss
   buildTemplates
 
 stripPrefix :: String -> Routes
@@ -119,6 +119,17 @@ makeTags tags =
                          , ctx1
                          ]
       finalRenderer "templates/posts.html" ctx2 x1
+
+makeRss :: Rules ()
+makeRss = void $
+  create ["rss.xml"] $ do
+    route idRoute
+    compile $ do
+      posts <- loadAll ("posts/*" .&&. isRaw)
+      let ctx = mconcat [ bodyField "description"
+                        , defaultContext
+                        ]
+      renderRss feedConfiguration ctx posts
 
 {-makeRss :: Rules-}
 {-makeRss = void $ do-}
