@@ -16,12 +16,13 @@ main =
 
 rules :: Rules ()
 rules = do
+  tags <- buildTags "posts/*" (fromCapture "tag/*.html")
   makeCss
   copyStatic
-  renderPosts
+  renderPosts tags
   renderPostsList
-  makeIndex
-  {-makeTags-}
+  makeIndex tags
+  makeTags tags
   {-makeRss-}
   buildTemplates
 
@@ -44,9 +45,6 @@ isRaw, isNotRaw :: Pattern
 isRaw = hasVersion "raw"
 isNotRaw = hasNoVersion
 
-getTags' :: Compiler Tags
-getTags' = buildTags "tag/*" (fromCapture "tag/*")
-
 finalRenderer :: Identifier -> Context String -> Item String
               -> Compiler (Item String)
 finalRenderer tplPath ctx x1 = do
@@ -54,13 +52,12 @@ finalRenderer tplPath ctx x1 = do
   x3 <- loadAndApplyTemplate "templates/default.html" ctx x2
   relativizeUrls x3
 
-renderPosts :: Rules ()
-renderPosts = do
+renderPosts :: Tags -> Rules ()
+renderPosts tags = do
   void $ match "posts/*" $ do
       route   $ setExtension ".html"
       compile $ do
         x1 <- pandocCompiler
-        tags <- getTags'
         let ctx = mconcat [ dateField "date" "%B %e, %Y"
                           , tagsField "prettytags" tags
                           , defaultContext
@@ -84,16 +81,14 @@ renderPostsList = void $ do
                          ]
       postsString <- addPostList ctx1 posts
       let ctx2 = constField "posts" postsString `mappend` ctx1
-      what <- getUnderlying
-      let p0 = Item what "empty page"
+      p0 <- makeItem ""
       finalRenderer "templates/posts.html" ctx2 p0
 
-makeIndex :: Rules ()
-makeIndex = void $ do
+makeIndex :: Tags -> Rules ()
+makeIndex tags = void $ do
   create ["index.html"] $ do
     route idRoute
     compile $ do
-        tags <- getTags'
         tagCloud <- renderTagCloud' tags
         let ctx1 = mconcat [ titleField "Home"
                            , constField "tagcloud" tagCloud
@@ -104,20 +99,26 @@ makeIndex = void $ do
         let posts = take 3 . reverse . chronological $ allPosts
         postsString <- addPostList ctx1 posts
         let ctx2 = constField "posts" postsString `mappend` ctx1
-        what <- getUnderlying
-        let post = Item what "empty page"
+        post <- makeItem ""
         finalRenderer "templates/index.html" ctx2 post
 
-{-makeTags :: Rules-}
-{-makeTags = do-}
-  {-void $ create "tags" $ do-}
-      {-post <- loadAll ("posts/*" `mappend` isRaw) (\_ ps -> getTags ps :: Tags String)-}
-      {-return post-}
-  {--- Add a tag list compiler for every tag-}
-  {-match "tags/*" $ route $ setExtension ".html"-}
-  {-metaCompile $ require_ "tags"-}
-            {->>> arr tagsMap-}
-            {->>> arr (map (\(t, p) -> (tagIdentifier t, makeTagList t p)))-}
+makeTags :: Tags -> Rules ()
+makeTags tags =
+  tagsRules tags $ \ tag pattern -> do
+    route idRoute
+    compile $ do
+      x1 <- makeItem ""
+      posts <- loadAll pattern
+      let ctx1 = mconcat [ constField "feed" "TODO" -- TODO
+                         , dateField "date" "%B %e, %Y"
+                         , defaultContext
+                         ]
+      postsString <- addPostList ctx1 posts
+      let ctx2 = mconcat [ constField "posts" postsString
+                         , constField "title" $ "Posts tagged &#8216;" ++ tag ++ "&#8217;"
+                         , ctx1
+                         ]
+      finalRenderer "templates/posts.html" ctx2 x1
 
 {-makeRss :: Rules-}
 {-makeRss = void $ do-}
@@ -142,10 +143,7 @@ buildTemplates =
   void $ match "templates/*" $ compile templateCompiler
 
 renderTagCloud' :: Tags -> Compiler String
-renderTagCloud' = renderTagCloud 100 120
-
-tagIdentifier :: String -> Identifier
-tagIdentifier = fromCapture "tags/*"
+renderTagCloud' = renderTagCloud 70 160
 
 -- | Auxiliary compiler: generate a post list from a list of given posts, and
 -- add it to the current page under @$posts@
@@ -155,20 +153,6 @@ addPostList ctx posts = do
   tpl <- loadBody "templates/postitem.html"
   let orderedPosts = reverse $ chronological $ posts
   applyTemplateList tpl ctx orderedPosts
-
-makeTagList :: String
-            -> [Item String]
-            -> Compiler (Item String)
-makeTagList tag posts = do
-  let ctx1 =
-          titleField ("Posts tagged &#8216;" ++ tag ++ "&#8217;") `mappend`
-          constField "feed" ("/feeds/" ++ tag ++ ".xml")
--- TODO + autre ctx ?
-  postsString <- addPostList ctx1 posts
-  let ctx2 = constField "posts" postsString `mappend` ctx1
--- TODO facto ce ctx1/2
-  let p0 = error "p0" -- TODO virer error
-  finalRenderer "templates/posts.html" ctx2 p0
 
 feedConfiguration :: FeedConfiguration
 feedConfiguration = FeedConfiguration
