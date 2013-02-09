@@ -17,6 +17,7 @@ main =
 
 rules :: Rules ()
 rules = do
+  buildTemplates
   tags <- buildTags "posts/*" (fromCapture "tag/*.html")
   makeCss
   copyStatic
@@ -25,7 +26,6 @@ rules = do
   makeIndex tags
   makeTags tags
   makeRss
-  buildTemplates
 
 stripPrefix :: String -> Routes
 stripPrefix pfx = gsubRoute pfx (const "")
