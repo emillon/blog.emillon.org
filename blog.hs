@@ -18,7 +18,7 @@ main =
 rules :: Rules ()
 rules = do
   buildTemplates
-  tags <- buildTags "posts/*" (fromCapture "tag/*.html")
+  tags <- buildTags "posts/*" (fromCapture "tags/*.html")
   makeCss
   copyStatic
   renderPosts tags
@@ -132,7 +132,7 @@ tagToFeedRoute =
   composeRoutes setPrefix $ setExtension ".xml"
     where
       setPrefix = customRoute $ setPrefixPath . splitDirectories . toFilePath
-      setPrefixPath ["tag", tag] = joinPath ["feeds", tag]
+      setPrefixPath ["tags", tag] = joinPath ["feeds", tag]
       setPrefixPath _ = error "tagToFeedRoute"
 
 rssFromPosts :: [Item String] -> Compiler (Item String)
