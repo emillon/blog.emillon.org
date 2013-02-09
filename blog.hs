@@ -109,7 +109,8 @@ makeTags tags =
     compile $ do
       x1 <- makeItem ""
       posts <- loadAll pattern
-      let ctx1 = mconcat [ constField "feed" "TODO" -- TODO
+      let feedPath = "/feeds/" ++ tag ++ ".xml"
+          ctx1 = mconcat [ constField "feed" feedPath
                          , dateField "date" "%B %e, %Y"
                          , defaultContext
                          ]
