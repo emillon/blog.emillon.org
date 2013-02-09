@@ -106,12 +106,12 @@ makeIndex tags = void $ do
 makeTags :: Tags -> Rules ()
 makeTags tags =
   tagsRules tags $ \ tag pattern -> do
-    let feedPath = "/feeds/" ++ tag ++ ".xml"
+    let feedPath = "feeds/" ++ tag ++ ".xml"
     route idRoute
     compile $ do
       x1 <- makeItem ""
       posts <- loadAll pattern
-      let ctx1 = mconcat [ constField "feed" feedPath
+      let ctx1 = mconcat [ constField "feed" $ "/" ++ feedPath
                          , dateField "date" "%B %e, %Y"
                          , defaultContext
                          ]
@@ -122,18 +122,10 @@ makeTags tags =
                          ]
       finalRenderer "templates/posts.html" ctx2 x1
     version "rss" $ do
-      route tagToFeedRoute
+      route $ constRoute feedPath
       compile $ do
         posts <- loadAll pattern
         rssFromPosts posts
-
-tagToFeedRoute :: Routes
-tagToFeedRoute =
-  composeRoutes setPrefix $ setExtension ".xml"
-    where
-      setPrefix = customRoute $ setPrefixPath . splitDirectories . toFilePath
-      setPrefixPath ["tags", tag] = joinPath ["feeds", tag]
-      setPrefixPath _ = error "tagToFeedRoute"
 
 rssFromPosts :: [Item String] -> Compiler (Item String)
 rssFromPosts posts = do
