@@ -4,6 +4,7 @@ module Main where
 
 import Control.Monad
 import Data.Monoid
+import System.FilePath
 
 import Hakyll
 
@@ -105,12 +106,12 @@ makeIndex tags = void $ do
 makeTags :: Tags -> Rules ()
 makeTags tags =
   tagsRules tags $ \ tag pattern -> do
+    let feedPath = "/feeds/" ++ tag ++ ".xml"
     route idRoute
     compile $ do
       x1 <- makeItem ""
       posts <- loadAll pattern
-      let feedPath = "/feeds/" ++ tag ++ ".xml"
-          ctx1 = mconcat [ constField "feed" feedPath
+      let ctx1 = mconcat [ constField "feed" feedPath
                          , dateField "date" "%B %e, %Y"
                          , defaultContext
                          ]
@@ -120,6 +121,26 @@ makeTags tags =
                          , ctx1
                          ]
       finalRenderer "templates/posts.html" ctx2 x1
+    version "rss" $ do
+      route tagToFeedRoute
+      compile $ do
+        posts <- loadAll pattern
+        rssFromPosts posts
+
+tagToFeedRoute :: Routes
+tagToFeedRoute =
+  composeRoutes setPrefix $ setExtension ".xml"
+    where
+      setPrefix = customRoute $ setPrefixPath . splitDirectories . toFilePath
+      setPrefixPath ["tag", tag] = joinPath ["feeds", tag]
+      setPrefixPath _ = error "tagToFeedRoute"
+
+rssFromPosts :: [Item String] -> Compiler (Item String)
+rssFromPosts posts = do
+  let ctx = mconcat [ bodyField "description"
+                    , defaultContext
+                    ]
+  renderRss feedConfiguration ctx posts
 
 makeRss :: Rules ()
 makeRss = void $
@@ -127,28 +148,7 @@ makeRss = void $
     route idRoute
     compile $ do
       posts <- loadAll ("posts/*" .&&. isRaw)
-      let ctx = mconcat [ bodyField "description"
-                        , defaultContext
-                        ]
-      renderRss feedConfiguration ctx posts
-
-{-makeRss :: Rules-}
-{-makeRss = void $ do-}
-  {--- Render RSS feed-}
-  {-match "rss.xml" $ route idRoute-}
-  {-create "rss.xml" $ dorequireAll_ ("posts/*" `mappend` isRaw)-}
-                 {->>> mapCompiler (arr $ copyBodyToField "description")-}
-                 {->>> renderRss feedConfiguration-}
-
-  {-match "feeds/*" $ route $ setExtension ".xml"-}
-  {-metaCompile $ require_ "tags"-}
-            {->>> arr tagsMap-}
-            {->>> mapCompiler (arr tagFeedId *** arr tagFeedRss)-}
-    {-where-}
-      {-tagFeedId t = parseIdentifier ("feeds/"++t)-}
-      {-tagFeedRss ps = constA ps-}
-                  {->>> mapCompiler (arr $ copyBodyToField "description")-}
-                  {->>> renderRss feedConfiguration-}
+      rssFromPosts posts
 
 buildTemplates :: Rules ()
 buildTemplates =
