@@ -4,7 +4,6 @@ module Main where
 
 import Control.Monad
 import Data.Monoid
-import System.FilePath
 
 import Hakyll
 
@@ -59,8 +58,8 @@ renderPosts tags = do
                           , tagsField "prettytags" tags
                           , defaultContext
                           ]
-        saveSnapshot "content" x1
-        finalRenderer "templates/post.html" ctx x1
+        x2 <- saveSnapshot "content" x1
+        finalRenderer "templates/post.html" ctx x2
 
 renderPostsList :: Rules ()
 renderPostsList = void $ do
@@ -68,37 +67,36 @@ renderPostsList = void $ do
     route idRoute
     compile $ do
       posts :: [Item String] <- loadAll "posts/*"
-      let ctx1 = mconcat [ constField "feed" "/rss.xml"
-                         , dateField "date" "%B %e, %Y"
-                         , defaultContext
-                         ]
-      postsString <- addPostList ctx1 posts
-      let ctx2 = mconcat [ constField "title" "All posts"
-                         , constField "posts" postsString
-                         , ctx1
-                         ]
+      ctx <- makePostsContext "All posts" posts [("feed", "/rss.xml")]
       p0 <- makeItem ""
-      finalRenderer "templates/posts.html" ctx2 p0
+      finalRenderer "templates/posts.html" ctx p0
+
+makePostsContext :: String
+                 -> [Item String]
+                 -> [(String, String)]
+                 -> Compiler (Context String)
+makePostsContext title posts fields = do
+  let ctx1 = mconcat $ [ constField k v | (k, v) <- fields ]
+                    ++ [ dateField "date" "%B %e, %Y"
+                       , defaultContext
+                       ]
+  postsString <- addPostList ctx1 posts
+  return $ mconcat [ constField "title" title
+                   , constField "posts" postsString
+                   , ctx1
+                   ]
 
 makeIndex :: Tags -> Rules ()
 makeIndex tags = void $ do
   create ["index.html"] $ do
     route idRoute
     compile $ do
-        tagCloud <- renderTagCloud' tags
-        let ctx1 = mconcat [ constField "tagcloud" tagCloud
-                           , dateField "date" "%B %e, %Y"
-                           , defaultContext
-                           ]
         allPosts :: [Item String] <- loadAll "posts/*"
         let posts = take 3 . reverse . chronological $ allPosts
-        postsString <- addPostList ctx1 posts
-        let ctx2 = mconcat [ constField "title" "Home"
-                           , constField "posts" postsString
-                           , ctx1
-                           ]
+        tagCloud <- renderTagCloud' tags
+        ctx <- makePostsContext "Home" posts [("tagcloud", tagCloud)]
         post <- makeItem ""
-        finalRenderer "templates/index.html" ctx2 post
+        finalRenderer "templates/index.html" ctx post
 
 makeTags :: Tags -> Rules ()
 makeTags tags =
@@ -108,16 +106,10 @@ makeTags tags =
     compile $ do
       x1 <- makeItem ""
       posts <- loadAll pattern
-      let ctx1 = mconcat [ constField "feed" $ "/" ++ feedPath
-                         , dateField "date" "%B %e, %Y"
-                         , defaultContext
-                         ]
-      postsString <- addPostList ctx1 posts
-      let ctx2 = mconcat [ constField "posts" postsString
-                         , constField "title" $ "Posts tagged &#8216;" ++ tag ++ "&#8217;"
-                         , ctx1
-                         ]
-      finalRenderer "templates/posts.html" ctx2 x1
+      ctx <- makePostsContext ("Posts tagged &#8216;" ++ tag ++ "&#8217;")
+                               posts
+                               [("feed", "/" ++ feedPath)]
+      finalRenderer "templates/posts.html" ctx x1
     version "rss" $ do
       route $ constRoute feedPath
       compile $ do
