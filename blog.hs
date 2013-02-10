@@ -17,8 +17,8 @@ main =
 
 rules :: Rules ()
 rules = do
-  buildTemplates
   tags <- buildTags "posts/*" (fromCapture "tags/*.html")
+  buildTemplates
   makeCss
   copyStatic
   renderPosts tags
