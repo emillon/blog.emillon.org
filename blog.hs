@@ -42,10 +42,6 @@ copyStatic =
       route $ stripPrefix "static/"
       compile copyFileCompiler
 
-isRaw, isNotRaw :: Pattern
-isRaw = hasVersion "raw"
-isNotRaw = hasNoVersion
-
 finalRenderer :: Identifier -> Context String -> Item String
               -> Compiler (Item String)
 finalRenderer tplPath ctx x1 = do
@@ -63,18 +59,15 @@ renderPosts tags = do
                           , tagsField "prettytags" tags
                           , defaultContext
                           ]
+        saveSnapshot "content" x1
         finalRenderer "templates/post.html" ctx x1
-  void $ version "raw" $
-    match "posts/*" $ do
-      compile $ pandocCompiler
-            >>= relativizeUrls
 
 renderPostsList :: Rules ()
 renderPostsList = void $ do
   create ["posts.html"] $ do
     route idRoute
     compile $ do
-      posts :: [Item String] <- loadAll ("posts/*" .&&. isNotRaw)
+      posts :: [Item String] <- loadAll "posts/*"
       let ctx1 = mconcat [ titleField "All posts"
                          , constField "feed" "/rss.xml"
                          , dateField "date" "%B %e, %Y"
@@ -96,7 +89,7 @@ makeIndex tags = void $ do
                            , dateField "date" "%B %e, %Y"
                            , defaultContext
                            ]
-        allPosts :: [Item String] <- loadAll ("posts/*" .&&. isNotRaw)
+        allPosts :: [Item String] <- loadAll "posts/*"
         let posts = take 3 . reverse . chronological $ allPosts
         postsString <- addPostList ctx1 posts
         let ctx2 = constField "posts" postsString `mappend` ctx1
@@ -124,7 +117,7 @@ makeTags tags =
     version "rss" $ do
       route $ constRoute feedPath
       compile $ do
-        posts <- loadAll pattern
+        posts <- loadAllSnapshots pattern "content"
         rssFromPosts posts
 
 rssFromPosts :: [Item String] -> Compiler (Item String)
@@ -139,7 +132,7 @@ makeRss = void $
   create ["rss.xml"] $ do
     route idRoute
     compile $ do
-      posts <- loadAll ("posts/*" .&&. isRaw)
+      posts <- loadAllSnapshots "posts/*" "content"
       rssFromPosts posts
 
 buildTemplates :: Rules ()
