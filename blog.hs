@@ -68,13 +68,15 @@ renderPostsList = void $ do
     route idRoute
     compile $ do
       posts :: [Item String] <- loadAll "posts/*"
-      let ctx1 = mconcat [ titleField "All posts"
-                         , constField "feed" "/rss.xml"
+      let ctx1 = mconcat [ constField "feed" "/rss.xml"
                          , dateField "date" "%B %e, %Y"
                          , defaultContext
                          ]
       postsString <- addPostList ctx1 posts
-      let ctx2 = constField "posts" postsString `mappend` ctx1
+      let ctx2 = mconcat [ constField "title" "All posts"
+                         , constField "posts" postsString
+                         , ctx1
+                         ]
       p0 <- makeItem ""
       finalRenderer "templates/posts.html" ctx2 p0
 
@@ -84,15 +86,17 @@ makeIndex tags = void $ do
     route idRoute
     compile $ do
         tagCloud <- renderTagCloud' tags
-        let ctx1 = mconcat [ titleField "Home"
-                           , constField "tagcloud" tagCloud
+        let ctx1 = mconcat [ constField "tagcloud" tagCloud
                            , dateField "date" "%B %e, %Y"
                            , defaultContext
                            ]
         allPosts :: [Item String] <- loadAll "posts/*"
         let posts = take 3 . reverse . chronological $ allPosts
         postsString <- addPostList ctx1 posts
-        let ctx2 = constField "posts" postsString `mappend` ctx1
+        let ctx2 = mconcat [ constField "title" "Home"
+                           , constField "posts" postsString
+                           , ctx1
+                           ]
         post <- makeItem ""
         finalRenderer "templates/index.html" ctx2 post
 
