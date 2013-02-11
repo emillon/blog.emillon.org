@@ -37,7 +37,7 @@ makeCss =
 
 copyStatic :: Rules ()
 copyStatic =
-  void $ match "static/*" $ do
+  void $ match "static/**" $ do
       route $ stripPrefix "static/"
       compile copyFileCompiler
 

@@ -1,0 +1,9 @@
+.icon-github {
+  background-image: url('../img/github.png');
+  background-position: center center;
+}
+
+.icon-debian {
+  background-image: url('../img/debian-3.png');
+  background-position: top center;
+}
