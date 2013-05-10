@@ -1,3 +1,8 @@
+body {
+    margin: 0px auto 0px auto;
+    font-family: Ubuntu, UbuntuBeta, 'Droid Sans', Arial, sans-serif;
+}
+
 .icon-github {
   background-image: url('../img/github.png');
   background-position: center center;
@@ -6,4 +11,20 @@
 .icon-debian {
   background-image: url('../img/debian-3.png');
   background-position: top center;
+}
+
+.maintitle {
+  text-align:center;
+}
+
+.leftmenu {
+  padding-top: 50px;
+}
+
+body {
+  background-image: url('/img/grey_wash_wall.png');
+}
+
+.maincontainer {
+  background-color: white;
 }
