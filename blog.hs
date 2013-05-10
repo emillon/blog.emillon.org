@@ -92,7 +92,8 @@ makeIndex tags = void $ do
     route idRoute
     compile $ do
         allPosts :: [Item String] <- loadAll "posts/*"
-        let posts = take 3 . reverse . chronological $ allPosts
+        recentPosts <- recentFirst $ allPosts
+        let posts = take 3 recentPosts
         tagCloud <- renderTagCloud' tags
         ctx <- makePostsContext "Home" posts [("tagcloud", tagCloud)]
         post <- makeItem ""
@@ -144,7 +145,7 @@ renderTagCloud' = renderTagCloud 70 160
 addPostList :: Context String -> [Item String] -> Compiler String
 addPostList ctx posts = do
   tpl <- loadBody "templates/postitem.html"
-  let orderedPosts = reverse $ chronological $ posts
+  orderedPosts <- recentFirst posts
   applyTemplateList tpl ctx orderedPosts
 
 feedConfiguration :: FeedConfiguration
