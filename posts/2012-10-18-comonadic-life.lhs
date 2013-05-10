@@ -77,6 +77,7 @@ in the context of cellular automata[^3].
 
 [^3]: Simulating a closed topology such as a torus may even be possible using
       cyclic lists instead of lazy infinite lists.
+      **Update:** see Brian Cohen's response at the end of this post.
 
 > listLeft :: ListZipper a -> ListZipper a
 > listLeft (LZ (l:ls) x rs) = LZ ls l (x:rs)
@@ -341,6 +342,9 @@ implementation is only a dozen lines long!
 The real benefit is that it has really helped be grasp the concept of comonads.
 I hope that I did not just fall into the comonad tutorial fallacy :)
 
+**Update (March 10th):** Brian Cohen contributed [a simple extension to simulate
+a closed topology][BrianCohenHPaste]. Thanks !
+
 [Literate Haskell]:          http://www.haskell.org/haskellwiki/Literate_programming
 [source on github]:          https://github.com/emillon/blog.emillon.org
 [Edward Kmett]:              http://comonad.com
@@ -351,3 +355,4 @@ I hope that I did not just fall into the comonad tutorial fallacy :)
 [Huet's article]:            http://www.st.cs.uni-saarland.de/edu/seminare/2005/advanced-fp/docs/huet-zipper.pdf
 [cellular automata]:         http://en.wikipedia.org/wiki/Cellular_automaton
 [Conway's Game of Life]:     http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
+[BrianCohenHPaste]:          http://hpaste.org/83811
