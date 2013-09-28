@@ -1,0 +1,25 @@
+---
+title: Parsing brogue seed data with Parsec
+author: Etienne Millon
+tags: haskell parsec brogue 
+---
+
+### Gaming
+
+When I was younger, I enjoyed a lot japanese RPGs on the SNES. Stories
+were nice, combat systems were nice, these games were AA.
+
+But now, don't enjoy too much stuff with too much theme in it. For
+example, I prefer games like [Puerto Rico][BGGPuertoRico] to
+[The Werewolves of Miller's Hollow][BGGWerewolves]. Of course, it's a
+very different kind of game but what I like about Puerto Rico is that
+like many European games, the theme is completely optional. It could
+take place in Alaska, the Balkans, or ancient China and still be the
+same game. What's important is that you
+
+I don't like too much games w
+
+### Roguelikes & Brogue
+
+[BGGPuertoRico]: http://boardgamegeek.com/boardgame/3076/puerto-rico
+[BGGWerewolves]: http://boardgamegeek.com/boardgame/25821/the-werewolves-of-millers-hollow
