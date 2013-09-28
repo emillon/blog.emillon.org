@@ -25,6 +25,7 @@ rules = do
   makeIndex tags
   makeTags tags
   makeRss
+  makeDrafts tags
 
 stripPrefix :: String -> Routes
 stripPrefix pfx = gsubRoute pfx (const "")
@@ -131,6 +132,18 @@ makeRss = void $
     compile $ do
       posts <- loadAllSnapshots "posts/*" "content"
       rssFromPosts posts
+
+makeDrafts :: Tags -> Rules ()
+makeDrafts tags =
+    void $ match "drafts/*" $ do
+        route $ setExtension ".html"
+        compile $ do
+            x <- pandocCompiler
+            let ctx = mconcat [ constField "date" "No date"
+                              , tagsField "prettytags" tags
+                              , defaultContext
+                              ]
+            finalRenderer "templates/post.html" ctx x
 
 buildTemplates :: Rules ()
 buildTemplates =
