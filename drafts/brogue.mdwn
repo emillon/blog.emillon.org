@@ -1,5 +1,5 @@
 ---
-title: Parsing brogue seed data with Parsec
+title: Parsing Brogue seed data with Parsec
 author: Etienne Millon
 tags: haskell parsec brogue 
 ---
@@ -17,9 +17,35 @@ like many European games, the theme is completely optional. It could
 take place in Alaska, the Balkans, or ancient China and still be the
 same game. What's important is that you
 
-I don't like too much games w
-
 ### Roguelikes & Brogue
+
+Roguelikes are a type of game which are a descendant of the venerable
+[Rogue][WPRogue]. The most notorious is probably [NetHack]. [Brogue], which I'll
+talk about here, is a more modern roguelike, which is certainly easier for
+beginners. It looks like… that:
+
+![BrogueAnim]
+
+As it's quite abstract, this screenshot can be read as this:
+
+  - `@` is the player. You control its position using the hjkl keys to move it
+    like in vi, and using yubn to move it diagonals.
+  - `#` are walls.
+  - `.` is an empty spot (you can walk over it).
+  - `"` is grass. It's like an empty spot, except that it can burn.
+  - `~` is water. As you can see, it's animated and beautiful (sort of).
+  - `r` is a rat. There are a lot of different enemies in Brogue, with different
+    characteristics. Rats are the weakest type, and are usually defeated in a
+    hit.
+  - `Ω` is the dungeon's exit. The goal of the game is to exit the dungeon,
+    which is challenging because to unlock the exit door, you have to be in
+    possession of the Amulet of Yendor which is on level 26. That is to say, you
+    have to make your way through 26 levels full of enemies down and back up
+    (the ascension is quite easy, though).
 
 [BGGPuertoRico]: http://boardgamegeek.com/boardgame/3076/puerto-rico
 [BGGWerewolves]: http://boardgamegeek.com/boardgame/25821/the-werewolves-of-millers-hollow
+[WPRogue]: http://en.wikipedia.org/wiki/Rogue_(video_game)
+[NetHack]: http://www.nethack.org/
+[Brogue]: https://sites.google.com/site/broguegame/
+[BrogueAnim]: brogueanim.gif
