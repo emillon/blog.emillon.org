@@ -21,11 +21,32 @@ body {
   padding-top: 50px;
 }
 
-body {
-  background-image: url('/img/grey_wash_wall.png');
-}
-
 .maincontainer {
   background-color: white;
   padding-bottom: 100px;
+}
+
+.header {
+  background-color: #556270;
+  color: white;
+  width: 100%;
+  padding-top: 50px;
+  padding-bottom: 50px;
+}
+
+.nav-hdr ul {
+  margin: 0 auto;
+  padding-top: 10px;
+  width: 50%;
+}
+
+.nav-hdr li {
+    display: inline;
+    padding-right: 20px;
+  border: 1px solid red;
+}
+
+.nav-hdr li > a {
+    display: inline;
+    color: white;
 }
