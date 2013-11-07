@@ -134,7 +134,7 @@ makeRss = void $
       rssFromPosts posts
 
 makeDrafts :: Tags -> Rules ()
-makeDrafts tags =
+makeDrafts tags = do
     void $ match "drafts/*" $ do
         route $ setExtension ".html"
         compile $ do
@@ -144,6 +144,12 @@ makeDrafts tags =
                               , defaultContext
                               ]
             finalRenderer "templates/post.html" ctx x
+    void $ match "drafts/*/*" $ do
+        route $ setExtension ".html"
+        compile $
+            pandocCompiler >>=
+            loadAndApplyTemplate "templates/default.html" defaultContext >>=
+            relativizeUrls
 
 buildTemplates :: Rules ()
 buildTemplates =
