@@ -1,0 +1,57 @@
+---
+title: Our YC W13 experience
+author: Etienne Millon
+tags: yc, cloverfeed
+---
+
+Y Combinator is a seed accelerator for startups located in San Francisco Bay
+Area. Put simply, the Bay Area is the best place to start a technology startup
+and YC is the best accelerator there.
+
+Since 2010, I have been working on and off with my friend Gabriel Synnaeve on a
+product that could become a company. The idea is that we receive data everyday
+from a lot of sources, and a lot are not directly relevant to you. Our goal is
+to aggregate this feeds and sort them according to how likely you're going to
+read them.
+
+Doing this would be nice, but was a lot of work. We were both preparing our PhD
+and unwilling to jump the boat and work on this full-time, but the idea cooked a
+few years.
+
+In August 2012, we saw the usual "apply for YC" announce  on [Hacker News] and
+decided to apply. It would mean moving to California in January but by then we
+would both have graduated and officially on the job market. The perfect time to
+start a company.
+
+Getting into YC is a two-step process. First, you have to fill an application
+form that explains who you are, what you are going to work on, and why you'll
+succeed. Then, you're invited to present your project at Y Combinator
+headquarters in California. If the interview goes well you're invited to work
+[at YC] on your product.
+
+### The application
+
+When developing the product we arrived to the following pitch.
+
+> [Cloverfeed] is a website and a mobile application to rank and filter entries
+> from all your feeds: RSS, Facebook, Twitter, social news… It's like a spam
+> filter and "priority inbox" for all your notifications. With this service, we
+> want to empower our users to be more efficient reading their news feeds,
+> starting with ourselves.
+
+### The interview
+
+Here is what the home looks like
+
+![Cloverfeed inbox, sorted]
+
+and here what it would look if unsorted
+for this user
+
+![Cloverfeed inbox, unsorted]
+
+[Cloverfeed]: http://cloverfeed.com/
+[Hacker News]: http://news.ycombinator.com/
+[at YC]: http://ycombinator.com/atyc.html
+[Cloverfeed inbox, sorted]: http://i.imgur.com/Q9tVx.png
+[Cloverfeed inbox, unsorted]: http://i.imgur.com/uHJda.png
