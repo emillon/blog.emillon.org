@@ -250,10 +250,6 @@ How far along are you? Do you have a beta yet? If not, when will you? Are you la
 :   So far, we do not have a beta. Gabriel is going to be full-time on it
     starting from November and we will have a MVP next month.
 
-If you have an online demo, what's the url? (Please don't password protect it; just use an obscure url.)
-
-:   Not yet.
-
 How will you get users? If your idea is the type that faces a chicken-and-egg problem in the sense that it won't be attractive to users till it has a lot of users (e.g. a marketplace, a dating site, an ad network), how will you overcome that?
 
 :   We will get users first through word of mouth (HN, Twitter, friends): this
@@ -271,10 +267,6 @@ How will you get users? If your idea is the type that faces a chicken-and-egg pr
     sites too (with posts/comments), for Reddit there is an API, the HN API is
     read-only.
 
-If you're already incorporated, when were you? Who are the shareholders and what percent does each own? If you've had funding, how much, at what valuation(s)?
-
-:   Not applicable.
-
 If you're not incorporated yet, please list the percent of the company you plan to give each founder, and anyone else you plan to give stock to. (This question is as much for you as us.)
 
 :   snippyhollow 50
@@ -284,34 +276,14 @@ If we fund you, which of the founders will commit to working exclusively (no sch
 
 :   Both of us will work full-time on this project.
 
-For founders who can't, why not? What level of commitment are they willing to make?
-
-:   Not applicable.
-
 Do any founders have other commitments between January and March 2013 inclusive?
 
 :   Etienne may have to defend his PhD in this period. All the technical
     work and the manuscript will be done, so it will not take a lot of time.
 
-Do any founders have commitments in the future (e.g. finishing college, going to grad school), and if so what?
-
-:   No.
-
 Where do you live now, and where would the company be based after YC?
 
 :   We live in Paris, France. We would move to SF/the Valley after YC.
-
-Are any of the founders covered by noncompetes or intellectual property agreements that overlap with your project? Will any be working as employees or consultants for anyone else?
-
-:   No.
-
-Was any of your code written by someone who is not one of your founders? If so, how can you safely use it? (Open source is ok of course.)
-
-:   No.
-
-Are any of the following true? (a) You are the only founder. (b) You are a student who may return to school when the next term starts. (c) Half or more of your group can't move to the Bay Area. (d) One or more founders will keep their current jobs. (e) None of the founders are programmers. (Answering yes doesn't disqualify you. It's just to remind us to check.)
-
-:   No.
 
 If you had any other ideas you considered applying with, please list them. One may be something we've been waiting for. Often when we fund people it's to do something they list here and not in the main application.
 
