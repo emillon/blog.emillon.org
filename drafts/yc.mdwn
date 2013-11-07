@@ -67,10 +67,10 @@ have an MVP by December, between the interview and YC itself. We used the
 following stack:
 
   - web backend: pyramid
-  - ORM: sqlalchemy + alembic
-  - DB: postgresql + sqlite
+  - ORM: sqlalchemy, alembic
+  - DB: postgresql, sqlite
   - frontend: bootstrap, deform
-  - queueing: celery + rabbitmq
+  - queueing: celery, rabbitmq
   - ML backend: clojure, tika, scikit-learn
   - infrastructure: EC2
 
