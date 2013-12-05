@@ -1,4 +1,6 @@
 ---
+title: Resizing a LVM partition
+author: Etienne Millon
 tags: linux, lvm
 ---
 
@@ -42,7 +44,7 @@ precisely the volume group).
 
 In a nutshell, this complex operation can be done in two commands:
 
-~~~~
+~~~~ {.bash}
 lvresize -r -L 800G /dev/mapper/machine-home
 lvresize -r -l '+100%FREE' /dev/mapper/machine-root
 ~~~~
