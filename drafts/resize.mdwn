@@ -1,0 +1,54 @@
+---
+tags: linux, lvm
+---
+
+I like to have `/home` on a separate partition. But sometimes it can backfire.
+If your root partition is full, you don't have a lot of solutions. In
+particular, I found that debian-installer's "automatic partitioning" sometimes
+creates very small root partitions. If you want to install big packages (ghc,
+eclipse, libreoffice, …), 16G is not enough.
+
+In the past, filesystems were sitting on directly on top of partitions. It means
+that it's very difficult to change their size.
+
+Modern systems (post-1998) can use [LVM], which is a layer between filesystems
+and partitions. One of its advantages is that you can resize logical volumes (a
+LV is the virtual device node where the filesystem sits) after they have been
+created.
+
+To resize the `/` and `/home` filesystems, it is necessary to change the change
+the size of both the filesystems and the LVs. But it is not possible to do it in
+any order: at any time, the filesystem must be smaller than its LV. So, the
+correct order of operations is:
+
+  - shrink home filesystem
+  - shrink home LV
+  - expand root LV
+  - expand root filesystem
+
+Wait a second before you start reaching for your favorite live CD: all these
+operations can be done online. Actually, the two first ones need `/home` to be
+unmounted, so it has to be done in single user mode. Online expansion of the
+root file system is fairly new (it's from Linux 3.3, 2012) but it works like a
+charm.
+
+Manipulating partition and volume sizes are always a bit tricky. Sometimes you
+have to give sizes in blocks, sometimes in bytes. Sometimes it's multiples of
+1000 and sometimes it's multiples of 1024. I would not feel comfortable after
+typing 4 commands with 4 sizes. Fortunately, LVM tools are wonderful and can
+"talk" to the underlying filesystem (using [fsadm]). And LVM knows how much
+space is free, so it can expand a partition to fill completely the disk (or more
+precisely the volume group).
+
+In a nutshell, this complex operation can be done in two commands:
+
+~~~~
+lvresize -r -L 800G /dev/mapper/machine-home
+lvresize -r -l '+100%FREE' /dev/mapper/machine-root
+~~~~
+
+The `-r` switch enables [fsadm]. `-L` indicates the new size in terms of bytes,
+and `-l` in terms of LVM units.
+
+[LVM]: http://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)
+[fsadm]: http://linux.die.net/man/8/fsadm
