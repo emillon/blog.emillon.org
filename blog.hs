@@ -2,10 +2,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
+import Control.Applicative
 import Control.Monad
 import Data.Monoid
 
 import Hakyll
+import TikZ
 
 main :: IO ()
 main =
@@ -54,7 +56,7 @@ renderPosts tags = do
   void $ match "posts/*" $ do
       route   $ setExtension ".html"
       compile $ do
-        x1 <- pandocCompiler
+        x1 <- markdownCompiler
         let ctx = mconcat [ dateField "date" "%B %e, %Y"
                           , tagsField "prettytags" tags
                           , defaultContext
@@ -138,7 +140,7 @@ makeDrafts tags = do
     void $ match "drafts/*" $ do
         route $ setExtension ".html"
         compile $ do
-            x <- pandocCompiler
+            x <- markdownCompiler
             let ctx = mconcat [ constField "date" "No date"
                               , tagsField "prettytags" tags
                               , defaultContext
@@ -147,7 +149,7 @@ makeDrafts tags = do
     void $ match "drafts/*/*" $ do
         route $ setExtension ".html"
         compile $
-            pandocCompiler >>=
+            markdownCompiler >>=
             loadAndApplyTemplate "templates/default.html" defaultContext >>=
             relativizeUrls
 
@@ -175,3 +177,8 @@ feedConfiguration = FeedConfiguration
     , feedAuthorEmail = "me@emillon.org"
     , feedRoot        = "http://blog.emillon.org"
     }
+
+markdownCompiler :: Compiler (Item String)
+markdownCompiler = do
+    p <- readPandoc <$> processTikZs
+    return $ writePandoc p

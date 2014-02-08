@@ -18,6 +18,28 @@ and partitions. One of its advantages is that you can resize logical volumes (a
 LV is the virtual device node where the filesystem sits) after they have been
 created.
 
+@@@@ { display: block; margin-left: auto; margin-right: auto; }
+    [box/.style={draw}
+    ,fs/.style={box, minimum height=1cm}
+    ,part/.style={box, minimum height=1.8cm, yshift=-3mm}
+    ,disk/.style={box, minimum height=2.8cm, yshift=-4mm}
+    ]
+
+    \def\colpart{blue!10}
+    \def\colfs{red!10}
+    \def\coldisk{green!10}
+    \node[fs, minimum width=1cm]             (RF) {/};
+    \node[fs, minimum width=4cm, right of=RF, anchor=west, node distance=8mm ]     (HF) {/home};
+
+    \node[part, minimum width=1.2cm] at (RF) (RP) {};
+    \node[part, minimum width=4.2cm] at (HF) (HP) {};
+    \node[yshift=2ex] at (RP.south) {sda1};
+    \node[yshift=2ex] at (HP.south) {sda2};
+
+    \node[disk, minimum width=5.7cm] at ($ (RP.west)!0.5!(HP.east) $) (D) {};
+    \node[yshift=2ex] at (D.south) {sda};
+@@@@
+
 To resize the `/` and `/home` filesystems, it is necessary to change the change
 the size of both the filesystems and the LVs. But it is not possible to do it in
 any order: at any time, the filesystem must be smaller than its LV. So, the
