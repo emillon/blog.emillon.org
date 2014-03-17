@@ -1,10 +1,1 @@
-install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq ghc cabal-install linkchecker python-cssutils python-utidylib
-  - sudo apt-get install -qq libghc-blaze-builder-dev libghc-pandoc-dev libghc-parsec-dev
-  - cabal update
-  - cabal install hakyll
-before_script:
-  - ghc --make blog
-  - ./blog build
-script: "linkchecker --check-html --check-css --anchors _site"
+language: haskell
