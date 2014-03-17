@@ -23,3 +23,8 @@ Test-Suite build-site
   type:                exitcode-stdio-1.0
   main-is:             build.hs
   build-depends:       base, process
+
+Test-Suite check-links
+  type:                exitcode-stdio-1.0
+  main-is:             checklinks.hs
+  build-depends:       base, process
