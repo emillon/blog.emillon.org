@@ -1,2 +1,2 @@
 language: haskell
-install: sudo aptitude install linkchecker
+install: sudo apt-get install linkchecker
