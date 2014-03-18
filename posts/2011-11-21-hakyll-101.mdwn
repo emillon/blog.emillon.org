@@ -63,7 +63,7 @@ blog deploy          Upload/deploy your site
 So far I've found it very easy to use. That's it for this first mini-tour. Stay
 tuned !
 
-[sendfile(2)]: http://manpages.debian.net/cgi-bin/man.cgi?query=sendfile&sektion=2&apropos=0&manpath=Debian+6.0+squeeze
+[sendfile(2)]: http://manpages.debian.org/cgi-bin/man.cgi?query=sendfile&sektion=2&apropos=0&manpath=Debian%206.0%20squeeze
 [S3]:          http://aws.amazon.com/s3/
 [Disqus]:      http://disqus.com
 [pelican]:     https://github.com/ametaireau/pelican/
