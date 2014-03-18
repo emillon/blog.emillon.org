@@ -85,4 +85,4 @@ Laziness
 
 [ocaml-extlib]:     http://code.google.com/p/ocaml-extlib/
 [ocaml-batteries]:  http://batteries.forge.ocamlcore.org/
-[ocaml-janestreet]: http://www.janestreet.com/ocaml/doc/core/index.html
+[ocaml-janestreet]: https://www.janestreet.com/ocaml/doc/core/index.html
