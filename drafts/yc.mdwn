@@ -94,7 +94,7 @@ for this user
 
 [Gabriel Synnaeve]: http://snippyhollow.github.io/
 [Cloverfeed]: http://cloverfeed.com/
-[Hacker News]: http://news.ycombinator.com/
+[Hacker News]: https://news.ycombinator.com/
 [at YC]: http://ycombinator.com/atyc.html
 [YC App]: yc/app.html
 [PG Startup Mistakes]: http://www.paulgraham.com/startupmistakes.html

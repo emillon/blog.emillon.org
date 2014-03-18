@@ -53,7 +53,7 @@ For each founder, please list: YC username; name; age; year of graduation, schoo
           Master in AI and machine learning;
     gabriel.synnaeve@gmail.com;
     <http://syhw.posterous.com/>, <https://github.com/SnippyHolloW/>,
-    <http://www.facebook.com/gabriel.synnaeve>, <https://twitter.com/syhw>;
+    <https://www.facebook.com/gabriel.synnaeve>, <https://twitter.com/syhw>;
     PhD student at Collège de France (Paris) and INRIA (Grenoble)
     & taught Unix programming, Scheme, and Ocaml at University
 
@@ -148,7 +148,7 @@ Who are your competitors, and who might become competitors? Who do you fear most
 
 :   - [Prismatic](http://getprismatic.com)
     - [Newsblur](http://newsblur.com)
-    - [Google Reader](https://www.google.com/reader/view/)
+    - [Google Reader](https://www.google.com/reader/about/)
     - [Zite](http://zite.com/)
     - [FlipBoard](http://flipboard.com/)
     - [Taptu](https://www.taptu.com/)
