@@ -1,2 +1,4 @@
 language: haskell
-install: sudo apt-get install linkchecker
+install:
+  - sudo apt-get install linkchecker
+  - cabal install hakyll
