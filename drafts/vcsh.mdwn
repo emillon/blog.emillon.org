@@ -1,0 +1,86 @@
+---
+title: VCSH : Git goodness for dotfiles
+author: Etienne Millon
+tags: git, dotfiles, vcsh
+---
+
+Managing dotfiles
+-----------------
+
+As a unix user and programmer, almost all the configuration on my system happens
+in text files. Text files are great because you can easily read and edit them
+with your favorite text editor, you can comment them, and you can share them.
+
+So, pretty much like code ? The next logical step would be to put them in a VCS.
+However, it turns out that people don't do it. I guess that the main reasons are:
+
+  - it's too specific to me / my machine.
+  - it's a mess.
+  - putting `$HOME` under a VCS is too dangerous.
+
+Well, it turns out that they are good reasons :-) Some solutions have emerged,
+though.
+
+### $HOME under a VCS
+
+That's right. A `~/.git/` directory to manage all your files. This... works but
+has major pitfalls :
+
+  - you have to ignore everything by default.
+  - everything sits in the same directory.
+  - a `git clean` will make you very sorry.
+
+### One repository and symlinks
+
+A `~/conf/` git repository with your real, versionned dotfiles, plus
+
+### n repositories and symlinks
+
+
+
+Enter vcsh
+----------
+
+~~~~ {.perl}
+#!/usr/bin/env perl
+use strict;
+use warnings;
+
+my $path;
+my $url;
+
+while (<>) {
+  if (/^\[submodule/) {
+    if (defined $path and defined $url) {
+      print "[\$HOME/$path]\n";
+      print "checkout = git clone $url\n";
+    }
+  } elsif (/path = (.*)$/) {
+    $path = $1;
+  } elsif (/url = (.*)$/) {
+    $url = $1;
+  } else {
+    die "Parse error";
+  }
+}
+~~~~
+
+
+
+vcsh : The good
+---------------
+
+
+vcsh : The bad
+--------------
+
+
+
+vcsh : The ugly
+---------------
+
+
+
+[HolmanFork]: http://zachholman.com/2010/08/dotfiles-are-meant-to-be-forked/
+[VCSHGithub]: https://github.com/RichiH/vcsh
+[VCSHCallForTesting]: http://richardhartmann.de/blog/posts/2012/02/apt-get_install_vcsh/
