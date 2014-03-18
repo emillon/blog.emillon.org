@@ -179,4 +179,4 @@ can parse either.
 [WPRogue]: http://en.wikipedia.org/wiki/Rogue_(video_game)
 [NetHack]: http://www.nethack.org/
 [Brogue]: https://sites.google.com/site/broguegame/
-[BrogueAnim]: brogueanim.gif
+[BrogueAnim]: brogue/brogueanim.gif

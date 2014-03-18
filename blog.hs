@@ -146,12 +146,15 @@ makeDrafts tags = do
                               , defaultContext
                               ]
             finalRenderer "templates/post.html" ctx x
-    void $ match "drafts/*/*" $ do
+    void $ match "drafts/*/*.mdwn" $ do
         route $ setExtension ".html"
         compile $
             markdownCompiler >>=
             loadAndApplyTemplate "templates/default.html" defaultContext >>=
             relativizeUrls
+    void $ match "drafts/*/*.gif" $ do
+        route idRoute
+        compile copyFileCompiler
 
 buildTemplates :: Rules ()
 buildTemplates =
