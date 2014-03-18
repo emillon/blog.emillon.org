@@ -343,16 +343,16 @@ The real benefit is that it has really helped be grasp the concept of comonads.
 I hope that I did not just fall into the comonad tutorial fallacy :)
 
 **Update (March 10th):** Brian Cohen contributed [a simple extension to simulate
-a closed topology][BrianCohenHPaste]. Thanks !
+a closed topology][BrianCohenLPaste]. Thanks !
 
 [Literate Haskell]:          http://www.haskell.org/haskellwiki/Literate_programming
 [source on github]:          https://github.com/emillon/blog.emillon.org
 [Edward Kmett]:              http://comonad.com
-[comonad package]:           http://hackage.haskell.org/packages/archive/comonad/3.0.0.2/doc/html/Control-Comonad.html
+[comonad package]:           http://hackage.haskell.org/package/comonad-3.0.0.2/docs/Control-Comonad.html
 [category-extras package]:   http://hackage.haskell.org/package/category-extras-1.0.2
 [sigfpe article]:            http://blog.sigfpe.com/2006/12/evaluating-cellular-automata-is.html
 [post from Edward Z Yang]:   http://blog.ezyang.com/2010/04/you-could-have-invented-zippers/
 [Huet's article]:            http://www.st.cs.uni-saarland.de/edu/seminare/2005/advanced-fp/docs/huet-zipper.pdf
 [cellular automata]:         http://en.wikipedia.org/wiki/Cellular_automaton
 [Conway's Game of Life]:     http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
-[BrianCohenHPaste]:          http://hpaste.org/83811
+[BrianCohenLPaste]:          http://lpaste.net/83811

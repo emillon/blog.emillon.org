@@ -1,0 +1,22 @@
+name:                blog
+version:             0.1.0.0
+homepage:            http://blog.emillon.org
+license:             AllRightsReserved
+author:              Etienne Millon
+maintainer:          me@emillon.org
+build-type:          Simple
+cabal-version:       >=1.8
+
+executable blog
+  main-is:             blog.hs
+  build-depends:       base ==4.6.*, directory ==1.2.*, filepath ==1.3.*, process ==1.1.*, bytestring ==0.10.*, hakyll ==4.4.*
+
+Test-Suite build-site
+  type:                exitcode-stdio-1.0
+  main-is:             build.hs
+  build-depends:       base, process
+
+Test-Suite check-links
+  type:                exitcode-stdio-1.0
+  main-is:             checklinks.hs
+  build-depends:       base, process

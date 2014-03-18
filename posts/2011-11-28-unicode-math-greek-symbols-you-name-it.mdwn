@@ -96,5 +96,5 @@ very useful !
 [EBCDIC]:      https://en.wikipedia.org/wiki/EBCDIC
 [MSB]:         https://en.wikipedia.org/wiki/Most_significant_bit
 [UTF-8]:       https://en.wikipedia.org/wiki/UTF-8
-[xmodmap(1)]:  http://manpages.debian.net/cgi-bin/man.cgi?query=xmodmap&sektion=1
+[xmodmap(1)]:  http://manpages.debian.org/cgi-bin/man.cgi?query=xmodmap&sektion=1
 [xcompose(5)]: http://manpages.ubuntu.com/manpages/precise/en/man5/XCompose.5.html
