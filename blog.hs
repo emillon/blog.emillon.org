@@ -7,7 +7,6 @@ import Control.Monad
 import Data.Monoid
 
 import Hakyll
-import TikZ
 
 main :: IO ()
 main =
@@ -182,6 +181,4 @@ feedConfiguration = FeedConfiguration
     }
 
 markdownCompiler :: Compiler (Item String)
-markdownCompiler = do
-    p <- readPandoc <$> processTikZs
-    return $ writePandoc p
+markdownCompiler = pandocCompiler
