@@ -1,0 +1,88 @@
+---
+title: Haskell features that I miss in OCaml
+author: Etienne Millon
+tags: haskell, ocaml
+---
+
+s/Haskell/GHC/.
+
+There will be a co-post.
+
+Concrete Syntax
+---------------
+
+Haskell's concrete syntax rocks.
+
+### where
+
+For example, the classic implementation of list reversal uses "inverse
+concatenation" as an auxiliary function.
+
+~~~~ {.haskell}
+rev l =
+  catRev l []
+    where
+      catRev [] y = y
+      catRev (x:xs) y = catRev xs (x:y)
+~~~~
+
+### infix operators
+
+~~~~ {.haskell}
+a `op` b
+~~~~
+
+### do-notation
+
+~~~~ {.haskell}
+liftM2 f mx my = do
+  x <- mx
+  y <- my
+  return $ f x y
+~~~~
+
+~~~~ {.haskell}
+liftM2 f mx my =
+  mx >>= \ x -> 
+  my >>= \ y -> 
+  return $ f x y
+~~~~
+
+Library
+-------
+
+OCaml's standard library takes a minimal approach : only what's necessary to
+bootstrap the compiler is included. So, as a programmer, one often has to write
+library functions. Several "standard library replacements" have emerged, most
+notably [Extlib][ocaml-extlib], [Batteries Included][ocaml-batteries] and
+[Janestreet's Core][ocaml-janestreet]. But despite their quality, they are not
+part of the official distribution.
+
+map, (.), ($)
+
+Tools
+-----
+
+First-class IO
+--------------
+
+Higher order polymorphism
+-------------------------
+
+Import/export lists
+-------------------
+
+Typeclasses
+-----------
+
+Beyond research
+---------------
+
+Laziness
+--------
+
+
+
+[ocaml-extlib]:     http://code.google.com/p/ocaml-extlib/
+[ocaml-batteries]:  http://batteries.forge.ocamlcore.org/
+[ocaml-janestreet]: https://ocaml.janestreet.com/ocaml-core/latest/doc/

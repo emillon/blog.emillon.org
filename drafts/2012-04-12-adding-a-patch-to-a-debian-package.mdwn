@@ -1,0 +1,237 @@
+---
+title: Adding a patch to a Debian package
+author: Etienne Millon
+tags: debian
+---
+
+A few years ago, I decided to step up and maintain [a few packages in
+Debian][DDPO].
+
+The community is great, and I highly recommend it to everyone
+interested.
+
+Being a maintainer is a 
+
+Most of the necessary work is quite easy, but it can be quite
+
+So, I received a [bug report][] by e-mail, stating that zsnes FTBFS ("Fails To
+Build From Source") with gcc-4.7. This is a problem, because when the default
+gcc in unstable will be 4.7, the build farms won't be able to do their job on
+zsnes.
+
+According to Matthias, the error message is :
+
+    tools/depbuild.cpp: In function 'void dependency_calculate(const char*, stat&)':
+    tools/depbuild.cpp:168:37: error: 'F_OK' was not declared in this scope
+    tools/depbuild.cpp:168:41: error: 'access' was not declared in this scope
+
+The [porting guide](http://gcc.gnu.org/gcc-4.7/porting_to.html) linked in the
+bug report states that it is because `unistd.h` is not included by other headers
+anymore. This sounds good : the fix will probably be a one-line patch.
+
+Let's fix this bug ! The logical steps are :
+
+  - reproduce the bug
+  - prepare a fix
+  - check that the bug is fixed
+  - post the fix to the Bug Tracking System
+  - upload a package containing the fix
+
+Reproduce the bug
+-----------------
+
+To build the package with `CC=gcc-4.7 CXX=g++-4.7`, I will manually invoke
+`debian/rules` to build the package. Because I use [git-buildpackage][], I have
+to manually apply all debian-specific patches before :
+
+      % dquilt push -qa
+    Applying patch 0001-gcc-fno-rtti.patch
+    Applying patch 0002-replace_crc32.patch
+    Applying patch 0003-gcc-4.3-ftbfs.patch
+    Applying patch 0004-manpage-in-usr-share-man.patch
+    Applying patch 0005-hyphens-as-minus-signs-in-manpage.patch
+    Applying patch 0006-spelling-error-separately.patch
+    Applying patch 0007-removed-license-in-html-doc.patch
+    Applying patch 0008-manpage-debugger.patch
+    Applying patch 0009-hat-events.patch
+    Applying patch 0010-Fix-build-with-libpng-1.5.patch
+    Applying patch 0011-Don-t-strip-binaries-upstream.patch
+    Now at patch 0011-Don-t-strip-binaries-upstream.patch
+      % CC=gcc-4.7 CXX=g++-4.7 ./debian/rules build
+    dh build --sourcedirectory=src --with autoreconf
+       dh_testdir -O--sourcedirectory=src
+       dh_autoreconf -O--sourcedirectory=src
+       debian/rules override_dh_auto_configure
+    make[1]: Entering directory `/tmp/zsnes'
+    dh_auto_configure --sourcedirectory=src -- \
+                    LIBS="" CFLAGS=-m32 LDFLAGS=-lpthread --enable-opengl \
+                    --disable-cpucheck --enable-release \
+                    --enable-libao force_arch=i486
+     ... configure output ...
+    Configure complete, now type 'make' and pray.
+
+    make[1]: Leaving directory `/tmp/zsnes'
+       dh_auto_build -O--sourcedirectory=src
+    make[1]: Entering directory `/tmp/zsnes/src'
+    g++-4.7 -m32 -pipe -I. -I/usr/local/include -I/usr/include -D__UNIXSDL__  -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT  -D__LIBAO__ -D__OPENGL__ -march=i486 -O3 -fomit-frame-pointer -fprefetch-loop-arrays -fforce-addr -D__RELEASE__ -fno-rtti -o tools/fileutil.o -c tools/fileutil.cpp
+    tools/fileutil.cpp:1:0: warning: -fprefetch-loop-arrays not supported for this target (try -march switches) [enabled by default]
+    g++-4.7 -m32 -pipe -I. -I/usr/local/include -I/usr/include -D__UNIXSDL__  -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT  -D__LIBAO__ -D__OPENGL__ -march=i486 -O3 -fomit-frame-pointer -fprefetch-loop-arrays -fforce-addr -D__RELEASE__ -fno-rtti -o tools/strutil.o -c tools/strutil.cpp
+    tools/strutil.cpp:1:0: warning: -fprefetch-loop-arrays not supported for this target (try -march switches) [enabled by default]
+    g++-4.7 -m32 -pipe -I. -I/usr/local/include -I/usr/include -D__UNIXSDL__  -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT  -D__LIBAO__ -D__OPENGL__ -march=i486 -O3 -fomit-frame-pointer -fprefetch-loop-arrays -fforce-addr -D__RELEASE__ -fno-rtti -o tools/depbuild tools/depbuild.cpp tools/fileutil.o tools/strutil.o
+    tools/depbuild.cpp:1:0: warning: -fprefetch-loop-arrays not supported for this target (try -march switches) [enabled by default]
+    tools/depbuild.cpp: In function 'void dependency_calculate(const char*, stat&)':
+    tools/depbuild.cpp:168:37: error: 'F_OK' was not declared in this scope
+    tools/depbuild.cpp:168:41: error: 'access' was not declared in this scope
+    make[1]: *** [tools/depbuild] Error 1
+    make[1]: Leaving directory `/tmp/zsnes/src'
+    dh_auto_build: make -j1 returned exit code 2
+    make: *** [build] Error 2
+
+Bug confirmed ! Let's clean the tree and...
+
+Prepare a fix
+-------------
+
+Zsnes uses the new "3.0 (quilt)" format, so to add a new patch I just have to
+add a new patch in `debian/patches`, add its name to `debian/patches/series`. It
+could be done manually or with `dquilt`, but I prefer using `gbp-pq` which comes
+with `git-buildpackage`. It's a tool which can converts git commits to a "plain"
+patch queue, (as the famous [patch queues][] in Mercurial) :
+
+`gbp-pq import` creates a git branch (named `patch-queue/master`) from the
+current patch queue. `gbp-pq export` converts this branch to named patches in
+`debian/patches`.
+
+       % gbp-pq import
+    gbp:info: Trying to apply patches at 'e8b572dc10dcc44f01e5254d8bb93330215e5050'
+    Switched to branch 'patch-queue/master'
+    gbp:info: Patches listed in 'debian/patches/series' imported on 'patch-queue/master'
+       % vim src/tools/depbuild.cpp 
+    [ ... add #include <unistd.h> line ... ]
+       % git commit -av
+
+This commit will be the new patch, so let's be quite verbose about changes :
+
+    Fix build with gcc 4.7
+
+    Headers in the new C++ library do not implicitly import unistd.h, so it is
+    necessary to do it in the source.
+
+    Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=667429
+
+The last line is a [DEP-3][] field. While it is optional, it is good practice to
+include it to track your patch. `gbp-pq` will automatically add `Subject`,
+`Author` and `Date` from the commit metadata.
+
+Once the commit is done, we're still on the patch queue branch. The next step is
+to export it to master as a new patch :
+
+       % gbp-pq export
+    gbp:info: On 'patch-queue/master', switching to 'master'
+    Switched to branch 'master'
+    Your branch is ahead of 'origin/master' by 1 commit.
+    gbp:info: Regenerating patch queue in 'debian/patches/'.
+    # On branch master
+    # Your branch is ahead of 'origin/master' by 1 commit.
+    #
+    # Changes not staged for commit:
+    #   (use "git add <file>..." to update what will be committed)
+    #   (use "git checkout -- <file>..." to discard changes in working directory)
+    #
+    #       modified:   debian/patches/series
+    #
+    # Untracked files:
+    #   (use "git add <file>..." to include in what will be committed)
+    #
+    #       debian/patches/0012-Fix-build-with-gcc-4.7.patch
+    no changes added to commit (use "git add" and/or "git commit -a")
+
+Not only we'll add all those changes to the git index, but we also have to
+update `debian/changelog`. As always, there's a tool for this ! `dch` will bump
+the last edit date, and add a new changelog line with a "Closes: #nnnnnn"
+command. When the package will be uploaded, this will automatically close the
+bug in the BTS. Note that this is not a new changelog entry : I already had a
+fix for [#438384](http://bugs.debian.org/438384) ready.
+
+       % git add debian/patches/*
+       % dch --closes 667429
+    [ ... vim opens, edit the last entry ... ]
+       % git diff
+
+~~~~{.diff}
+diff --git a/debian/changelog b/debian/changelog
+index ee7fa6d..1c2b6ff 100644
+--- a/debian/changelog
++++ b/debian/changelog
+@@ -1,8 +1,10 @@
+ zsnes (1.510+bz2-3) unstable; urgency=low
+ 
+-  * New patch to handle the nostrip build option (Closes: #438384)
++  * New patches :
++    - handle the nostrip build option (Closes: #438384)
++    - fix FTBFS with gcc 4.7 (Closes: #667429)
+ 
+- -- Etienne Millon <etienne.millon@gmail.com>  Sun, 04 Mar 2012 15:28:00 +0100
++ -- Etienne Millon <etienne.millon@gmail.com>  Thu, 12 Apr 2012 22:10:45 +0200
+ 
+ zsnes (1.510+bz2-2) unstable; urgency=low
+~~~~
+ 
+      % git add debian/changelog 
+      % git commit
+
+Check that the bug is fixed
+---------------------------
+
+This time, `./debian/rules build` correctly builds the package. The fix was
+correct. If it was incorrect, it would be necessary to reiterate the above steps
+until a fix was found (using `git commit --amend` on the patch queue branch to
+edit the last patch).
+
+In that particular case, it was easy to guess that a one-line fix would be
+enough, but for more complex bugs it may be worth to directly hack on
+`patch-queue/master`.
+
+Post the fix to the Bug Tracking System
+---------------------------------------
+
+To avoid duplication of work, and to allow other users to use your work, it is
+best practice to post this patch. The BTS accepts commands on
+`control@bugs.debian.org`
+
+~~~~{.email}
+From: Etienne Millon <etienne.millon@gmail.com>
+To: 667429@bugs.debian.org
+Cc: 
+Bcc: control@bugs.debian.org
+Subject: Re: Bug#667429: zsnes: ftbfs with GCC-4.7
+
+tag 667429 + patch 
+thanks 
+
+Hello,
+
+This patch fixes the problem and will be included in the next upload.
+ 
+Thanks for this bug report.
+
+-- 
+Etienne Millon
+~~~~
+
+Upload a package containing the fix
+-----------------------------------
+
+
+Conclusion
+----------
+
+It's awesome. [Do it !][HelpDebian].
+
+
+[bug report]:       http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=667429
+[DDPO]:             http://qa.debian.org/developer.php?login=etienne.millon@gmail.com
+[HelpDebian]:       http://www.debian.org/intro/help
+[git-buildpackage]: http://honk.sigxcpu.org/projects/git-buildpackage/manual-html/gbp.html
+[patch queues]:     http://mercurial.selenic.com/wiki/MqExtension
+[DEP-3]:            http://dep.debian.net/deps/dep3/

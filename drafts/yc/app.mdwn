@@ -1,0 +1,266 @@
+Company Name
+
+:   Cloverfeed
+
+Company url, if any
+
+:   <http://cloverfeed.com>
+
+Phone number(s)
+
+:   snippyhollow        *redacted*
+:   emillon             *redacted*
+
+Please enter the url of a 1 minute video introducing the founders. [Instructions.](http://ycombinator.com/video.html)
+
+:   *redacted*
+
+YC usernames of all founders, including you, #{hn_user}, separated by spaces.
+
+:   emillon snippyhollow
+
+YC usernames of all founders, including you, #{hn_user}, who will live in the Bay Area January through March if we fund you.
+
+:   emillon snippyhollow
+
+What is your company going to make?
+
+:   Cloverfeed is a website and a mobile app. A user gets a list of items
+    corresponding to what he is most likely to read right now. They are coming
+    from their RSS, Facebook, Twitter, and social news (Reddit, HN). It is spam
+    filtering and priority inbox for all kinds of feeds.
+
+    The numbers of items that it displays is proportional to how big a reader
+    you are. From the user's behavior, we rate how much they liked each piece
+    they read. We then rank and filter future readings. Additionally, Cloverfeed
+    will present you really interesting pieces of news you could have missed
+    with your personal sources. For that, we exploit links between topics and
+    links between people.
+
+If this application is a response to a YC RFS, which one? (Options: Ints 1-9)
+
+:   RFS 3: we will use Twitter as a source, on par with other data sources
+    (RSS, social news) though, not focused solely on Twitter.
+
+For each founder, please list: YC username; name; age; year of graduation, school, degree and subject for each degree; email address; personal url, github url, facebook id, twitter id; employer and title (if any) at last job before this startup. Put unfinished degrees in parens. List the main contact first. Separate founders with blank lines. Put an asterisk before the name of anyone **not** able to move to the Bay Area.
+
+:   snippyhollow;
+    Gabriel Synnaeve;
+    26;
+    2012, Grenoble University, PhD in Bayesian modeling (machine learning);
+    2009, ENSIMAG, French Engineer in CS and Applied Mathematics;
+    2009, Grenoble University and NII (Tokyo, Japan),
+          Master in AI and machine learning;
+    gabriel.synnaeve@gmail.com;
+    <http://syhw.posterous.com/>, <https://github.com/SnippyHolloW/>,
+    <https://www.facebook.com/gabriel.synnaeve>, <https://twitter.com/syhw>;
+    PhD student at Collège de France (Paris) and INRIA (Grenoble)
+    & taught Unix programming, Scheme, and Ocaml at University
+
+    emillon;
+    Etienne Millon;
+    25;
+    (2012, Paris 6 University,
+           PhD in static analysis of programs (type systems)),
+    2009, ENSIMAG, French Engineer in CS and Applied Mathematics;
+    me@emillon.org;
+    <http://blog.emillon.org>, <http://github.com/emillon>,
+    <https://twitter.com/etiennemillon>;
+    EADS, R&D Engineer in Software Security
+    & taught Javascript and Ocaml at University
+
+Please tell us in one or two sentences about the most impressive thing other than this startup that each founder has built or achieved.
+
+:   snippyhollow: a StarCraft Broodwar bot aimed to adapt its strategy, able
+    to play full games and win > 95% time agains the built-in AI. Parameters of
+    the Bayesian models are learnt from pro-gamers' games data, 4th best
+    competitive bot in the world.
+    <https://github.com/SnippyHolloW/BroodwarBotQ>
+
+:   emillon: I started programming at age 8 on my CPC6128+. I am responsible for
+    a dozen Debian packages (this includes derivatives such as Ubuntu): I
+    prepare new versions, fix bugs and send patches upstream. Building a binary
+    distribution is a technical challenge: you have to make sure that upgrading
+    a library won't make it necessary to recompile unrelated packages.
+    <http://qa.debian.org/developer.php?login=etienne.millon@gmail.com>
+
+Please tell us about the time you, #{hn_user}, most successfully hacked some (non-computer) system to your advantage.
+
+:   - I helped Stuart Russell (of the "Russell & Norvig: AI a Modern Approach"
+      fame) to enroll his kids at school in France, particularly for their
+    entrance exams. I like to think that's why he accepted to be on my PhD
+    committee.
+    - I played WoW competitively (in a top-notch guild) in 2006, while attending
+      preparatory classes and through the competitive exams. I scripted bots
+    behaviors for farming consumables needed at this level of play, and used the
+    simplex algorithm to optimize my spells casting to compensate for lower
+    stuff. Had other people in my guild known about it, they probably would have
+    reported me. I hacked myself into stopping by selling my account on eBay
+    (the same year)!
+
+Please tell us about an interesting project, preferably outside of class or work, that two or more of you created together. Include urls if possible.
+
+:   We developped Finlink, a social networking site specialized in the sectors
+    of banking, insurance and finance. We were junior contractors at the time
+    (2007-2008). The project was quite challenging because specs were constantly
+    changing (that's when we discovered the real world).
+    <http://www.finlink.net>
+
+How long have the founders known one another and how did you meet? Have any of the founders not met in person?
+
+:   We met in 2006 so we know each other for 6 years now! We did most of our CS
+    assignments together at engineering school by choice. We were partners on
+    the student's council of Grenoble INP. During the statistical practical
+    work, teams of 3 were picked at random on the whole class (~250), we ended
+    up together again! (probability: 0.8%)
+
+Why did you pick this idea to work on? Do you have domain expertise in this area? How do you know people need what you're making?
+
+:   That's a product we and some of our friends are willing to pay for. We asked
+    people at ParisHackers and our tech-savvy friends. We all hate the feeling
+    of skimming through something and thinking to ourselves "why did I read
+    that?". That is even worse if you get offline for a few days and try to get
+    back up to date.
+
+    Gabriel has done a Google Summer of Code on Natural Language Processing
+    (NLP) on Apertium in 2009, aced the full online courses on NLP and ML by
+    Stanford (Coursera), always kept up to date with NLP tools, has been
+    designing and implementing Bayesian models for 4 years.
+
+    Etienne is dedicated to robust software. Having worked in security for 4
+    years, he's familiar with systems breaking for no apparent reason, backups
+    failing to restore and the smell of burnt hard drives. This product will
+    probably be challenging to scale up, so his Unix skills will be put to good
+    use.
+
+What's new about what you're making? What substitutes do people resort to because it doesn't exist yet (or they don't know about it)?
+
+:   People spend more time looking for the information they care about (news,
+    being it social or not). They check their feeds (Twitter and Facebook
+    included) or social news sites (HN, Reddit) more often because they fear
+    missing new things (information overload) if they check later. For some part
+    this is because these websites make their revenue through ads: they want to
+    be addictive in order to maximize page views. We want offer them the
+    possibility to pay to be ad-free, and in case of ads: we believe strongly
+    targeted ads are better than more page views.
+
+Who are your competitors, and who might become competitors? Who do you fear most?
+
+:   - [Prismatic](http://getprismatic.com)
+    - [Newsblur](http://newsblur.com)
+    - [Google Reader](https://www.google.com/reader/about/)
+    - [Zite](http://zite.com/)
+    - [FlipBoard](http://flipboard.com/)
+    - [Taptu](https://www.taptu.com/)
+
+    We don't really count daily debriefing (e.g. news.me) not "read-it-later"
+    (e.g. instapaper) as concurrents, the later really are complementary to what
+    we do.
+
+    We fear Prismatic most (because of the people there and because we like the
+    product), however, they are topic centric (instead of feed centric, users
+    cannot import their RSS) and seem to focus too much on Twitter.
+
+    Newsblur is only for RSS, it is focusing on its own community
+    (BlurBlogs/internal community sharing). We think it is hard to be social
+    without integrating Facebook nor Twitter.
+
+    Google (Reader and Plus teams) can do it, but it would require including
+    Facebook and Twitter, which we don't see happening because of G+.
+
+    Zite works well but it is only for news (newspapers even) and only on iOS
+    and Android.
+
+    Flipboard and Taptu include social media but are still limited to mobiles,
+    and we do not want to modify/editorialize the content as they do.
+
+What do you understand about your business that other companies in it just don't get?
+
+:   - Often, they don't connect content and social (other existing social that
+      is), even Newsblur connects only to Newsblur's users, and Google Reader:
+    only to Google products.
+    - If they do, they don't differentiate why I follow my girlfriend's Twitter
+      and Rich Hickey's Twitter, at least I can't see the difference.
+    - In all cases, their goals seems to be to get users to spend _more_ time on
+      their website, by seeing more entries. We don't assume that, we just want
+    to empower users.
+
+How do or will you make money? How much could you make? (We realize you can't know precisely, but give your best estimate.)
+
+:   We want to have a freemium model. For paying customers, we can provide more
+    import formats (open formats will be free for everybody) and an export
+    format, more information sources... Also, we will probably charge the heavy
+    users of our API.
+
+    We think we can get a significant fraction of Twitter users and RSS users.
+    The blooming success of "Google Reader clones" suggests users are willing to
+    switch. The success of Instapaper (1 million users on iOS alone) and of
+    "digests" services suggest there is a market of power-users. A safe
+    guesstimate would be to have 1 million users in one year (from now) and 20
+    millions soon after. This is not unrealistic as Flipboard, which exists only
+    on mobile devices, has reached 20 million users and 3 billion pageviews in
+    August. A classic freemium model yields 1% of paying customers, so 10,000
+    users at $15 for the first year and 200,000 users afterwards.
+
+If you've already started working on it, how long have you been working and how many lines of code (if applicable) have you written?
+
+:   We have been working part time for 1 month. So far, we have written approximately 2kloc of Python.
+
+How far along are you? Do you have a beta yet? If not, when will you? Are you launched? If so, how many users do you have? Do you have revenue? If so, how much? If you're launched, what is your monthly growth rate (in users or revenue or both)?
+
+:   So far, we do not have a beta. Gabriel is going to be full-time on it
+    starting from November and we will have a MVP next month.
+
+How will you get users? If your idea is the type that faces a chicken-and-egg problem in the sense that it won't be attractive to users till it has a lot of users (e.g. a marketplace, a dating site, an ad network), how will you overcome that?
+
+:   We will get users first through word of mouth (HN, Twitter, friends): this
+    way we can iterate on the product while developing a core fanbase.
+
+    We don't face a chicken-and-egg problem in terms of users, but for the added
+    value to kick in, a user needs to spend some time on the site after signing
+    up. For that, we think about doing "users categories": roughly classifying
+    all of one user's tastes is quicker than getting their user-level
+    personalization right. We can then leverage (weighted sum parameters of)
+    existing well-defined user profiles.
+
+    We will lower the barrier to entry: have RSS import formats, integration of
+    Twitter and Facebook. We would like to integrate (upvotes!) social news
+    sites too (with posts/comments), for Reddit there is an API, the HN API is
+    read-only.
+
+If you're not incorporated yet, please list the percent of the company you plan to give each founder, and anyone else you plan to give stock to. (This question is as much for you as us.)
+
+:   snippyhollow 50
+    emillon 50
+
+If we fund you, which of the founders will commit to working exclusively (no school, no other jobs) on this project for the next year?
+
+:   Both of us will work full-time on this project.
+
+Do any founders have other commitments between January and March 2013 inclusive?
+
+:   Etienne may have to defend his PhD in this period. All the technical
+    work and the manuscript will be done, so it will not take a lot of time.
+
+Where do you live now, and where would the company be based after YC?
+
+:   We live in Paris, France. We would move to SF/the Valley after YC.
+
+If you had any other ideas you considered applying with, please list them. One may be something we've been waiting for. Often when we fund people it's to do something they list here and not in the main application.
+
+:   - Online appointments which respect your calendar and priorities. "Why do I
+      have to call to get an appointment with my doctor?"
+    - Virtual engineer assistant (as in Iron Man, connecting SolidWorks/Catia
+      (CAD modeler, databases search, and simulation) with WolframAlpha-like
+    inference).
+    - Business Process Management for food making, we particularly think about
+      wine and micro-brewing.
+    - Monetizing CPU time by selling distributed computing in the browser.
+
+Please tell us something surprising or amusing that one of you has discovered. (The answer need not be related to your project.)
+
+:   If I give you $100 today or $101 tomorrow, you will most likely take the $100 today.
+
+    What if I give you $100 in one year, or $101 in one year and one day?
+
+    Cognitive biases are fun.

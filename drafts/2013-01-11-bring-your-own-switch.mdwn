@@ -1,0 +1,39 @@
+---
+title: Bring your own switch
+author: Etienne Millon
+tags: latex
+---
+
+TeX is a very primitive language. Everything is dynamic (even parsing), this
+explains why it's so long to compile.
+
+It also means that it's very flexible : it's possible to define your own control
+structures.
+
+~~~ {.latex}
+\def\switch#1#2{
+  \ifstrequal{#2}{END}{
+    \errmessage{switch : case "#1" not found}
+  }{
+    \switchnext{#1}{#2}
+  }
+}
+
+\def\switchnext#1#2#3{
+  \ifstrequal{#1}{#2}
+    {#3\switchlast}
+    {
+      \switch{#1}
+    }
+}
+
+\def\switchlast#1{
+  \ifstrequal{#1}{END}{}
+  {\switchlast}
+}
+~~~
+
+~~~ {.python}
+def f(lol):
+    roflerie()
+~~~
