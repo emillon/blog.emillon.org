@@ -38,44 +38,31 @@ headquarters in California. If the interview goes well you're invited to work
 ### The application
 
 [Here][YC App] is our application for YC W13, with some parts redacted.
+Some questions were straightforward to answer, but others are quite tough to
+answer. The hard part is to show that we will stick together.
 
-Some questions are straightforward, but others are quite tough to answer.
-
-One of the important things that you will want to convey is that your group will
-stick together.
-
-Indeed, YC focuses a lot in the fact that groups of two persons are the best:
-solo founders are [usually a bad signal][PG Startup Mistakes] and more than two
-persons mean that there can be a conflict between the founders and that majority
-can lead to bad decisions and bad feelings.
-
-Because being 2 is so important, finding a co-founder is a problem with some
-people, and the application is the first place where YC partners will be able to
-assess the strength.
-
-We think that for us it's not a problem as we've known each other for a long
-time and have worked together already, but still conveying that takes some work.
-
-The other important point is to show that you're working on an interesting
-problem, ie one that is [desirable, buildable and profitable][Bruce Sterling
-NEXT13]. Desirable means that the problem exists. Buildable means that the ones
-that are affected by the problem can become your clients. Profitable means that
-you will be able to pay your bills with this problem.
+A few beers later the application was done, though. I distinctly remember
+spending a lot of takes on the video. Staying serious while pitching to a webcam
+is not so easy…
 
 In parallel to the application, we started to build a prototype. Our goal was to
-have an MVP by December, between the interview and YC itself. We used the
-following stack:
+have an MVP by December, between the interview and YC itself. We used a quite
+standard Python web stack using Pyramid. It was the first time we used an
+asynchronous task queue in a project (to fetch feeds and compute indexes), and
+Celery gave us its share of headaches.
 
-  - web backend: pyramid
-  - ORM: sqlalchemy, alembic
-  - DB: postgresql, sqlite
-  - frontend: bootstrap, deform
-  - queueing: celery, rabbitmq
-  - ML backend: clojure, tika, scikit-learn
-  - infrastructure: EC2
+TODO gab
+machine learning backend: clojure, tika, scikit-learn
 
-Mostly things we were comfortable with, but assembling stuff together is always
-challenging :)
+We used mostly things we were comfortable with, but assembling stuff together is
+always challenging :)
+
+At this point we weren't so sure about our application. We had no traction, no
+users, almost no prototype. We did this mostly so we have a canvas for future
+applications.
+
+It turned out better than expected as we got an email inviting us to an
+interview in Mountain View.
 
 ### The interview
 
@@ -97,7 +84,6 @@ for this user
 [Hacker News]: https://news.ycombinator.com/
 [at YC]: http://ycombinator.com/atyc.html
 [YC App]: yc/app.html
-[PG Startup Mistakes]: http://www.paulgraham.com/startupmistakes.html
 [Bruce Sterling NEXT13]: http://nearfuturelaboratory.com/2011/11/13/weekending-11132011/
 [Cloverfeed inbox, sorted]: http://i.imgur.com/Q9tVx.png
 [Cloverfeed inbox, unsorted]: http://i.imgur.com/uHJda.png
