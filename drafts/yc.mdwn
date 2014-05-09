@@ -59,10 +59,20 @@ always challenging :)
 
 At this point we weren't so sure about our application. We had no traction, no
 users, almost no prototype. We did this mostly so we have a canvas for future
-applications.
+applications for YC as well as other accelerators since the format is mostly the
+same.
 
 It turned out better than expected as we got an email inviting us to an
 interview in Mountain View.
+
+### Let's go to Silicon Valley
+
+There is a relatively short period of time between the notification and the
+interview itself, so we had to get ready and quick. For me, Silicon Valley was
+*terra incognita* but fortunately Gabriel had already gone there a few times. He
+was fortunate enough to meet Arjun Vasan, who was at the time at the head of the
+aptly-named Hacker Fortress. Staying there was a natural choice as it would be a
+great opportunity to work on our project there.
 
 ### The interview
 
