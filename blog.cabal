@@ -9,7 +9,12 @@ cabal-version:       >=1.8
 
 executable blog
   main-is:             blog.hs
-  build-depends:       base ==4.6.*, directory ==1.2.*, filepath ==1.3.*, process ==1.1.*, bytestring ==0.10.*, hakyll ==4.5.*
+  build-depends:    base ==4.6.*,
+                    directory ==1.2.*,
+                    filepath ==1.3.*,
+                    process ==1.1.*,
+                    bytestring ==0.10.*,
+                    hakyll ==4.5.*
 
 Test-Suite tests
   type:                exitcode-stdio-1.0
