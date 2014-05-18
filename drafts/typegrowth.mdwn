@@ -1,0 +1,35 @@
+---
+title: Types that grow
+author: Etienne Millon
+tags: ocaml, types
+---
+
+Several programming languages use Hindley-Milner type systems. Describing them
+is out of scope for this post, but let's just say that they correspond to a
+sweet spot for type systems that are both expressive and easy to infer. That is
+to say that in such languages, it is unnecessary to write the types of
+expression.
+
+For example, type inference can turn this program:
+
+~~~~ {.ocaml}
+let rec length = function
+  | [] -> 0 
+  | x::xs -> 1 + length xs
+~~~~
+
+into this one [^1]:
+
+[^1]:
+Most of the time the only interesting part is the top-level type (`'a list ->
+int`), but it is good to know that the compiler infers the type of every node.
+
+~~~~ {.ocaml}
+let rec length : 'a list -> int = function
+  | [] -> (0 : int)
+  | (x:'a)::(xs : 'a list) -> (1 : int)
+        + ((length : 'a list -> int) (xs : 'a list) : int)
+~~~~
+
+Because the compiler does so much work, it is reasonable to wonder whether it is
+efficient.
