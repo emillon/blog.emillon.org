@@ -33,3 +33,58 @@ let rec length : 'a list -> int = function
 
 Because the compiler does so much work, it is reasonable to wonder whether it is
 efficient.
+
+The answer is that it is "quasi-linear in practice", ie given reasonable constraints
+on the program (such as annotating top-level declarations), it is done in a time
+proportional to $n~\log~n$ where $n$ is the size of the program.
+
+But it is possible to exhibit pathological cases.
+
+~~~~ {.ocaml}
+let p x y = fun z -> z x y ;;
+
+let r () =
+let x1 = fun x -> p x x in
+let x2 = fun z -> x1 (x1 z) in
+let x3 = fun z -> x2 (x2 z) in
+x3 (fun z -> z);;
+~~~~
+
+Its signature is already daunting:
+
+~~~~
+% ocamlc -i types.ml
+val p : 'a -> 'b -> ('a -> 'b -> 'c) -> 'c
+val r :
+  unit ->
+  (((((((('a -> 'a) -> ('a -> 'a) -> 'b) -> 'b) ->
+       ((('a -> 'a) -> ('a -> 'a) -> 'b) -> 'b) -> 'c) ->
+      'c) ->
+     ((((('a -> 'a) -> ('a -> 'a) -> 'b) -> 'b) ->
+       ((('a -> 'a) -> ('a -> 'a) -> 'b) -> 'b) -> 'c) ->
+      'c) ->
+     'd) ->
+    'd) ->
+   ((((((('a -> 'a) -> ('a -> 'a) -> 'b) -> 'b) ->
+       ((('a -> 'a) -> ('a -> 'a) -> 'b) -> 'b) -> 'c) ->
+      'c) ->
+     ((((('a -> 'a) -> ('a -> 'a) -> 'b) -> 'b) ->
+       ((('a -> 'a) -> ('a -> 'a) -> 'b) -> 'b) -> 'c) ->
+      'c) ->
+     'd) ->
+    'd) ->
+   'e) ->
+  'e
+~~~~
+
+But what's interesting about this program is that we can add more lines after
+`let x3 = ...`.
+
+We can see an interesting explosion:
+
+n   wc -c   time
+- -------  -----
+2     167   15ms
+3     610   15ms
+4   11630   38ms
+5 4276270   6.3s
