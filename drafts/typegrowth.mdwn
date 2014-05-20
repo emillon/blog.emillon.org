@@ -1,14 +1,11 @@
 ---
-title: Types that grow
+title: Making type inference explode
 author: Etienne Millon
 tags: ocaml, types
 ---
 
-Several programming languages use Hindley-Milner type systems. Describing them
-is out of scope for this post, but let's just say that they correspond to a
-sweet spot for type systems that are both expressive and easy to infer. That is
-to say that in such languages, it is unnecessary to write the types of
-expression.
+Hindley-Milner type systems are in a sweet spot in that they are both
+expressive and easy to infer.
 
 For example, type inference can turn this program:
 
@@ -32,13 +29,13 @@ let rec length : 'a list -> int = function
 ~~~~
 
 Because the compiler does so much work, it is reasonable to wonder whether it is
-efficient.
+efficient. The theoretical answer to this question is that type inference is
+EXP-complete, but given reasonable constraints on the program (such as
+annotating top-level declarations), it can be done in quasi-linear time
+($n~\log~n$ where $n$ is the size of the program).
 
-The answer is that it is "quasi-linear in practice", ie given reasonable constraints
-on the program (such as annotating top-level declarations), it is done in a time
-proportional to $n~\log~n$ where $n$ is the size of the program.
-
-But it is possible to exhibit pathological cases.
+Still, one may wonder what kind of pathological cases show this exponential
+effect. Here is one such example:
 
 ~~~~ {.ocaml}
 let p x y = fun z -> z x y ;;
@@ -50,7 +47,7 @@ let x3 = fun z -> x2 (x2 z) in
 x3 (fun z -> z);;
 ~~~~
 
-Its signature is already daunting:
+The type signature of `r` is already daunting:
 
 ~~~~
 % ocamlc -i types.ml
@@ -77,14 +74,35 @@ val r :
   'e
 ~~~~
 
-But what's interesting about this program is that we can add more lines after
-`let x3 = ...`.
-
-We can see an interesting explosion:
+But what's interesting about this program is that we can add (or remove) lines
+to study how input size can alter the processing time and output type size. We
+can see an interesting explosion:
 
 n   wc -c   time
 - -------  -----
+1      98   15ms
 2     167   15ms
 3     610   15ms
 4   11630   38ms
 5 4276270   6.3s
+
+The reason for that can be seen if we compare two early iterations (output
+simplified for clarity):
+
+~~~~ {.ocaml}
+(* n=1 *) unit->((a->a)                  ->(a->a)                  ->b)->b
+(* n=2 *) unit->((((d->d)->(d->d)->e)->e)->(((d->d)->(d->d)->e)->e)->b)->b
+~~~~
+
+We can interpret this as a rewriting rule: each `'a -> 'a` is turned into `(('a
+-> 'a) -> ('a -> 'a) -> 'b) -> 'b`, recursively. By counting the number of
+occurrences of the leaf pattern `'a -> 'a` using `grep -c`, we can see that each
+step transforms $x$ into $2x^2$.
+
+n  leaves(n)
+- ----------
+1    1
+2    2
+3    8
+4    128
+5    32768
