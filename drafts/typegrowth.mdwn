@@ -4,10 +4,8 @@ author: Etienne Millon
 tags: ocaml, types
 ---
 
-Hindley-Milner type systems are in a sweet spot in that they are both
-expressive and easy to infer.
-
-For example, type inference can turn this program:
+Hindley-Milner type systems are in a sweet spot in that they are both expressive
+and easy to infer. For example, type inference can turn this program:
 
 ~~~~ {.ocaml}
 let rec length = function
@@ -15,11 +13,8 @@ let rec length = function
   | x::xs -> 1 + length xs
 ~~~~
 
-into this one [^1]:
-
-[^1]:
-Most of the time the only interesting part is the top-level type (`'a list ->
-int`), but it is good to know that the compiler infers the type of every node.
+into this one (the top-level type `'a list -> int` is usually what is
+interesting but the compiler has to infer the type of every subexpression):
 
 ~~~~ {.ocaml}
 let rec length : 'a list -> int = function
@@ -30,9 +25,8 @@ let rec length : 'a list -> int = function
 
 Because the compiler does so much work, it is reasonable to wonder whether it is
 efficient. The theoretical answer to this question is that type inference is
-EXP-complete, but given reasonable constraints on the program (such as
-annotating top-level declarations), it can be done in quasi-linear time
-($n~\log~n$ where $n$ is the size of the program).
+EXP-complete, but given reasonable constraints on the program, it can be done in
+quasi-linear time ($n~\log~n$ where $n$ is the size of the program).
 
 Still, one may wonder what kind of pathological cases show this exponential
 effect. Here is one such example:
@@ -75,34 +69,24 @@ val r :
 ~~~~
 
 But what's interesting about this program is that we can add (or remove) lines
-to study how input size can alter the processing time and output type size. We
-can see an interesting explosion:
+to study how input size can alter the processing time and output type size. It
+explodes:
 
-n   wc -c   time
-- -------  -----
-1      98   15ms
-2     167   15ms
-3     610   15ms
-4   11630   38ms
-5 4276270   6.3s
+n   wc -c   time   leaves(n) 
+- -------  -----  ---------- 
+1      98   15ms     1
+2     167   15ms     2
+3     610   15ms     8
+4   11630   38ms     128
+5 4276270   6.3s     32768
 
-The reason for that can be seen if we compare two early iterations (output
-simplified for clarity):
+Observing the number of `('a -> 'a)` leaves in the output type reveals that it
+is is squared and doubled at each step, leading to an exponential growth.
 
-~~~~ {.ocaml}
-(* n=1 *) unit->((a->a)                  ->(a->a)                  ->b)->b
-(* n=2 *) unit->((((d->d)->(d->d)->e)->e)->(((d->d)->(d->d)->e)->e)->b)->b
-~~~~
+In practice, this effect does not appear in day-to-day programs because
+programmers annotate the top-level declarations with their types. In that case,
+the size of the types would be merely proportional to the size of the program,
+because the type annotation would be gigantic.
 
-We can interpret this as a rewriting rule: each `'a -> 'a` is turned into `(('a
--> 'a) -> ('a -> 'a) -> 'b) -> 'b`, recursively. By counting the number of
-occurrences of the leaf pattern `'a -> 'a` using `grep -c`, we can see that each
-step transforms $x$ into $2x^2$.
-
-n  leaves(n)
-- ----------
-1    1
-2    2
-3    8
-4    128
-5    32768
+Also, programmers tend to write functions that do something useful, which these
+do not seem to do ☺.
