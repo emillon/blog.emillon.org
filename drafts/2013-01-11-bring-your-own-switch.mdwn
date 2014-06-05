@@ -1,7 +1,7 @@
 ---
 title: Bring your own switch
 author: Etienne Millon
-tags: latex
+tags: tex
 ---
 
 TeX is a very primitive language. Everything is dynamic, even parsing. This
@@ -10,7 +10,7 @@ explains in part why it's so long to compile.
 It also means that it's very flexible : it's possible to define your own control
 structures. Here is a small explanation of an implementation of a "switch" macro
 I made last year. It is released as part of my
-[discotex](https://github.com/emillon/discotex) library (a collection of macros,
+[discotex] library (a collection of macros,
 really).
 
 We want to define a control structure that we can use in the following way:
@@ -26,12 +26,12 @@ Then, if `what` is equal to `case1`, the whole construct evaluates to `then1`,
 etc. This looks like a function with a variable number of arguments, but
 actually this is well adapted to how TeX works.
 
-In TeX, control is provided through macros, in the classical meaning: rules to
-replace text. Suppose we want to do a macro \couple{x}{y} that expands to "x and
-y". LaTeX users are used to the following syntax:
+In TeX, control is provided through macros, i.e. rules to rewrite text. Suppose
+we want to do a macro \couple{x}{y} that expands to "x and y". LaTeX users are
+used to the following syntax:
 
 ~~~ {.latex}
-\newcommand\couple[2]{#1 and #2}
+\newcommand{\couple}[2]{#1 and #2}
 ~~~
 
 But in TeX this is written:
@@ -41,34 +41,37 @@ But in TeX this is written:
 ~~~
 
 Which roughly means that after reading `\couple`, TeX will read two strings[^1]
-and bind them to `#1` and `#2` in the body.
+and bind them to `#1` and `#2` in the body. So `\couple{A}{B}` is expanded to `A
+and B`.
 
 [^1]: I am not sure that this is the correct denomination. For example it will
 read a string between curly braces, or a single character if they are omitted.
 In that case it also eats whitespace, which is why you need stuff like `\xspace`
 to prevent your macros from glueing string together.
 
-Here comes the trick used for defining variadic functions: if there are extra
-arguments, they are kept at their place and can be consumed from within the
-function. So, there are no real functions, just a system to pop strings from the
-calling site.
+Here comes the trick used for defining variadic functions: if more arguments are
+provided than the number of arguments at the definition point, the extra ones
+are kept at their place. If fewer arguments are provided, the strings after the
+call site will be used. So, one can look at TeX functions as just a system to
+pop strings from the calling site.
 
 Using this, we can implement `\switch`:
 
   - After reading `\switch`, read two arguments so that we're considering
     `\switch{what}{x}`.
 
-    + If `x` is equal to `END`, it is an error as we did not find the entry.
-      `END` is not special to TeX, it is just a convention of our function.
+    + If `x` is equal to `END`, it is an error: we did not find the entry. The
+      `END` string is not special to TeX, it is just a convention of our macro.
 
-  - Otherwise, pop one more string. We're considering
+  - Otherwise, pop one more string so that we're considering
     `\switch{what}{case}{then}`.
 
     + If `what` is not equal to `case`, we have to recursively call
     `\switch{what}` which will pop the rest.
 
-  - If case was equal, then the result is `then`. But it is not over: we have to
-    pop strings until `END` is reached. Otherwise they would be output normally.
+  - If `what` is equal to `case`, then the result is `then`. But it is not
+    enough to return it: we have to pop strings until `END` is reached.
+    Otherwise they would be output normally and put it the document.
 
 These 3 points map well to the final TeX code.
 
@@ -78,8 +81,8 @@ comparison we use `\ifstrequal{a}{b}{t}{f}`[^2] which expands to `t` if `a` and
 function. In `.sty` files, it is possible to use `@` in symbol names. It is a
 convention for private macros as they can not be directly used in `.tex` files.
 
-[^2]: It is from the `etoolbox` package -- I do not even want to know of it is
-implemented. Oh wait, this would actually be interesting.
+[^2]: It is from the `etoolbox` package. How it works is an implementation
+detail here, though it would probably be interesting.
 
 ~~~ {.latex}
 \def\switch#1#2{
@@ -114,5 +117,10 @@ on popping strings until finding `END`.
 }
 ~~~
 
-That's it, the macro works. I am not sure I would like to write more complex
-control structures but that was definitely a fun and useful exercise.
+That's it, the macro works. [You can even try it!][discotex]
+
+I am not sure that I would like to write more complex control structures but
+this was useful to me both in writing it and using it. I hope that you enjoyed
+it!
+
+[discotex]: https://github.com/emillon/discotex
