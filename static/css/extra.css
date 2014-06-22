@@ -50,3 +50,12 @@ td, th {
     padding-left: 10px;
     padding-right: 10px;
 }
+
+.postDate {
+    color: #556270;
+    font-variant: small-caps;
+}
+
+ul.postList {
+    list-style-type: none;
+}

@@ -79,7 +79,7 @@ makePostsContext :: String
                  -> Compiler (Context String)
 makePostsContext title posts fields = do
   let ctx1 = mconcat $ [ constField k v | (k, v) <- fields ]
-                    ++ [ dateField "date" "%B %e, %Y"
+                    ++ [ dateField "date" "%d %b %Y"
                        , defaultContext
                        ]
   postsString <- addPostList ctx1 posts
