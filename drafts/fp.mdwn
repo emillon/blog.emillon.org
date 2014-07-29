@@ -1,0 +1,41 @@
+---
+title: 
+author: Etienne Millon
+tags: fp, ocaml
+---
+
+It seems that "functional programming" is the next big thing.
+We all hear about it, how it will make your programs better and safer, etc.
+But what is it really?
+
+The usual definition is that it is a style of programming where you reason
+    in terms of functions and how to compose them to solve problems.
+In the context of lazy functional programming (Haskell),
+some even go as far as saying that "everything is a function".
+Indeed, declarations such as
+`y = x^2`
+are not evaluated until
+`y`
+is needed, so it is a function…
+kind of.
+
+Programs are made of code and data.
+We are bad at reasoning about code,
+so we prefer rewriting programs to be data-driven.
+There's a Linus Torvalds quote that goes:
+
+> Bad programmers worry about the code.
+> Good programmers worry about data structures and their relationships.
+
+So, is functional programming about functions?
+Actually, the opposite is true:
+in functional programming, everything is data.
+Indeed, a lot of stuff is "first-class":
+you can pass it around, put it in data structures, etc.
+In other words, it is plain data.
+Functions are first-class data thanks to closures,
+which make it possible to capture visible variables
+(without them, it is necessary to pass those variables as extra arguments).
+Even control flow is data.
+
+Functional programming is less about functions than about data.
