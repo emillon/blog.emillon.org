@@ -19,7 +19,8 @@ are not evaluated until
 is needed, so it is a function…
 kind of.
 
-Programs are made of code and data.
+Functions are important, but programs are also made of data.
+It may even be the most important part.
 We are bad at reasoning about code,
 so we prefer rewriting programs to be data-driven.
 There's a Linus Torvalds quote that goes:
@@ -27,9 +28,8 @@ There's a Linus Torvalds quote that goes:
 > Bad programmers worry about the code.
 > Good programmers worry about data structures and their relationships.
 
-So, is functional programming about functions?
-Actually, the opposite is true:
-in functional programming, everything is data.
+This is where functional programming shines.
+It blends the distinction between code and data because everything is data.
 Indeed, a lot of stuff is "first-class":
 you can pass it around, put it in data structures, etc.
 In other words, it is plain data.
