@@ -1,0 +1,28 @@
+---
+title: Binary distributions are like static type systems
+author: Etienne Millon
+tags: none
+---
+
+As programmers, we're used to hear the same debates over & again: vim vs emacs,
+static vs dynamic typing, interpreted vs compiled, XML vs JSON, binary vs
+source, etc. The list goes on.
+
+I'm usually not interested in these "religious wars". Actually, if both
+alternatives exist and have survived, it means that they are a local maximum
+evolution and that both have pros and cons. That is to say, you can pick the one
+you prefer, or the one that is the most appropriate for the job ; while
+respecting the existence of an alternative. Same foes for, e.g., music: there is
+no point in trying to convince a metal fan that electronic music is better.
+ 
+> Dē gustibus et colōribus nōn est disputandum.
+
+Among these debates, one is particularly interesting to me: source vs binary
+distributions. The former ones provide sources that will be compiled on the
+user's machine; the latter ones provide a set of precompiled binary files that
+are downloaded from the network.
+
+As I said, there are pros and cons for both of these systems: in a nutshell,
+source distros are more flexible and binary distros are more convenient. For
+example, if a package can be compiled with a set of options, they can be chosen
+*à la carte* in a source distro.
