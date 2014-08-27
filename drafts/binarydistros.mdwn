@@ -1,5 +1,5 @@
 ---
-title: Binary distributions are like static type systems
+title: Binary distros = static type systems
 author: Etienne Millon
 tags: none
 ---
@@ -15,7 +15,7 @@ you prefer, or the one that is the most appropriate for the job ; while
 respecting the existence of an alternative. Same foes for, e.g., music: there is
 no point in trying to convince a metal fan that electronic music is better.
  
-> Dē gustibus et colōribus nōn est disputandum.
+> De gustibus et coloribus non est disputandum.
 
 Among these debates, one is particularly interesting to me: source vs binary
 distributions. The former ones provide sources that will be compiled on the
@@ -25,4 +25,44 @@ are downloaded from the network.
 As I said, there are pros and cons for both of these systems: in a nutshell,
 source distros are more flexible and binary distros are more convenient. For
 example, if a package can be compiled with a set of options, they can be chosen
-*à la carte* in a source distro.
+*à la carte* in a source distro. In binary distributions on the other hand, it
+is up to the packager to provide a set of reasonable choices.
+
+For example, on Debian, several versions of Vim are available:
+
+  - vim-athena
+  - vim-gnome
+  - vim-gtk
+  - vim-nox
+  - vim-tiny
+
+They are as many packages that you can install. All of these packages contain
+`/usr/bin/vim`.
+
+---
+
+This morning I was upgrading my Debian system. Well, trying to. When running the
+usual `aptitude upgrade` command, the package manager asked me for my
+confirmation to remove `weechat-plugins`. Package removal can be a normal step
+of a system upgrade (for example, if a new version of package does not depend
+anymore on a package). However, I definitely want to keep `weechat-plugins`, as
+I use it daily as my instant messenging program.
+
+This happens from time to time; that's the price to pay for running Debian
+testing. Usually it means that a transition is ongoing: library A introduces a
+breaking change, so it is necessary to recompile all the packages that depend on
+libA1 so that they instead depend on libA2. Then libA2 will be automatically
+installed and libA1 can be removed. Most of the time, testing users do not see
+this because all the dependencies will migrate at the same time. However, it is
+possible that something goes wrong and that parts are not available in testing.
+
+In that case, it prevents the upgrade. Deleting the offending packages (as
+suggested by `aptitude`) is not the only solution. It is also possible to wait a
+few days until the transition is completed. Another solution is to pull packages
+from unstable to honor the version constraints.
+
+When you do this, you have to fight with `aptitude`. Sometimes a lot. It
+consists in examining the solutions it proposes and rejecting the ones that
+remove needed packages. You can also help it by upgrading some packages to their
+version in unstable (`aptitude install pkg/unstable`) in a previous preliminary
+step. This is a definitely a dark art.
