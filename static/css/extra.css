@@ -18,12 +18,21 @@ body {
   padding-top: 20px;
 }
 
-.header {
+.header, .footer {
   background-color: #556270;
   color: white;
   width: 100%;
+}
+
+.header {
   padding-top: 50px;
   padding-bottom: 30px;
+}
+
+.footer {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    text-align: center;
 }
 
 .nav-hdr ul {
@@ -41,6 +50,12 @@ body {
 .nav-hdr li > a {
     display: inline;
     color: white;
+}
+
+.footer a {
+    display: inline;
+    color: white;
+    text-decoration: underline;
 }
 
 table {
