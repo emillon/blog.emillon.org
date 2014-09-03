@@ -1,0 +1,39 @@
+title: ROM Hacking 101: altering strings
+author: Etienne Millon
+tags: romhack
+---
+We use the following file:
+
+    68 e
+    72 i
+    77 n
+    79 p
+    98 s
+    99 t
+    101 v
+    103 x
+    239 ' '
+
+It seems to work well!
+
+    ...e ..  .ppe...n.e... neve.         expe.te. ... t. .. s. .e.......            
+     ... s..... n.t  ..ve ..ne t.e.e...t see.e. t.    .e ..st . .itt.e.i..i...t....n
+    se.ve ..e..  ..n.t ... .n..  it is expensive..... ...ppe. t.. ..st. ....ine   s.
+    i.in. ...n    . ...p..  .... .in.s      ..nn.t t....    t.e ....n....eep t.e n.s
+    e .pin t.e .i.. n.t ....in. .n t.e  ....n.......in. is ...e st.i.t .n t.e   .e.t
+
+I add an option so that we can output only part of a file. Here the relevant
+offsets seem to be between 0x19780 and 0x1cf00.
+
+It seems that the letters are encoded in a sequential fashion: let's add all the
+letters between 72 i and 79 p. This works well:
+
+    19a80 pe..e.tt.e skills ne.ess... .o..o.  to  e..n   .e.ti.i..tion....
+    1a400 .in....omplete lesson in .n.e. ....   .o. .. .oints...o... . .in
+
+However, it can not be continued: the gap between p and s is too big. Usually
+this means that in the font, the letters are not in sequence, but rather
+organized as a matrix.
+
+Now we can guess several other letters by completing words. For example
+"sk..ivin." is probably "skydiving".
