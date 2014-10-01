@@ -1,8 +1,47 @@
-title: ROM Hacking 101: altering strings
+---
+title: ROM Hacking 101 altering strings
 author: Etienne Millon
 tags: romhack
 ---
-We use the following file:
+
+I started using console emulator in the 90s. ROMs were small, and emulators were
+free, so it was a easy way to play games. This had an additional benefit: some
+people on the internet released fan translations of games that were never
+released outside of Japan. At that time, I was also interested in playing (in
+French) games that were not released in Europe. That's how I could play games
+like Seiken Densetsu 3 or Chrono Trigger.
+
+This whole "I will translate a game made years ago for a console" business
+fascinated me. How do these people do? I dived into this world and I learnt a
+lot about this process.
+
+Most people know that computers only manipulate numbers. So, in order to
+manipulate characters such as 'H' or '!' it is somehow necessary to have a way
+to transform characters to numbers. This is called an encoding. Normal programs
+use ASCII, where 'H' is 72 and '!' is 33. That is just a convention, there is no
+particular meaning to these numbers. They have a couple nice properties, for
+example that 'I' comes just after 'H', as in the alphabet, but that's not
+strictly needed (for example in EBCDIC 'i' is 137 and 'j' is 145).
+
+Most console games of this period didn't use ASCII. They used an ad-hoc
+encoding. The reason of this is that they fonts take a lot of memory. So if your
+game does not use the character '%', it makes no sense to include its picture,
+or glyph, in the cartridge. A "good" character encoding would just index the
+graphic memory, and it makes no sense to include a hole in it. So characters are
+shifted.
+
+So, how to find this encoding? It is possible to look for existing strings using
+the fact that the same character will be translated to the same number. For
+example, one character says "it is expensive" in the game. This means that in
+the ROM file there should be a substring of the form "ABCADCEFGEHDAIE", where
+the capital letters are unknown, but always the same. Viewed from this angle,
+this problem is like an elaborate crossword problem.
+
+    it is expensive
+    ABCADCEFGEHDAIE
+
+I wrote a function that looks for these kind of patterns. Here is its output on
+the Pilotwings ROM:
 
     68 e
     72 i
@@ -14,7 +53,9 @@ We use the following file:
     103 x
     239 ' '
 
-It seems to work well!
+That is to say, 'e' is encoded as 68, etc. Let's write another function that
+applies this encoding in reverse (yep, decoding) to the ROM: it seems to work
+well!
 
     ...e ..  .ppe...n.e... neve.         expe.te. ... t. .. s. .e.......            
      ... s..... n.t  ..ve ..ne t.e.e...t see.e. t.    .e ..st . .itt.e.i..i...t....n
@@ -25,8 +66,8 @@ It seems to work well!
 I add an option so that we can output only part of a file. Here the relevant
 offsets seem to be between 0x19780 and 0x1cf00.
 
-It seems that the letters are encoded in a sequential fashion: let's add all the
-letters between 72 i and 79 p. This works well:
+It seems that the letters are encoded in a sequential fashion, as in ASCII:
+let's add all the letters between 72 i and 79 p. This works well:
 
     19a80 pe..e.tt.e skills ne.ess... .o..o.  to  e..n   .e.ti.i..tion....
     1a400 .in....omplete lesson in .n.e. ....   .o. .. .oints...o... . .in
