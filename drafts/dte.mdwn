@@ -46,23 +46,97 @@ small, there will be a lot of matches. If all the characters are different,
 there will be a lot of matches too because several substitutions are possible at
 different places in the file.
 
-I wrote a function that looks for these kind of patterns. Here is its output on
-the Pilotwings ROM:
+Let's write a function that looks for these kind of patterns.
 
-    68 e
-    72 i
-    77 n
-    79 p
-    98 s
-    99 t
-    101 v
-    103 x
-    239 ' '
+~~~~ {.python}
+def sublists(l, n):
+    """
+    Get sublists of length n, with the index they start at.
+
+    >>> [(i, list(g)) for (i, g) in sublists(range(5), 3)]
+    [(0, [0, 1, 2]), (1, [1, 2, 3]), (2, [2, 3, 4])]
+    """
+    for i in range(len(l) - n + 1):
+        yield (i, l[i:i + n])
+
+
+def unique(d):
+    """
+    Check if a dictionary is invertible.
+
+    >>> unique({})
+    True
+
+    >>> unique({'a': 'b', 'c': 'b'})
+    False
+
+    >>> unique({'a': 'b', 'c': 'd'})
+    True
+    """
+    vs = set(d.values())
+    return len(d) == len(vs)
+
+
+def find_all(pattern, f):
+    """
+    >>> find_all('abab', b'\x01\x02\x01\x02\x03\x04\x05\x04\x05')
+    [(0, {1: 'a', 2: 'b'}), (5, {4: 'a', 5: 'b'})]
+    """
+    n = len(pattern)
+    candidates = [(i, match(pattern, l)) for (i, l) in sublists(f, n)]
+    return [(i, c) for (i, c) in candidates if c is not None]
+
+
+def match(pattern, l):
+    """
+    >>> match('abcd', b'\x01\x02\x03\x04')
+    {1: 'a', 2: 'b', 3: 'c', 4: 'd'}
+
+    >>> match('ttet', b'\x01\x03\x02\x01')
+
+    >>> match('test', b'\x01\x03\x02\x01')
+    {1: 't', 2: 's', 3: 'e'}
+    """
+    d = {}
+    for key, c in zip(pattern, l):
+        in_dict = d.get(c)
+        if in_dict is None:
+            d[c] = key
+        elif in_dict != key:
+            return None
+    if unique(d):
+        return d
+    else:
+        return None
+~~~~
+
+Every time we encounter a character, three things can happen:
+
+  - it's a new character: add it to the dictionary being built
+  - the character has already been seen with another value: it's an error
+  - the character has already been seen with the same value: do nothing.
+
+This algorithm is not optimal for several reasons:
+
+  - first, we generate a list of sublists and iterate on it. This makes the
+    function O(|pattern|.|file|), ie quadratic. Using a variant of Boyer-Moore
+    search, it is possible to reduce this complexity.
+  - then, we have to check whether the mapping is unique. Instead of a
+    dictionary, we actually would need a bidirectional map, that would by
+    construction always be bijective[^BiMapDeception].
+
+[^BiMapDeception]:
+This data structure is actually quite deceiving, as it's
+merely one map for each direction.
+
+Here is the output of the `find_all` function on the Pilotwings ROM:
+
+    (110989, {98: 's', 99: 't', 68: 'e', 101: 'v', 103: 'x', 72: 'i', 79: 'p', 77:
+    'n', 239: ' '})
 
 That is to say, 'e' is encoded as 68, etc. Let's write another function that
 applies this encoding in reverse (yep, decoding) to the ROM, and writes a dot
 when the letter is unknown. Here is the output near our target string:
-
 
     ...e ..  .ppe...n.e... neve.         expe.te. ... t. .. s. .e.......            
      ... s..... n.t  ..ve ..ne t.e.e...t see.e. t.    .e ..st . .itt.e.i..i...t....n
@@ -89,8 +163,8 @@ However, it can not be continued: the gaps between 'e' and 'i', or 'p' and 's'
 are too big. Usually this means that in the font, the letters are not in
 sequence, but rather organized as a matrix.
 
-Now we can guess several other letters by completing words. For example,
-"sk..ivin." is probably "skydiving".
+The next step is to guess several other letters by completing words. For
+example, "sk..ivin." is probably "skydiving".
 
 Then, using a similar technique, we can also find capital letters and arrive at
 this table:
