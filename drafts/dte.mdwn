@@ -164,19 +164,17 @@ are too big. Usually this means that in the font, the letters are not in
 sequence, but rather organized as a matrix.
 
 The next step is to guess several other letters by completing words. For
-example, "sk..ivin." is probably "skydiving".
-
-Then, using a similar technique, we can also find capital letters and arrive at
-this table:
+example, "sk..ivin." is probably "skydiving". Then, using a similar technique,
+we can also find capital letters and arrive at this table:
 
         x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 xA xB xC xD xE xF
     0x   A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P
-    1x   Q  R  S  T  U  V  W
+    1x   Q  R  S  T  U  V  W  X  Y  Z
     2x                                    ,  !  ?
     3x
     4x   a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p
     5x
-    6x   q  r  s  t  u  v  w  x  y              '
+    6x   q  r  s  t  u  v  w  x  y  z           '
     7x
     8x
     9x
@@ -186,3 +184,11 @@ this table:
     Dx
     Ex                                               <spc>
     Fx
+
+It is enough to extract all the text from the game. Interestingly enough, we can
+also open the ROM (I used Tile Layer Pro, which is unfortunately for Windows)
+and find the same layout:
+
+![TLPPalette]
+
+[TLPPalette]: dte/palette.png
