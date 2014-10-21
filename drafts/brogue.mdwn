@@ -149,31 +149,6 @@ Seed 5:
         A scroll of identify
 ~~~~
 
-To parse it, there are several options:
-
-  - yolostyle: do something with bare hands, track indentation and handle line
-    by line with perl
-  - use a parser generator: write a LR grammar and use a tool such as yacc
-  - use a parser combinator library. This is how we'll do and what I'll explain
-    here.
-
-Parser generators have several drawbacks. First, they require to use a separate
-tool to generate code. Also, they tend to be quite slow. Finally, they are
-somewhat arcane to debug (change an innocuous rule, gain 30 shift/reduce
-conflicts).
-
-On the contrary, parser combinators are nice because they are written within the
-same implementation language as the rest of your code. They're just functions.
-Suppose that a language has string litterals and integer litterals, and that
-both are constants. To define the rule for constants, you'll just declare
-
-~~~~ {.haskell}
-constant = string_lit <|> integer_lit
-~~~~
-
-It's very declarative. `(<|>)` takes two parsers and returns a new parser which
-can parse either.
-
 [BGGPuertoRico]: http://boardgamegeek.com/boardgame/3076/puerto-rico
 [BGGWerewolves]: http://boardgamegeek.com/boardgame/25821/the-werewolves-of-millers-hollow
 [WPRogue]: http://en.wikipedia.org/wiki/Rogue_(video_game)
