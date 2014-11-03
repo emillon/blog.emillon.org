@@ -1,0 +1,93 @@
+---
+author: Etienne Millon
+---
+
+The freeze is coming.
+It's a good time to make a bit of summary of my contributions during this
+release cycle.
+
+## New packages
+
+[subliminal] is a tool to automatically download subtitles for movie files.
+Packaging it required to also package a few of its dependencies that were not
+available in Debian: [babelfish], [enzyme], [guessit], and [pysrt].
+
+[glyr] is a library to query lyrics sites. I packaged it because the new
+version of gmpc requires it, but at the moment it is just a leaf package.
+
+## Usual work on my packages
+
+[gmpc] and [gmpc-plugins] did not change a lot. Upstream is working on a big new
+version but it is not released yet. During this Debian cycle, I did mostly
+janitorial work: I disabled outdated provider plugins, enable multi-arch
+support, and ported to a recent version of Vala.
+
+[rss2email] got a new upstream maintainer. This is really great since the code
+needed some love. The whole program got rewritten in Python 3, and this mandated
+a major version bump, creating the rss2email 3.x branch.
+
+One of the side-effects of this rewrite is that the configuration file format
+changed. Actually the 2.x version used a plain python file for configuration,
+which was `eval()`uated within the program's context. Now it is based on
+ConfigParser. The on-disk state file, which serializes what feeds you are
+subscribed to, and what is the last time you refreshed them, changed its format
+too from a pickle file to a JSON file.
+
+This incompatibility is necessary and welcome, but is tough to manage within the
+context of a software distribution. If a user upgrades his packages, he should
+find his programs working as before. So, I wrote a `r2e-migrate` script that
+converts a 2.x state file to a 3.x state file. Designing a clean upgrade path
+was very interesting. Indeed, it is not possible to do this during the package
+installation: since the config and state files are in every user's $HOME, it is
+necessary to wait for each user to do his migration. The solution I arrived at
+was that when rss2email 3.x starts, and has no state file, it checks if a
+rss2email 2.x exists. Then it prompts the user to run `r2e-migrate`. A few
+iterations were necessary before it worked as I wanted, so I am happy to have
+used the experimental suite for this. Once everything was working I uploaded the
+package to unstable and it seems to work well. I am very happy with how this
+went, and I could close a lot of bugs in this package, also thanks to the new
+responsive upstream.
+
+[visualboyadvance] only got cosmetic changes. A patch for fixing the build with
+the new GCC flags, enabling hardening etc. I somehow missed the notification
+email for an important bug (#740292) that I merged but unfortunately it is too
+late to include it in Jessie. I would like to give the package more love for the
+next release, maybe including the newer vba-m version.
+
+[zsnes] is an interesting package to maintain because it's written in x86
+assembly and has been dormant upstream for a few years now. During this release
+cycle there were no real breakthroughs, but a lot of little niceties. For
+example, we now have a debug package, and build packages for kfreebsd and the
+hurd. Enabling hardening options also made us discover several memory
+manipulation errors.
+
+I would like to include a more recent upstream snapshot, but the whole situation
+seems to be a little complicated as there seem to be several forks lying around.
+
+## New packages I'm taking care of
+
+I have the pleasure of being the new maintainer for [feedparser], a Python
+library for parsing RSS and Atom feeds. It is my most popular package: according
+to popcon, 40% of users have it installed! During this released, I ported back
+the work made on the Ubuntu, and worked on providing a Python 3 version of this
+package.
+
+## Given package
+
+In 2012 I started to take care of the coin* packages. I adopted [coinor-cbc] and
+began to plan a transition plan for all the related packages, but because of a
+lack of time and interest I did not go all the way.
+
+Fortunately Miles Lubin proposed to adopt these packages and is doing a great
+work on them. Thanks Miles!
+
+TODO
+
+brogue
+libtcod
+opentyrian
+stepmania
+
+python-notify2
+
+DM
