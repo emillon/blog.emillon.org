@@ -113,4 +113,9 @@ since I could not deliver it for Jessie.
 
 ## Debian Maintainer
 
-TODO
+So far, every time I need to push a package to the Debian archive, I need to ask
+someone with upload permissions to review my work and upload it. It ensures
+
+A couples weeks ago I decided to apply as a Debian Maintainer. Once this will be
+done, I will be able to upload my packages without this sponsoring step.
+Exciting!
