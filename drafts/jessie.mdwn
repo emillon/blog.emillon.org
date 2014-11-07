@@ -81,13 +81,36 @@ lack of time and interest I did not go all the way.
 Fortunately Miles Lubin proposed to adopt these packages and is doing a great
 work on them. Thanks Miles!
 
+## Incomplete work
+
+I wanted to package several programs that did not make it to the archive.
+
+[brogue] is a rogue-like in the most traditional fashion: grid-based and turn by
+turn. Most of the packaging work I did was on an unpackaged dependency,
+[libtcod]. It needed a bit of work so that it can be used installed in `/usr`
+and not from an unpacked source tree.
+
+[opentyrian] is a free rewrite of the classic shoot-em-up Tyrian. As usual for
+this kind of projects, it only covers the software part. You still need a copy
+of the original game to play. In that case it is easier since the game can be
+downloaded from the author's website. But since it is not free, Debian can not
+host these files. So it is necessary to download it at install time using a tool
+named `game-data-packager`. I worked with Alexandre Detiste on a patch to
+support this ([#739486]), but unfortunately the project seems dormant and it is
+blocking for the inclusion of opentyrian in Debian.
+
+[stepmania] is an open source clone of the "Dance Dance Revolution" game. It is
+a very popular piece of software, and an Intend To Package bug has been open for
+it since 2003. But it used to include non-free (and actually,
+copyright-infringing) pieces of artwork from the original game, which used to
+make it unsuitable for inclusion. However the newer versions are more compliant
+and I am still working on this. There are two problems remaining: first, there
+is a lot of code and artwork for which the copyright and licensing information
+is unclear (though it does seem that the infringing material has been removed).
+And second, it embeds a lot of libraries; it's necessary to patch it so that it
+can use the system copies. I sincerely hope that it will be part of Jessie+1
+since I could not deliver it for Jessie.
+
+## Debian Maintainer
+
 TODO
-
-brogue
-libtcod
-opentyrian
-stepmania
-
-python-notify2
-
-DM
