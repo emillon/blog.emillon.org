@@ -1,6 +1,7 @@
 ---
 title: My part of work in Debian Jessie
 author: Etienne Millon
+tags: debian
 ---
 
 Right now, Debian Jessie is frozen, and in a fairly good shape. The amount of RC
