@@ -2,9 +2,8 @@
 author: Etienne Millon
 ---
 
-The freeze is coming.
-It's a good time to make a bit of summary of my contributions during this
-release cycle.
+With Debian Jessie being frozen, it's a good time to make a bit of summary of my
+contributions during this release cycle.
 
 ## New packages
 
@@ -12,8 +11,16 @@ release cycle.
 Packaging it required to also package a few of its dependencies that were not
 available in Debian: [babelfish], [enzyme], [guessit], and [pysrt].
 
+[babelfish]: http://babelfish.readthedocs.org/
+[enzyme]: http://enzyme.readthedocs.org/
+[guessit]: http://guessit.readthedocs.org/
+[pysrt]: https://github.com/byroot/pysrt
+[subliminal]: http://subliminal.readthedocs.org/
+
 [glyr] is a library to query lyrics sites. I packaged it because the new
 version of gmpc requires it, but at the moment it is just a leaf package.
+
+[glyr]: https://github.com/sahib/glyr
 
 ## Usual work on my packages
 
@@ -22,9 +29,14 @@ version but it is not released yet. During this Debian cycle, I did mostly
 janitorial work: I disabled outdated provider plugins, enable multi-arch
 support, and ported to a recent version of Vala.
 
+[gmpc]: http://gmpc.wikia.com
+[gmpc-plugins]: http://gmpc.wikia.com/wiki/Plugins
+
 [rss2email] got a new upstream maintainer. This is really great since the code
 needed some love. The whole program got rewritten in Python 3, and this mandated
 a major version bump, creating the rss2email 3.x branch.
+
+[rss2email]: https://github.com/wking/rss2email
 
 One of the side-effects of this rewrite is that the configuration file format
 changed. Actually the 2.x version used a plain python file for configuration,
@@ -54,6 +66,8 @@ email for an important bug (#740292) that I merged but unfortunately it is too
 late to include it in Jessie. I would like to give the package more love for the
 next release, maybe including the newer vba-m version.
 
+[visualboyadvance]: http://sourceforge.net/projects/vba/
+
 [zsnes] is an interesting package to maintain because it's written in x86
 assembly and has been dormant upstream for a few years now. During this release
 cycle there were no real breakthroughs, but a lot of little niceties. For
@@ -64,6 +78,8 @@ manipulation errors.
 I would like to include a more recent upstream snapshot, but the whole situation
 seems to be a little complicated as there seem to be several forks lying around.
 
+[zsnes]: http://www.zsnes.com/
+
 ## New packages I'm taking care of
 
 I have the pleasure of being the new maintainer for [feedparser], a Python
@@ -71,6 +87,8 @@ library for parsing RSS and Atom feeds. It is my most popular package: according
 to popcon, 40% of users have it installed! During this released, I ported back
 the work made on the Ubuntu, and worked on providing a Python 3 version of this
 package.
+
+[feedparser]: https://pythonhosted.org/feedparser/
 
 ## Given package
 
@@ -81,6 +99,8 @@ lack of time and interest I did not go all the way.
 Fortunately Miles Lubin proposed to adopt these packages and is doing a great
 work on them. Thanks Miles!
 
+[coinor-cbc]: https://projects.coin-or.org/Cbc
+
 ## Incomplete work
 
 I wanted to package several programs that did not make it to the archive.
@@ -90,6 +110,8 @@ turn. Most of the packaging work I did was on an unpackaged dependency,
 [libtcod]. It needed a bit of work so that it can be used installed in `/usr`
 and not from an unpacked source tree.
 
+[brogue]: https://sites.google.com/site/broguegame/
+
 [opentyrian] is a free rewrite of the classic shoot-em-up Tyrian. As usual for
 this kind of projects, it only covers the software part. You still need a copy
 of the original game to play. In that case it is easier since the game can be
@@ -98,6 +120,8 @@ host these files. So it is necessary to download it at install time using a tool
 named `game-data-packager`. I worked with Alexandre Detiste on a patch to
 support this ([#739486]), but unfortunately the project seems dormant and it is
 blocking for the inclusion of opentyrian in Debian.
+
+[opentyrian]: https://code.google.com/p/opentyrian/
 
 [stepmania] is an open source clone of the "Dance Dance Revolution" game. It is
 a very popular piece of software, and an Intend To Package bug has been open for
@@ -110,6 +134,8 @@ is unclear (though it does seem that the infringing material has been removed).
 And second, it embeds a lot of libraries; it's necessary to patch it so that it
 can use the system copies. I sincerely hope that it will be part of Jessie+1
 since I could not deliver it for Jessie.
+
+[stepmania]: http://www.stepmania.com/
 
 ## Debian Maintainer
 
