@@ -23,7 +23,7 @@ def main():
         contents = f.readlines()
     header = parse_header(contents)
     title = header['title']
-    slug = slugify(title)
+    slug = slugify(unicode(title))
     today = time.strftime("%Y-%m-%d")
     slugtitle = '{date}-{slug}.mdwn'.format(date=today, slug=slug)
     dest = os.path.join('posts', slugtitle)
