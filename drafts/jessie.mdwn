@@ -1,11 +1,18 @@
 ---
+title: My part of work in Debian Jessie
 author: Etienne Millon
 ---
 
-With Debian Jessie being frozen, it's a good time to make a bit of summary of my
-contributions during this release cycle.
+Right now, Debian Jessie is frozen, and in a fairly good shape. The amount of RC
+bugs is low, which means that the release should be "quite" near ("when it is
+ready").
 
-## New packages
+It is a good time to make a summary of my contributions during this release
+cycle.
+
+## New packages in Debian
+
+For Jessie I have added no less than 6 new packages to the archive.
 
 [subliminal] is a tool to automatically download subtitles for movie files.
 Packaging it required to also package a few of its dependencies that were not
@@ -22,10 +29,20 @@ version of gmpc requires it, but at the moment it is just a leaf package.
 
 [glyr]: https://github.com/sahib/glyr
 
-## Usual work on my packages
+## New packages I'm taking care of
+
+I have the pleasure of being the new maintainer for [feedparser], a Python
+library for parsing RSS and Atom feeds. It is my most popular package: according
+to popcon, 40% of users have it installed! During this released, I ported back
+the work made on Ubuntu, and worked on providing a Python 3 version of this
+package.
+
+[feedparser]: https://pythonhosted.org/feedparser/
+
+## Updates on my packages
 
 [gmpc] and [gmpc-plugins] did not change a lot. Upstream is working on a big new
-version but it is not released yet. During this Debian cycle, I did mostly
+version but it is not released yet. During this Debian cycle, I mostly did
 janitorial work: I disabled outdated provider plugins, enable multi-arch
 support, and ported to a recent version of Vala.
 
@@ -36,8 +53,6 @@ support, and ported to a recent version of Vala.
 needed some love. The whole program got rewritten in Python 3, and this mandated
 a major version bump, creating the rss2email 3.x branch.
 
-[rss2email]: https://github.com/wking/rss2email
-
 One of the side-effects of this rewrite is that the configuration file format
 changed. Actually the 2.x version used a plain python file for configuration,
 which was `eval()`uated within the program's context. Now it is based on
@@ -47,24 +62,27 @@ too from a pickle file to a JSON file.
 
 This incompatibility is necessary and welcome, but is tough to manage within the
 context of a software distribution. If a user upgrades his packages, he should
-find his programs working as before. So, I wrote a `r2e-migrate` script that
-converts a 2.x state file to a 3.x state file. Designing a clean upgrade path
-was very interesting. Indeed, it is not possible to do this during the package
-installation: since the config and state files are in every user's $HOME, it is
-necessary to wait for each user to do his migration. The solution I arrived at
-was that when rss2email 3.x starts, and has no state file, it checks if a
-rss2email 2.x exists. Then it prompts the user to run `r2e-migrate`. A few
-iterations were necessary before it worked as I wanted, so I am happy to have
-used the experimental suite for this. Once everything was working I uploaded the
-package to unstable and it seems to work well. I am very happy with how this
-went, and I could close a lot of bugs in this package, also thanks to the new
-responsive upstream.
+find his programs working as before. So, I wrote a `r2e-migrate`
+[script][r2e-migrate] that converts a 2.x state file to a 3.x state file.
+Designing a clean upgrade path was very interesting. Indeed, it is not possible
+to do this during the package installation: since the config and state files are
+in every user's $HOME, it is necessary to wait for each user to do his
+migration. The solution I arrived at is the following: when rss2email 3.x
+starts, and has no state file, it checks if a rss2email 2.x exists. Then it
+prompts the user to run `r2e-migrate`. A few iterations were necessary before it
+worked as I wanted, so I am happy to have used the experimental suite for this.
+Once everything was working I uploaded the package to unstable and it seems to
+be working well. I am very happy with how this went, and I could close a lot of
+bugs in this package, also thanks to the new responsive upstream.
 
-[visualboyadvance] only got cosmetic changes. A patch for fixing the build with
+[rss2email]: https://github.com/wking/rss2email
+[r2e-migrate]: https://github.com/emillon/rss2email-debian/blob/master/debian/r2e-migrate
+
+[visualboyadvance] only got cosmetic changes: a patch for fixing the build with
 the new GCC flags, enabling hardening etc. I somehow missed the notification
-email for an important bug (#740292) that I merged but unfortunately it is too
-late to include it in Jessie. I would like to give the package more love for the
-next release, maybe including the newer vba-m version.
+email for an important bug (#740292) with a patch that I merged but
+unfortunately it is too late to include it in Jessie. I would like to give the
+package more love for the next release, maybe including the newer vba-m fork.
 
 [visualboyadvance]: http://sourceforge.net/projects/vba/
 
@@ -80,17 +98,7 @@ seems to be a little complicated as there seem to be several forks lying around.
 
 [zsnes]: http://www.zsnes.com/
 
-## New packages I'm taking care of
-
-I have the pleasure of being the new maintainer for [feedparser], a Python
-library for parsing RSS and Atom feeds. It is my most popular package: according
-to popcon, 40% of users have it installed! During this released, I ported back
-the work made on the Ubuntu, and worked on providing a Python 3 version of this
-package.
-
-[feedparser]: https://pythonhosted.org/feedparser/
-
-## Given package
+## Package given for adoption
 
 In 2012 I started to take care of the coin* packages. I adopted [coinor-cbc] and
 began to plan a transition plan for all the related packages, but because of a
@@ -111,6 +119,7 @@ turn. Most of the packaging work I did was on an unpackaged dependency,
 and not from an unpacked source tree.
 
 [brogue]: https://sites.google.com/site/broguegame/
+[libtcod]: http://roguecentral.org/doryen/libtcod/
 
 [opentyrian] is a free rewrite of the classic shoot-em-up Tyrian. As usual for
 this kind of projects, it only covers the software part. You still need a copy
@@ -122,6 +131,7 @@ support this ([#739486]), but unfortunately the project seems dormant and it is
 blocking for the inclusion of opentyrian in Debian.
 
 [opentyrian]: https://code.google.com/p/opentyrian/
+[#739486]: https://bugs.debian.org/739486
 
 [stepmania] is an open source clone of the "Dance Dance Revolution" game. It is
 a very popular piece of software, and an Intend To Package bug has been open for
@@ -132,7 +142,7 @@ and I am still working on this. There are two problems remaining: first, there
 is a lot of code and artwork for which the copyright and licensing information
 is unclear (though it does seem that the infringing material has been removed).
 And second, it embeds a lot of libraries; it's necessary to patch it so that it
-can use the system copies. I sincerely hope that it will be part of Jessie+1
+can use the system copies. I sincerely hope that it will be part of Stretch
 since I could not deliver it for Jessie.
 
 [stepmania]: http://www.stepmania.com/
@@ -140,8 +150,13 @@ since I could not deliver it for Jessie.
 ## Debian Maintainer
 
 So far, every time I need to push a package to the Debian archive, I need to ask
-someone with upload permissions to review my work and upload it. It ensures
+someone with upload permissions to review my work and upload it. It ensures that
+the archive stays legal and with a great quality, but it is definitely a
+non negligible amount of friction every time I need to upload a package.
 
 A couples weeks ago I decided to apply as a Debian Maintainer. Once this will be
 done, I will be able to upload my packages without this sponsoring step.
 Exciting!
+
+Let's all hope that the freeze will be over soon and we will enjoy once again a
+great release.
