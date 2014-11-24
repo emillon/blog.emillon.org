@@ -155,7 +155,7 @@ someone with upload permissions to review my work and upload it. It ensures that
 the archive stays legal and with a great quality, but it is definitely a
 non negligible amount of friction every time I need to upload a package.
 
-A couples weeks ago I decided to apply as a Debian Maintainer. Once this will be
+A couple weeks ago I decided to apply as a Debian Maintainer. Once this will be
 done, I will be able to upload my packages without this sponsoring step.
 Exciting!
 
