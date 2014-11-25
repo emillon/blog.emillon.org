@@ -1,0 +1,203 @@
+---
+title: Ressurecting a DDR mat with a microcontroller
+author: Etienne Millon
+tags: ddr, avr
+---
+
+Hello, my name is Etienne Millon and I have two passions: DDR and programming.
+Recently while organizing my place I found two abandoned items that were meant
+to meet each other: a Dance Dance Revolution mat and a Teensy++ development
+board. This project is the story of their union.
+
+TODO stepmania
+
+## Finding the pinout
+
+I stumbled upon an old DDR mat and I wanted to play. Unfortunately, the
+connector was not standard. In a previous life I used to connect it
+to a parallel port using a schematic such as [Direct Pad Pro].
+
+[Direct Pad Pro]: http://arcadecontrols.com/Mirrors/www.ziplabel.com/dpadpro/psx.html
+
+TODO Photo
+
+On the above picture we can see that two things are connected to the parallel
+port: the DDR mat and a female SNES connector.
+
+The first thing to do is to note the pinout of the existing connection:
+
+    DB25
+
+     2 --------- orange
+     3 --------- yellow
+     4 --------- blue
+     5 --|>|-+
+     6 --|>|-+
+     7 --|>|-+-- pink
+     8 --|>|-+
+     9 --|>|-+
+    11 --------- brown
+    19 -----+
+    20 -----+
+    21 -----+
+    22 -----+--- black
+    23 -----+
+    24 -----+
+    25 -----+
+          NC  -- green
+      
+But unfortunately, this is incompatible with Direct Pad Pro: indeed the DPP
+pinout does not connect anything to DB25-11. Thinking about it, I probably used
+this under Linux. There is an kernel driver documented as
+[joystick-parport.txt].
+
+[joystick-parport.txt]: https://www.kernel.org/doc/Documentation/input/joystick-parport.txt
+
+Indeed it says that data can be connected to 11. It probably means
+that the SNES pad was #1 and the PSX pad was #2.
+
+Using this accurate information we can reconstruct the correct pinout. Note that
+the kernel numbers PSX pins in the opposite order of everything else I have
+seen. The following table uses kernel order.
+
+  Color       DB25 #     PSX #   Function
+--------- -----------   ------- ---------- 
+  orange     2             8      Command
+  yellow     3             4      Select
+  blue       4             3      Clock
+  pink     5-9 [^diode]    5      Vcc
+  brown      11            9      Data
+  black      19-25         6      Ground
+  green      NC
+
+[^diode]: Protected by 1N4148 diodes.
+
+This also confirms that the green wire is not needed.
+At first I was worried about a faulty solder in my connector.
+
+## Connecting it to the teensy++
+
+The teensy++ is a development board with an AT90USB1286 microcontroller, from
+the AVR family. It has many GPIO ports, so a choice had to be made for the pins
+used. I chose this pinout:
+
+ AVR port   Color    Function    Direction
+---------- -------- ----------  -----------
+   Vcc      pink      Vcc          Power
+   GND      black     Ground       Power
+   PC0      brown     Data          D→H
+   PC1      orange    Command       H→D
+   PC2      yellow    Select        H→D
+   PC3      blue      Clock         H→D
+
+Here the data signal is the only one that goes from the Device (DDR mat) to the
+Host (microcontroller), but on this microcontroller, pins can be used as an
+input or as an output, so we are free to choose any.
+
+TODO Photo
+
+## Programming the teensy++
+
+The next step is to write the firmware. I had two main problems: first, the
+manufacturer seems to recommend [Teensy Loader] to program the microcontroller.
+This is a GUI app and which does not seem to be free software. Fortunately, I
+found a packaged version of [teensy-loader-cli] which is CLI and GPL3 and works
+well.
+
+The following command was enough to convince me that this works well:
+
+    teensy-loader-cli -mmcu=at90usb1286 blink_slow_Teensy2pp.hex
+
+[Teensy Loader]: https://www.pjrc.com/teensy/loader.html
+[teensy-loader-cli]: https://github.com/raphendyr/teensy-loader-cli
+
+The second quirk is that everyone seems to use the teensy as an
+Arduino. This project is fine and helps a lot of people build awesome stuff, but
+I wanted the real, low-level stuff. So I aptitude-installed `gcc-avr` and
+`avr-lib`. There are several differences in how you program microcontrollers as
+an Arduino and as a plain AVR.
+
+For example here is how you configure PC0 to be an input with a pullup resistor
+(so that it reads 1 when the pin is disconnected):
+
+    DDRC &= ~(1 << PC0);
+    PORTC |= (1 << PC0);
+
+This clears bit PC0 of register DDRC (Data Direction Register C, nothing to do
+with Dance Dance Revolution) and sets bit PC0 of the PORTC register. Instead, the
+corresponding Arduino code is:
+
+    pinMode(10, INPUT_PULLUP);
+
+The library has a mapping from pin numbers (an Arduino-specific terminology it
+seems) to registers, which makes it possible to do that.
+
+## The PSX protocol
+
+Time to write the code itself. My absolute reference for programming and
+interfacing the Playstation is [Everything You Have Always Wanted to Know about the Playstation
+But Were Afraid to
+Ask](http://www.raphnet.net/electronique/psx_adaptor/Playstation.txt). See
+section 9 for controllers.
+
+The idea is that every frame (16 ms), Select becomes low, and bytes are
+transfered in a synchronous way over the Command (D→H) and Data (H→D) pins.
+The normal operation should be this:
+
+ Byte #   Command   Data
+-------- --------- -------
+   1        0x01    0xFF
+   2        0x42    0x41
+   3        0x00    0x5A
+   4        0x00    data1
+   5        0x00    data2
+
+If we consider the 16-bit number `(data2 << 8) | data1)`, we can deduce keypress
+information. If a bit is set, button is not pressed.
+
+ Bit #      Key       Bit #      Key
+------- ------------ ------- ------------
+    0    Select          8    L2
+    1    (always 1)      9    R2
+    2    (always 1)     10    L1
+    3    Start          11    R1
+    4    Up             12    Triangle
+    5    Right          13    Circle
+    6    Down           14    Cross
+    7    Left           15    Square
+
+So I programmed this protocol, but it was not obvious how to debug it.
+Fortunately, this microcontroller is USB and it is possible to transmit debug
+messages using the [usb_debug_only] code sample.
+
+[usb_debug_only]: https://www.pjrc.com/teensy/usb_debug_only.html
+
+Unfortunately, my first iteration did not work.
+
+    Read
+    01 -> FF
+    42 -> FF
+    00 -> FF
+    00 -> FF
+    00 -> FF
+
+I re-read my code carefully and I found two bugs:
+
+  - I wasn't putting Clock back up.
+  - I was using PORTC for reading input even though PINC was needed… the
+    registers are mapped in memory but not at the same address for reading and
+    writing. Rookie mistake.
+
+After reprogramming and reloading here is a satisfying output:
+
+    Read
+    01 -> FF
+    42 -> 41
+    00 -> 5A
+    00 -> FF
+    00 -> DF
+
+We can see the device ID part (41 5A) and the value that indicates that
+nothing is pressed except the Circle button.
+
+## Interfacing to the PC
