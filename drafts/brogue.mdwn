@@ -150,7 +150,7 @@ Seed 5:
 ~~~~
 
 [BGGPuertoRico]: http://boardgamegeek.com/boardgame/3076/puerto-rico
-[BGGWerewolves]: http://boardgamegeek.com/boardgame/25821/the-werewolves-of-millers-hollow
+[BGGWerewolves]: http://boardgamegeek.com/boardgame/25821/werewolves-millers-hollow
 [WPRogue]: http://en.wikipedia.org/wiki/Rogue_(video_game)
 [NetHack]: http://www.nethack.org/
 [Brogue]: https://sites.google.com/site/broguegame/

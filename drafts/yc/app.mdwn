@@ -11,7 +11,7 @@ Phone number(s)
 :   snippyhollow        *redacted*
 :   emillon             *redacted*
 
-Please enter the url of a 1 minute video introducing the founders. [Instructions.](http://ycombinator.com/video.html)
+Please enter the url of a 1 minute video introducing the founders. [Instructions.](http://ycombinator.com/video/)
 
 :   *redacted*
 

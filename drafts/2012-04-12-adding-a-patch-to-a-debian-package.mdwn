@@ -230,7 +230,7 @@ It's awesome. [Do it !][HelpDebian].
 
 
 [bug report]:       http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=667429
-[DDPO]:             http://qa.debian.org/developer.php?login=etienne.millon@gmail.com
+[DDPO]:             https://qa.debian.org/developer.php?login=etienne.millon%40gmail.com
 [HelpDebian]:       http://www.debian.org/intro/help
 [git-buildpackage]: http://honk.sigxcpu.org/projects/git-buildpackage/manual-html/gbp.html
 [patch queues]:     http://mercurial.selenic.com/wiki/MqExtension
