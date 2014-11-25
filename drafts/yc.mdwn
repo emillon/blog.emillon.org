@@ -92,7 +92,7 @@ for this user
 [Gabriel Synnaeve]: http://snippyhollow.github.io/
 [Cloverfeed]: http://cloverfeed.com/
 [Hacker News]: https://news.ycombinator.com/
-[at YC]: http://ycombinator.com/atyc/
+[at YC]: http://www.ycombinator.com/atyc/
 [YC App]: yc/app.html
 [Bruce Sterling NEXT13]: http://nearfuturelaboratory.com/2011/11/13/weekending-11132011/
 [Cloverfeed inbox, sorted]: http://i.imgur.com/Q9tVx.png
