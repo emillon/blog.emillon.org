@@ -120,14 +120,18 @@ an Arduino and as a plain AVR.
 For example here is how you configure PC0 to be an input with a pullup resistor
 (so that it reads 1 when the pin is disconnected):
 
-    DDRC &= ~(1 << PC0);
-    PORTC |= (1 << PC0);
+~~~~ {.c}
+DDRC &= ~(1 << PC0);
+PORTC |= (1 << PC0);
+~~~~
 
 This clears bit PC0 of register DDRC (Data Direction Register C, nothing to do
 with Dance Dance Revolution) and sets bit PC0 of the PORTC register. Instead, the
 corresponding Arduino code is:
 
-    pinMode(10, INPUT_PULLUP);
+~~~~ {.c}
+pinMode(10, INPUT_PULLUP);
+~~~~
 
 The library has a mapping from pin numbers (an Arduino-specific terminology it
 seems) to registers, which makes it possible to do that.
@@ -201,3 +205,34 @@ We can see the device ID part (41 5A) and the value that indicates that
 nothing is pressed except the Circle button.
 
 ## Interfacing to the PC
+
+At that moment the firmware just computes the result and prints it over USB. To
+do something useful with it on the computer side we need to expose this
+information as a USB joystick or keyboard. I used the [usb_keyboard] code
+sample which exports a `usb_keyboard_press` function.
+
+[usb_keyboard]: https://www.pjrc.com/teensy/usb_keyboard.html
+
+The main loop is slightly different: in a debug setting it's possible to print
+the state at every frame, but a keyboard works differently. You are supposed to
+send a message only when a key is pressed. So, at each frame, it is necessary to
+keep track of the previous state and to diff it with the current one. If a bit
+was previously set (meaning that the button is not pressed) and is now set, we
+have to signal USB that a key was pressed. This code is run for every `btn` if
+the state changes:
+
+~~~~ {.c}
+int was_released = last_js & (1 << btn);
+int is_pressed = !(js & (1 << btn));
+if (was_released && is_pressed) {
+    int key = mapping[btn];
+    usb_keyboard_press(key, 0);
+}
+~~~~
+
+This is simple, yet it works remarkably well. I noticed that however it does not
+work perfectly for DDR since the key is released immediately: the patterns where
+you have to hold keys do not work. Indeed, key press and release is a single
+operation here.
+
+TODO continue
