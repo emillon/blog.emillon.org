@@ -15,7 +15,10 @@ executable blog
                     filepath ==1.3.*,
                     process ==1.1.*,
                     bytestring ==0.10.*,
-                    hakyll ==4.6.*
+                    hakyll ==4.6.*,
+                    pandoc-types,
+                    MissingH,
+                    mtl
 
 Test-Suite tests
   type:                exitcode-stdio-1.0

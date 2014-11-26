@@ -2,11 +2,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
-import Control.Applicative
 import Control.Monad
 import Data.Monoid
 
 import Hakyll
+
+import AssetDirectory
 
 main :: IO ()
 main =
@@ -151,7 +152,7 @@ makeDrafts tags = do
             markdownCompiler >>=
             loadAndApplyTemplate "templates/default.html" defaultContext >>=
             relativizeUrls
-    void $ match "drafts/*/*.gif" $ do
+    void $ match ("drafts/*/*.gif" .||. "drafts/*/*.jpg") $ do
         route idRoute
         compile copyFileCompiler
 
@@ -181,4 +182,5 @@ feedConfiguration = FeedConfiguration
     }
 
 markdownCompiler :: Compiler (Item String)
-markdownCompiler = pandocCompiler
+markdownCompiler =
+    pandocCompilerWithTransformM defaultHakyllReaderOptions defaultHakyllWriterOptions replaceThis
