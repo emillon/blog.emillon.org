@@ -225,8 +225,8 @@ the state changes:
 int was_released = last_js & (1 << btn);
 int is_pressed = !(js & (1 << btn));
 if (was_released && is_pressed) {
-    int key = mapping[btn];
-    usb_keyboard_press(key, 0);
+        int key = mapping[btn];
+        usb_keyboard_press(key, 0);
 }
 ~~~~
 
@@ -235,4 +235,52 @@ work perfectly for DDR since the key is released immediately: the patterns where
 you have to hold keys do not work. Indeed, key press and release is a single
 operation here.
 
-TODO continue
+Let's have a look at this function:
+
+~~~~ {.c}
+int8_t usb_keyboard_press(uint8_t key, uint8_t modifier)
+{
+        int8_t r;
+        keyboard_modifier_keys = modifier;
+        keyboard_keys[0] = key;
+        r = usb_keyboard_send();
+        if (r) return r;
+        keyboard_modifier_keys = 0;
+        keyboard_keys[0] = 0;
+        return usb_keyboard_send();
+}
+~~~~
+
+When `usb_keyboard_send` is called, it transmits the contents of `keyboard_keys`
+over USB. All nonzero elements correspond to keys that are pressed. So what this
+function does is transmit a state where a key is pressed, and transmit a state
+where nothing is pressed. This does not work if several keys can be pressed at
+once.
+
+## Making rollover work
+
+It would be nice to implement n-key rollover (NKRO) so that all keys can be
+pressed independently. This is possible, by increasing the size of keyboard_keys
+to 14 (the number of keys). But this means fiddling with the USB descriptor code
+(so that the USB host side can now how many bytes to expect) and I am not really
+comfortable with that. So we'll just have 6-keys rollover which ought to be
+enough for everybody.
+
+Here is the new version of the code that is called for every button:
+
+~~~~ {.c}
+int was_pressed = !(last_js & (1 << i));
+int is_pressed = !(js & (1 << i));
+
+if (is_pressed && !was_pressed) {
+        keypress_add(mapping[i]);
+}
+if (was_pressed && !is_pressed) {
+        keypress_remove(mapping[i]);
+}
+~~~~
+
+The `keypress_add` function walks the `keyboard_keys` array and replace the
+first 0 with the correct button. `keypress_remove` does the opposite.
+
+And… this works!
