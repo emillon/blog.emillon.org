@@ -14,7 +14,7 @@ main =
   hakyllWith conf rules
     where
       conf = defaultConfiguration { deployCommand = s3deploy }
-      s3deploy = "s3cmd --guess-mime-type -P sync _site/ s3://blog.emillon.org/"
+      s3deploy = "s3cmd --guess-mime-type --no-mime-magic -P sync _site/ s3://blog.emillon.org/"
 
 rules :: Rules ()
 rules = do
