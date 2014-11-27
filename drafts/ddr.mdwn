@@ -20,22 +20,23 @@ board. This project is the story of their union.
 
 So, I stumbled upon an old DDR mat and I wanted to play with it. The easiest way 
 is using [Stepmania], a simulator that works on Linux (and that I am trying to
-[package for Debian][post-jessie]).
+[package for Debian][post-jessie]). But some interface is needed to connect
+dancing mats (usually made for the Playstation) to a computer.
 
 [Stepmania]: http://www.stepmania.com/
 [post-jessie]: http://blog.emillon.org/posts/2014-11-21-my-part-of-work-in-debian-jessie.html
 
-In a previous life I replaced the Playstation connector with a parallel port
-connector, so that I could use it on my computer. In the beginning of the 2000s,
-the popular circuit to do this was [Direct Pad Pro], and on Linux there was a
-similar driver documented in [joystick-parport.txt].
+In a previous life I replaced the Playstation connector of this mat with a
+parallel port connector. In the beginning of the 2000s, the popular circuit to
+do this was [Direct Pad Pro], and on Linux there was a similar driver documented
+in [joystick-parport.txt].
 
 [Direct Pad Pro]: http://arcadecontrols.com/Mirrors/www.ziplabel.com/dpadpro/psx.html
 [joystick-parport.txt]: https://www.kernel.org/doc/Documentation/input/joystick-parport.txt
 
-Needless to say, I do not have a parallel port on my computer, so some
-conversion is required. I happen to also have a USB development board on hand,
-so a possible solution is to program it to drive the Playstation gamepad.
+Needless to say, I do not have a parallel port on my computer anymore, so some
+conversion is required. I also happen to have a USB development board on hand,
+so a possible solution is to program it to drive the Playstation mat.
 
 ![A DDR mat with unusual connectors](THIS/mat.jpg)
 
@@ -68,7 +69,7 @@ The first step was to note the pinout of the existing connection:
           NC  ── green
 
 Looking at the kernel documentation, it means that the 11 is the data pin for
-the Playstation connector. So the SNES pad was #1 and the PSX pad was #2.
+the Playstation connector (the SNES pad was #1 and the PSX pad was #2).
 
 This was enough to reconstruct the correct pinout. Note that the kernel numbers
 PSX pins in the opposite order of everything else I have seen. The following
@@ -228,7 +229,7 @@ If a bit is 0, it means that the corresponding button is pressed.
     6    Down           14    Cross
     7    Left           15    Square
 
-When implementing this protocol, it was at first not obvious how to debug it.
+At first, it was not obvious how to debug the implementation of this protocol.
 Fortunately, this microcontroller has a USB port and it is possible to transmit
 debug messages using the [usb_debug_only] code sample from the manufacturer.
 
