@@ -1,5 +1,5 @@
 ---
-title: Ressurecting a DDR mat with a microcontroller
+title: Resurrecting a DDR mat with a microcontroller
 author: Etienne Millon
 tags: ddr, avr
 ---
