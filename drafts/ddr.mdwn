@@ -1,10 +1,10 @@
 ---
-title: Resurrecting a DDR mat with a microcontroller
+title: Converting a Dance Dance Revolution mat to USB
 author: Etienne Millon
 tags: ddr, avr
 ---
 
-**Abstract:** *I transform a Playstation to parallel port converter to USB. This
+**Abstract:** *I transform a Playstation/parallel port converter to USB. This
 includes finding the pinout of the previous circuit, making an AVR toolchain
 work, and writing the firmware. Some bugs are found, and fixed. The
 [result][github repository] is open source.*
@@ -19,7 +19,7 @@ board. This project is the story of their union.
 ## Finding the pinout
 
 So, I stumbled upon an old DDR mat and I wanted to play with it. The easiest way 
-is using [Stepmania], a simulator that works on Linux (and that I'm trying to
+is using [Stepmania], a simulator that works on Linux (and that I am trying to
 [package for Debian][post-jessie]).
 
 [Stepmania]: http://www.stepmania.com/
@@ -27,15 +27,15 @@ is using [Stepmania], a simulator that works on Linux (and that I'm trying to
 
 In a previous life I replaced the Playstation connector with a parallel port
 connector, so that I could use it on my computer. In the beginning of the 2000s,
-the popular circuit to do this was [Direct Pad Pro], but on Linux there was a
+the popular circuit to do this was [Direct Pad Pro], and on Linux there was a
 similar driver documented in [joystick-parport.txt].
 
 [Direct Pad Pro]: http://arcadecontrols.com/Mirrors/www.ziplabel.com/dpadpro/psx.html
 [joystick-parport.txt]: https://www.kernel.org/doc/Documentation/input/joystick-parport.txt
 
-Needless to say, I don't have a parallel port on my computer, so some conversion
-is needed. I happen to also have a USB development board on hand, so a possible
-solution is to program it to interface the Playstation gamepad.
+Needless to say, I do not have a parallel port on my computer, so some
+conversion is required. I happen to also have a USB development board on hand,
+so a possible solution is to program it to drive the Playstation gamepad.
 
 ![A DDR mat with unusual connectors](THIS/mat.jpg)
 
@@ -43,7 +43,7 @@ On the above picture, two things are connected to the parallel port: the DDR mat
 and a female SNES connector. The driver indeed supported several gamepads, even
 of different types.
 
-The first thing to do is to note the pinout of the existing connection:
+The first step was to note the pinout of the existing connection:
 
 ![Strange things inside the connector](THIS/inside.jpg)
 
@@ -68,10 +68,9 @@ The first thing to do is to note the pinout of the existing connection:
           NC  ── green
 
 Looking at the kernel documentation, it means that the 11 is the data pin for
-the Playstation connector. This means that the SNES pad was #1 and the PSX pad
-was #2.
+the Playstation connector. So the SNES pad was #1 and the PSX pad was #2.
 
-This is enough to reconstruct the correct pinout. Note that the kernel numbers
+This was enough to reconstruct the correct pinout. Note that the kernel numbers
 PSX pins in the opposite order of everything else I have seen. The following
 table uses kernel order.
 
@@ -88,7 +87,7 @@ table uses kernel order.
 [^diode]: Protected by 1N4148 diodes.
 
 At first, I was worried by the green wire that was not connected but this
-confirms that it is not needed.
+confirms that it was not needed.
 
 ## Connecting it to the teensy++
 
@@ -119,11 +118,11 @@ breadboard. And for breakfast, earlier.](THIS/assembled.jpg)
 
 ## Programming the teensy++
 
-The next step is to write the firmware. I had two main problems: first, the
-manufacturer seems to recommend [Teensy Loader] to program the microcontroller.
-This is a GUI app and which does not seem to be free software. Fortunately, I
-found a packaged version of [teensy-loader-cli] which is CLI, GPL3, and works
-well. The following command will program the microcontroller:
+I had two main problems writing the firmware: first, the manufacturer seems to
+recommend [Teensy Loader] to program the microcontroller. This is a GUI app and
+which does not seem to be free software. Fortunately, I found a packaged version
+of [teensy-loader-cli] which is CLI, GPL3, and works well. The following command
+will program the microcontroller:
 
     teensy-loader-cli -mmcu=at90usb1286 blink_slow_Teensy2pp.hex
 
@@ -131,7 +130,7 @@ well. The following command will program the microcontroller:
 [teensy-loader-cli]: https://github.com/raphendyr/teensy-loader-cli
 
 The second quirk is that most of the documentation that can be found is for
-using the teensy++ as an Arduino. But I prefer writing low-level code. Just
+using the teensy++ as an Arduino. But I prefer writing low-level code: just
 memory-mapped registers, a C compiler, and me. So I aptitude-installed `gcc-avr`
 and `avr-lib` and opened vim.
 
@@ -164,8 +163,8 @@ Ask](http://www.raphnet.net/electronique/psx_adaptor/Playstation.txt). See
 section 9 for controllers.
 
 The idea is that every frame (16 ms), Select becomes low, and bytes are
-transfered in a synchronous way over the Command (D→H) and Data (H→D) pins.
-Select becomes high back again after all bytes are transfered.
+transfered, LSB first, in a synchronous way over the Command (D→H) and Data
+(H→D) pins. Select becomes high back again after all bytes are transfered.
 
 This means that every time a bit is transfered to the gamepad, a bit is read at
 the same time. For every bit, the following operations are needed:
@@ -246,7 +245,7 @@ following.
 
 I re-read my code carefully and I found two bugs:
 
-  - I wasn't putting Clock back up.
+  - I was not putting Clock back up.
   - I was using PORTC for reading input even though PINC was needed… the
     registers are mapped in memory but not at the same address for reading and
     writing. Rookie mistake.
@@ -271,7 +270,7 @@ which exports a `usb_keyboard_press` function.
 
 [usb_keyboard]: https://www.pjrc.com/teensy/usb_keyboard.html
 
-It is necessary to slightly alter the main loop: in a debug setting it is
+It was necessary to slightly alter the main loop: in a debug setting it is
 possible to print the state at every frame, but a keyboard works differently.
 You are supposed to send a message only when a key is pressed. So, at each
 frame, it is necessary to keep track of the previous state and to diff it with
