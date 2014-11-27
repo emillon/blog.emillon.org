@@ -23,6 +23,8 @@ def main():
     with open(fname) as f:
         contents = f.readlines()
     header = parse_header(contents)
+    tags = header.get('tags', None)
+    assert tags, "No tags!"
     title = header['title']
     slug = slugify(unicode(title))
     today = time.strftime("%Y-%m-%d")
