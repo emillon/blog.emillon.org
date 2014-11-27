@@ -18,7 +18,7 @@ board. This project is the story of their union.
 
 ## Finding the pinout
 
-So, I stumbled upon an old DDR mat and I wanted to play with it. The easiest way 
+So, I stumbled upon an old DDR mat and I wanted to play with it. The easiest way
 is using [Stepmania], a simulator that works on Linux (and that I am trying to
 [package for Debian][post-jessie]). But some interface is needed to connect
 dancing mats (usually made for the Playstation) to a computer.
