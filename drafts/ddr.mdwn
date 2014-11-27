@@ -69,7 +69,7 @@ The first thing to do is to note the pinout of the existing connection:
 
 Looking at the kernel documentation, it means that the 11 is the data pin for
 the Playstation connector. This means that the SNES pad was #1 and the PSX pad
-was #2. At first, I was worried by the green wire that was not connected.
+was #2.
 
 We can reconstruct the correct pinout. Note that the kernel numbers PSX pins in
 the opposite order of everything else I have seen. The following table uses
@@ -87,7 +87,8 @@ kernel order.
 
 [^diode]: Protected by 1N4148 diodes.
 
-This also confirms that the green wire is not needed.
+At first, I was worried by the green wire that was not connected but this
+confirms that it is not needed.
 
 ## Connecting it to the teensy++
 
