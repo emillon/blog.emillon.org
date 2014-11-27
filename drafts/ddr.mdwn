@@ -9,8 +9,6 @@ Recently while organizing my place I found two abandoned items that were meant
 to meet each other: a Dance Dance Revolution mat and a Teensy++ development
 board. This project is the story of their union.
 
-TODO stepmania
-
 ## Finding the pinout
 
 I stumbled upon an old DDR mat and I wanted to play. Unfortunately, the
@@ -19,12 +17,16 @@ to a parallel port using a schematic such as [Direct Pad Pro].
 
 [Direct Pad Pro]: http://arcadecontrols.com/Mirrors/www.ziplabel.com/dpadpro/psx.html
 
-TODO Photo
+![A DDR mat with strange connectors](THIS/mat.jpg)
 
 On the above picture we can see that two things are connected to the parallel
 port: the DDR mat and a female SNES connector.
 
 The first thing to do is to note the pinout of the existing connection:
+
+![Strange things inside the connector](THIS/inside.jpg)
+
+After ASCII-izing the above picture we get:
 
     DB25
 
@@ -94,7 +96,12 @@ Here the data signal is the only one that goes from the Device (DDR mat) to the
 Host (microcontroller), but on this microcontroller, pins can be used as an
 input or as an output, so we are free to choose any.
 
-TODO Photo
+As the board already has male pin headers for breadboard usage, I soldered
+female pin headers to wires.
+
+![Female pin headers on wires. A bit backwards, I know.](THIS/wires.jpg)
+
+![The completed adapter.](THIS/assembled.jpg)
 
 ## Programming the teensy++
 
@@ -284,3 +291,5 @@ The `keypress_add` function walks the `keyboard_keys` array and replace the
 first 0 with the correct button. `keypress_remove` does the opposite.
 
 And… this works!
+
+TODO stepmania + ccl
