@@ -4,6 +4,10 @@ author: Etienne Millon
 tags: ddr, avr
 ---
 
+TODO people where people and wrote their own device drivers
+
+TODO link
+
 Hello, my name is Etienne Millon and I have two passions: DDR and programming.
 Recently while organizing my place I found two abandoned items that were meant
 to meet each other: a Dance Dance Revolution mat and a Teensy++ development
@@ -26,28 +30,28 @@ The first thing to do is to note the pinout of the existing connection:
 
 ![Strange things inside the connector](THIS/inside.jpg)
 
-After ASCII-izing the above picture we get:
+After unicodizing the above picture we get:
 
     DB25
 
-     2 --------- orange
-     3 --------- yellow
-     4 --------- blue
-     5 --|>|-+
-     6 --|>|-+
-     7 --|>|-+-- pink
-     8 --|>|-+
-     9 --|>|-+
-    11 --------- brown
-    19 -----+
-    20 -----+
-    21 -----+
-    22 -----+--- black
-    23 -----+
-    24 -----+
-    25 -----+
-          NC  -- green
-      
+     2 ───────── orange
+     3 ───────── yellow
+     4 ───────── blue
+     5 ──▷|─┐
+     6 ──▷|─┤
+     7 ──▷|─┼─── pink
+     8 ──▷|─┤
+     9 ──▷|─┘
+    11 ───────── brown
+    19 ─────┐
+    20 ─────┤
+    21 ─────┤
+    22 ─────┼─── black
+    23 ─────┤
+    24 ─────┤
+    25 ─────┘
+          NC  ── green
+
 But unfortunately, this is incompatible with Direct Pad Pro: indeed the DPP
 pinout does not connect anything to DB25-11. Thinking about it, I probably used
 this under Linux. There is an kernel driver documented as
@@ -63,7 +67,7 @@ the kernel numbers PSX pins in the opposite order of everything else I have
 seen. The following table uses kernel order.
 
   Color       DB25 #     PSX #   Function
---------- -----------   ------- ---------- 
+--------- -----------   ------- ----------
   orange     2             8      Command
   yellow     3             4      Select
   blue       4             3      Clock
@@ -153,7 +157,47 @@ section 9 for controllers.
 
 The idea is that every frame (16 ms), Select becomes low, and bytes are
 transfered in a synchronous way over the Command (D→H) and Data (H→D) pins.
-The normal operation should be this:
+Select becomes high back again after all bytes are transfered.
+
+This means that every time a bit is transfered to the gamepad, a bit is read at
+the same time. What we need to do for every bit is:
+
+  - set Command according to the bit to transmit
+  - put Clock down
+  - wait half a clock cycle
+  - read Data: that is the bit received
+  - put Clock up
+  - wait half a clock cycle
+
+And in C:
+
+~~~~ {.c}
+static uint8_t transmit(uint8_t in)
+{
+        uint8_t out = 0;
+        for (int i = 0; i < 8 ; i++) {
+                int bit_in = in & (1 << i);
+                if (bit_in) {
+                        signal_up(PSX_PIN_CMD);
+                } else {
+                        signal_down(PSX_PIN_CMD);
+                }
+                signal_down(PSX_PIN_CLOCK);
+                _delay_us(DELAY_CLOCK_US);
+                int bit_out = signal_read(PSX_PIN_DATA);
+                if (bit_out) {
+                        out |= (1 << i);
+                } else {
+                        out &= ~(1 << i);
+                }
+                signal_up(PSX_PIN_CLOCK);
+                _delay_us(DELAY_CLOCK_US);
+        }
+        return out;
+}
+~~~~
+
+During a normal operation, the bytes exchanged should be the following:
 
  Byte #   Command   Data
 -------- --------- -------
