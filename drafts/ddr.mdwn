@@ -20,7 +20,7 @@ board. This project is the story of their union.
 
 So, I stumbled upon an old DDR mat and I wanted to play with it. The easiest way 
 is using [Stepmania], a simulator that works on Linux (and that I'm trying to
-[package for Debian][post-jessie].
+[package for Debian][post-jessie]).
 
 [Stepmania]: http://www.stepmania.com/
 [post-jessie]: http://blog.emillon.org/posts/2014-11-21-my-part-of-work-in-debian-jessie.html
