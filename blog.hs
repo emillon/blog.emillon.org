@@ -152,9 +152,17 @@ makeDrafts tags = do
             markdownCompiler >>=
             loadAndApplyTemplate "templates/default.html" defaultContext >>=
             relativizeUrls
-    void $ match ("drafts/*/*.gif" .||. "drafts/*/*.jpg") $ do
+    copyAssets "drafts"
+
+copyAssets :: String -> Rules ()
+copyAssets base =
+    void $ match pattern $ do
         route idRoute
         compile copyFileCompiler
+    where
+        pattern = foldr1 (.||.) $ map makePat extensions
+        makePat ext = fromGlob $ base ++ "/*/*." ++ ext
+        extensions = ["gif", "jpg"]
 
 buildTemplates :: Rules ()
 buildTemplates =
