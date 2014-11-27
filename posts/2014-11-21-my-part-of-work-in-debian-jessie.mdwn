@@ -47,7 +47,7 @@ version but it is not released yet. During this Debian cycle, I mostly did
 janitorial work: I disabled outdated provider plugins, enable multi-arch
 support, and ported to a recent version of Vala.
 
-[gmpc]: http://gmpc.wikia.com
+[gmpc]: http://gmpc.wikia.com/wiki/Gnome_Music_Player_Client
 [gmpc-plugins]: http://gmpc.wikia.com/wiki/Plugins
 
 [rss2email] got a new upstream maintainer. This is really great since the code
