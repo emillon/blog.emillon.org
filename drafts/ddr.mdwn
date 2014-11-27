@@ -39,9 +39,9 @@ solution is to program it to interface the Playstation gamepad.
 
 ![A DDR mat with unusual connectors](THIS/mat.jpg)
 
-On the above picture we can see that two things are connected to the parallel
-port: the DDR mat and a female SNES connector. The driver indeed supported
-several gamepads, even of different types.
+On the above picture, two things are connected to the parallel port: the DDR mat
+and a female SNES connector. The driver indeed supported several gamepads, even
+of different types.
 
 The first thing to do is to note the pinout of the existing connection:
 
@@ -71,9 +71,9 @@ Looking at the kernel documentation, it means that the 11 is the data pin for
 the Playstation connector. This means that the SNES pad was #1 and the PSX pad
 was #2.
 
-We can reconstruct the correct pinout. Note that the kernel numbers PSX pins in
-the opposite order of everything else I have seen. The following table uses
-kernel order.
+This is enough to reconstruct the correct pinout. Note that the kernel numbers
+PSX pins in the opposite order of everything else I have seen. The following
+table uses kernel order.
 
   Color       DB25 #     PSX #   Function
 --------- -----------   ------- ----------
@@ -170,7 +170,7 @@ transfered in a synchronous way over the Command (D→H) and Data (H→D) pins.
 Select becomes high back again after all bytes are transfered.
 
 This means that every time a bit is transfered to the gamepad, a bit is read at
-the same time. What we need to do for every bit is:
+the same time. For every bit, the following operations are needed:
 
   - set Command according to the bit to transmit;
   - put Clock down;
@@ -217,8 +217,8 @@ During a normal operation, the bytes exchanged should be the following:
    4        0x00    data1
    5        0x00    data2
 
-If we consider the 16-bit number `(data2 << 8) | data1)`, we can deduce keypress
-information. If a bit is 0, it means that the corresponding button is pressed.
+Keypress information can be found in the 16-bit number `(data2 << 8) | data1)`.
+If a bit is 0, it means that the corresponding button is pressed.
 
  Bit #      Key       Bit #      Key
 ------- ------------ ------- ------------
@@ -261,15 +261,15 @@ After reprogramming and reloading I saw a satisfying output:
     00 -> FF
     00 -> DF
 
-We can see the device ID part (41 5A) and the value (FF DF) that indicates that
-nothing is pressed except the Circle button.
+The output bytes correspond to the device ID part (41 5A) and a value (FF DF)
+that indicates that nothing is pressed except the Circle button.
 
 ## Interfacing with the computer
 
 At that moment the firmware just computes the result and prints it over USB. To
-do something useful with it on the computer side we need to expose this
-information as a USB joystick or keyboard. I used the [usb_keyboard] code
-sample which exports a `usb_keyboard_press` function.
+do something useful with it on the computer side, this information needs to be
+exposed as a USB joystick or keyboard. I used the [usb_keyboard] code sample
+which exports a `usb_keyboard_press` function.
 
 [usb_keyboard]: https://www.pjrc.com/teensy/usb_keyboard.html
 
@@ -278,8 +278,8 @@ possible to print the state at every frame, but a keyboard works differently.
 You are supposed to send a message only when a key is pressed. So, at each
 frame, it is necessary to keep track of the previous state and to diff it with
 the current one. If a bit was previously set (meaning that the button is not
-pressed) and is now set, we have to signal USB that a key was pressed. This code
-is run for every `btn` if the state changes:
+pressed) and is now set, the USB code has to be notified that a key was pressed.
+This code is run for every `btn` if the state changes:
 
 ~~~~ {.c}
 int was_released = last_js & (1 << btn);
@@ -330,8 +330,8 @@ pressed independently. This is possible, by increasing the size of
 means fiddling with the USB descriptor code, so that the USB host side can know
 how many bytes to expect, and I am not really comfortable with that.
 
-In the library, the size of `keyboard_keys` is 6, so we'll stick with 6-key
-rollover which ought to be enough for everybody.
+In the library, the size of `keyboard_keys` is 6, so I stuck with 6-key rollover
+which ought to be enough for everybody.
 
 Here is the new version of the code that is called for every button:
 
