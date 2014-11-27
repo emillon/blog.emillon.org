@@ -105,9 +105,9 @@ pins to be used. I chose this pinout:
    PC2      yellow    Select        H→D
    PC3      blue      Clock         H→D
 
-The Data signal is the only one that goes from the Device (DDR mat) to the
-Host (microcontroller), but on this microcontroller, pins can be used as an
-input or as an output, so we are free to choose any.
+The Data signal is the only one that goes from the Device (DDR mat) to the Host
+(microcontroller), but since each pin can be used as an input or as an output,
+this does not constrain the choice.
 
 So, let's connect the DDR mat to the microcontroller. As the board already has
 male pin headers for breadboard usage, I soldered female pin headers to wires.
@@ -122,7 +122,7 @@ breadboard. And for breakfast, earlier.](THIS/assembled.jpg)
 The next step is to write the firmware. I had two main problems: first, the
 manufacturer seems to recommend [Teensy Loader] to program the microcontroller.
 This is a GUI app and which does not seem to be free software. Fortunately, I
-found a packaged version of [teensy-loader-cli] which is CLI and GPL3 and works
+found a packaged version of [teensy-loader-cli] which is CLI, GPL3, and works
 well.
 
 The following command was enough to convince me that this works well:
@@ -132,14 +132,14 @@ The following command was enough to convince me that this works well:
 [Teensy Loader]: https://www.pjrc.com/teensy/loader.html
 [teensy-loader-cli]: https://github.com/raphendyr/teensy-loader-cli
 
-The second quirk is that everyone seems to use the teensy as an Arduino. This
-project is fine and helps a lot of people build awesome stuff, but I wanted the
-real, low-level stuff. Just memory-mapped registers, a C compiler, and me. So I
-aptitude-installed `gcc-avr` and `avr-lib` and opened vim.
+The second quirk is that most of the documentation that can be found is for
+using the teensy++ as an Arduino. But I prefer writing low-level code. Just
+memory-mapped registers, a C compiler, and me. So I aptitude-installed `gcc-avr`
+and `avr-lib` and opened vim.
 
 There are several differences in how you program microcontrollers as an Arduino
 and as a plain AVR. For example here is how you configure PC0 to be an input
-with a pullup resistor (so that it reads 1 when the pin is disconnected):
+with a pull-up resistor (so that it reads 1 when the pin is disconnected):
 
 ~~~~ {.c}
 DDRC &= ~(1 << PC0);
@@ -237,7 +237,8 @@ debug messages using the [usb_debug_only] code sample from the manufacturer.
 
 [usb_debug_only]: https://www.pjrc.com/teensy/usb_debug_only.html
 
-Needless to say, my first iteration did not work and printed the following.
+With no real surprise, my first iteration did not work and printed the
+following.
 
     01 -> FF
     42 -> FF
@@ -252,7 +253,7 @@ I re-read my code carefully and I found two bugs:
     registers are mapped in memory but not at the same address for reading and
     writing. Rookie mistake.
 
-After reprogramming and reloading I found a satisfying output:
+After reprogramming and reloading I saw a satisfying output:
 
     01 -> FF
     42 -> 41
@@ -263,7 +264,7 @@ After reprogramming and reloading I found a satisfying output:
 We can see the device ID part (41 5A) and the value (FF DF) that indicates that
 nothing is pressed except the Circle button.
 
-## Interfacing to the computer
+## Interfacing with the computer
 
 At that moment the firmware just computes the result and prints it over USB. To
 do something useful with it on the computer side we need to expose this
@@ -272,7 +273,7 @@ sample which exports a `usb_keyboard_press` function.
 
 [usb_keyboard]: https://www.pjrc.com/teensy/usb_keyboard.html
 
-It is necessary to slightly alter the main loop: in a debug setting it's
+It is necessary to slightly alter the main loop: in a debug setting it is
 possible to print the state at every frame, but a keyboard works differently.
 You are supposed to send a message only when a key is pressed. So, at each
 frame, it is necessary to keep track of the previous state and to diff it with
@@ -289,10 +290,11 @@ if (was_released && is_pressed) {
 }
 ~~~~
 
-This is simple, yet it works quite well. I noticed that however it does not work
-perfectly for DDR since the key is released immediately: the patterns where you
-have to hold keys do not work. Indeed, this transmits a key press immediately
-followed by a key release.
+This is simple, yet it works quite well and is enough to play [Stepmania]!
+
+I noticed that however it does not work perfectly since the key is released
+immediately: this is a problem for DDR since the patterns where you have to hold
+keys do not work.
 
 Let's have a look at this function from the library:
 
@@ -312,18 +314,24 @@ int8_t usb_keyboard_press(uint8_t key, uint8_t modifier)
 
 When `usb_keyboard_send` is called, it transmits the contents of `keyboard_keys`
 over USB. All nonzero elements correspond to keys that are pressed. So what this
-function does is transmit a state where a key is pressed, and transmit a state
-where nothing is pressed. This does not work if several keys can be pressed at
-once.
+function does is transmit a state where a key is pressed, then transmit a state
+where nothing is pressed.
+
+This has two limitations:
+
+  - it does not separate key press from key release;
+  - it does not work if several keys are pressed at once.
 
 ## Making rollover work
 
 It would be nice to implement n-key rollover (NKRO) so that all keys can be
-pressed independently. This is possible, by increasing the size of keyboard_keys
-to 14 (the number of keys). But this means fiddling with the USB descriptor code
-(so that the USB host side can now how many bytes to expect) and I am not really
-comfortable with that. In the library, the size of `keyboard_keys` is 6, so
-we'll just have 6-keys rollover which ought to be enough for everybody.
+pressed independently. This is possible, by increasing the size of
+`keyboard_keys` to 14 (the number of keys on a Playstation gamepad). But this
+means fiddling with the USB descriptor code, so that the USB host side can know
+how many bytes to expect, and I am not really comfortable with that.
+
+In the library, the size of `keyboard_keys` is 6, so we'll stick with 6-key
+rollover which ought to be enough for everybody.
 
 Here is the new version of the code that is called for every button:
 
@@ -344,6 +352,6 @@ first 0 with the correct button. `keypress_remove` does the opposite.
 
 And… this works! I found this very refreshing to write low-level code for an
 existing, documented protocol. If you are interested, all the code can be found
-in this [github repository].
+in this [github repository]. Thanks for reading!
 
 [github repository]: https://github.com/emillon/psx-usb
