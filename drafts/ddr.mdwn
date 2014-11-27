@@ -27,7 +27,7 @@ is using [Stepmania], a simulator that works on Linux (and that I'm trying to
 
 In a previous life I replaced the Playstation connector with a parallel port
 connector, so that I could use it on my computer. In the beginning of the 2000s,
-the popular circuit todo this was [Direct Pad Pro], but on Linux there was a
+the popular circuit to do this was [Direct Pad Pro], but on Linux there was a
 similar driver documented in [joystick-parport.txt].
 
 [Direct Pad Pro]: http://arcadecontrols.com/Mirrors/www.ziplabel.com/dpadpro/psx.html
