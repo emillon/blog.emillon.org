@@ -76,3 +76,11 @@ td, th {
 ul.postList {
     list-style-type: none;
 }
+
+.figure {
+    text-align: center;
+}
+
+.caption {
+    font-size: smaller;
+}
