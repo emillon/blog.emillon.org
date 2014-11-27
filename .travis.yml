@@ -2,3 +2,4 @@ language: haskell
 install:
   - sudo apt-get install linkchecker
   - cabal install hakyll -f -previewserver -f -watchserver -f -checkexternal
+  - cabal install --only-dependencies
