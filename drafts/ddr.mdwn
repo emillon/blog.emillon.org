@@ -123,9 +123,7 @@ The next step is to write the firmware. I had two main problems: first, the
 manufacturer seems to recommend [Teensy Loader] to program the microcontroller.
 This is a GUI app and which does not seem to be free software. Fortunately, I
 found a packaged version of [teensy-loader-cli] which is CLI, GPL3, and works
-well.
-
-The following command was enough to convince me that this works well:
+well. The following command will program the microcontroller:
 
     teensy-loader-cli -mmcu=at90usb1286 blink_slow_Teensy2pp.hex
 
