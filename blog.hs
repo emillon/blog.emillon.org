@@ -63,6 +63,7 @@ renderPosts tags = do
                           ]
         x2 <- saveSnapshot "content" x1
         finalRenderer "templates/post.html" ctx x2
+  copyAssets "posts"
 
 renderPostsList :: Rules ()
 renderPostsList = void $ do
