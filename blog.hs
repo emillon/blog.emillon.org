@@ -163,7 +163,7 @@ copyAssets base =
     where
         pattern = foldr1 (.||.) $ map makePat extensions
         makePat ext = fromGlob $ base ++ "/*/*." ++ ext
-        extensions = ["gif", "jpg"]
+        extensions = ["gif", "jpg", "png"]
 
 buildTemplates :: Rules ()
 buildTemplates =
