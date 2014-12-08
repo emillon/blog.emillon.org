@@ -18,7 +18,13 @@ executable blog
                     hakyll ==4.6.*,
                     pandoc-types,
                     MissingH,
-                    mtl
+                    mtl,
+                    binary,
+                    diagrams-builder,
+                    diagrams-lib,
+                    diagrams-svg,
+                    lens,
+                    blaze-svg
 
 Test-Suite tests
   type:                exitcode-stdio-1.0

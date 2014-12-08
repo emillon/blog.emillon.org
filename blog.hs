@@ -8,6 +8,7 @@ import Data.Monoid
 import Hakyll
 
 import AssetDirectory
+import DiagramCompiler
 
 main :: IO ()
 main =
@@ -156,14 +157,17 @@ makeDrafts tags = do
     copyAssets "drafts"
 
 copyAssets :: String -> Rules ()
-copyAssets base =
-    void $ match pattern $ do
+copyAssets base = do
+    onExtensions ["gif", "jpg", "png"] $ do
         route idRoute
         compile copyFileCompiler
+    onExtensions ["dia.hs"] $ do
+        route $ setExtension ".svg"
+        compile diagramCompiler
     where
-        pattern = foldr1 (.||.) $ map makePat extensions
+        onExtensions exts = void . match (pattern exts)
+        pattern = foldr1 (.||.) . map makePat
         makePat ext = fromGlob $ base ++ "/*/*." ++ ext
-        extensions = ["gif", "jpg", "png"]
 
 buildTemplates :: Rules ()
 buildTemplates =
