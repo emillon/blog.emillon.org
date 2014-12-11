@@ -20,11 +20,12 @@ executable blog
                     MissingH,
                     mtl,
                     binary,
-                    diagrams-builder,
                     diagrams-lib,
                     diagrams-svg,
                     lens,
-                    blaze-svg
+                    blaze-svg,
+                    temporary ==1.2.*,
+                    unix ==2.6.*
 
 Test-Suite tests
   type:                exitcode-stdio-1.0
