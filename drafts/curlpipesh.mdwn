@@ -1,0 +1,75 @@
+---
+author: Etienne Millon
+---
+
+I have a tumblr called "[curl | sh]" which lists occurrences of the increasingly
+common pattern where software authors ask users to run a variant of "curl url |
+sh". Sometimes it uses wget, sometimes it uses sudo.
+
+Several people have contacted me about this site, with the argument that most
+sites I post are https, and thus secure enough since it is impossible to alter
+the script on the network. I want to expand a bit on this.
+
+The websites I post here fall roughly into three categories:
+
+1. downloads over HTTP.
+2. downloads over HTTPS with certificate verification desactivated
+  (curl -k/--insecure, wget --no-check-certificate).
+3. downloads over HTTPS.
+
+Type 1 downloads are the most insecure ones, since it is possible to change the
+original response from the server without the client noticing. Modifying traffic
+like this is very easy, for example on wifi hotspots. This is not something that
+happens only in hacker movies: some places use this to insert ads in web pages.
+
+Type 2 downloads are a bit better since the content is encrypted, but encryption
+without authentication is mostly useless since you do not know who you are
+talking to. The client will connect to anything that responds to url:443, which
+means that it is still possible to spoof a connection and actively change the
+response.
+
+Type 3 downloads prevent this because they require that the certificate
+presented by the server matches the server name and is signed by a trusted
+Certificate Authority (CA). However, they are not foolproof either: for example,
+in corporate environments, it is common for the company to include their own CA
+to the list of trusted root CAs. This means that at every connection, they can
+replace the certificate presented by the server by one that has the correct
+server name but is signed by themselves. As a consequence, they are able to
+spoof the TLS connection, as for type 2 downloads.
+
+A way to mitigate this problem is to enable certificate pinning, which alerts
+the user when a certificate presented by a website has changed since the last
+time you consulted it. But this is not a perfect solution, since there are
+legitimate reasons to change a certificate. For example, they are usually
+limited in time, and every year or so it is necessary to generate a new one.
+However, if a website presents a certificate with a different anchor than
+before, this may mean that the connection is being spoofed.
+
+Note that the main reason people disable certificate checking (ie, use type 2
+instead of type 3) is because they use self-signed certificates. These are
+certificates that are not signed by a CA. They are free and simpler to use, but
+do not authenticate the server, so they are rejected by default by clients. In
+browsers, this sometimes corresponds to a big scary warning, and by a yellow or
+open lock instead of the green, closed lock that we have all been educated to
+respect.
+
+So, how are people expected to distribute their software? It depends what kind
+of guarantee you are looking for. A common argument I receive about this site is
+that installing a package from your distribution is essentially the same thing.
+
+Not exactly. when you install a package from the Debian archive, the .deb file
+is retrieved along with a digital signature that authenticates the file. This
+signature is checked against a key that is on all Debian systems. You obtain it
+at install time on a CD, but you can easily get it from another trusted Debian
+system if you can not trust a CD from some reason. The key here (pun intended)
+is that it authenticates files and not connections.
+
+Of course, a signature from the Debian archive signing key does not
+automatically ensure that the package will not delete your root filesystem. But
+if it goes through your distribution, you may expect that some quality assurance
+has been made there.
+
+TODO sudo/not sudo
+
+[curl | sh]: http://curlpipesh.tumblr.com/
+
