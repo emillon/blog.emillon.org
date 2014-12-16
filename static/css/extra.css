@@ -2,6 +2,7 @@ body {
     margin: 0px auto 0px auto;
     font-size: 16px;
     font-family: 'Merriweather', Georgia, helvetica, arial, sans-serif;
+    color: #000;
 }
 
 .maintitle {
@@ -16,6 +17,12 @@ body {
   background-color: white;
   padding-bottom: 100px;
   padding-top: 20px;
+}
+
+.maincontainer p,
+.maincontainer li
+{
+  line-height: 1.8em;
 }
 
 .header, .footer {
