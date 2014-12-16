@@ -4,7 +4,8 @@ author: Etienne Millon
 
 I have a tumblr called "[curl | sh]" which lists occurrences of the increasingly
 common pattern where software authors ask users to run a variant of "curl url |
-sh". Sometimes it uses wget, sometimes it uses sudo.
+sh" on their terminal. This downloads a program over the network and immediately
+executes it.
 
 Several people have contacted me about this site, with the argument that most
 sites I post are https, and thus secure enough since it is impossible to alter
@@ -14,7 +15,7 @@ The websites I post here fall roughly into three categories:
 
 1. downloads over HTTP.
 2. downloads over HTTPS with certificate verification desactivated
-  (curl -k/--insecure, wget --no-check-certificate).
+   (`curl -k`/`--insecure`, `wget --no-check-certificate`).
 3. downloads over HTTPS.
 
 Type 1 downloads are the most insecure ones, since it is possible to change the
@@ -26,20 +27,27 @@ Type 2 downloads are a bit better since the content is encrypted, but encryption
 without authentication is mostly useless since you do not know who you are
 talking to. The client will connect to anything that responds to url:443, which
 means that it is still possible to spoof a connection and actively change the
-response.
+response. To the client, an encrypted connection to an attacker looks the same
+as an encrypted connection to the legit site.
 
 Type 3 downloads prevent this because they require that the certificate
 presented by the server matches the server name and is signed by a trusted
-Certificate Authority (CA). However, they are not foolproof either: for example,
-in corporate environments, it is common for the company to include their own CA
-to the list of trusted root CAs. This means that at every connection, they can
-replace the certificate presented by the server by one that has the correct
-server name but is signed by themselves. As a consequence, they are able to
-spoof the TLS connection, as for type 2 downloads.
+Certificate Authority (CA). This means that the certificate has been handed to
+the person in charge of the website.
+
+This is not foolproof either because the client has to trust a list of root CAs.
+This can be a problem for example in corporate environments, where the company
+can include their own CA to this list of trusted roots. At every HTTPS
+connection, they can create on the fly a certificate that is signed by
+themselves and with the correct server name. In other way, vouch for the
+identity of any website. As a consequence, they are able to spoof the TLS
+connection, in the same way that it is possible for type 2 downloads. Having
+rogue trusted root is almost the same as disabling certification checking since
+it is able to create correct certificates for any site.
 
 A way to mitigate this problem is to enable certificate pinning, which alerts
-the user when a certificate presented by a website has changed since the last
-time you consulted it. But this is not a perfect solution, since there are
+the user when the certificate presented by a website has changed since the last
+time they consulted it. But this is not a perfect solution, since there are
 legitimate reasons to change a certificate. For example, they are usually
 limited in time, and every year or so it is necessary to generate a new one.
 However, if a website presents a certificate with a different anchor than
@@ -51,11 +59,13 @@ certificates that are not signed by a CA. They are free and simpler to use, but
 do not authenticate the server, so they are rejected by default by clients. In
 browsers, this sometimes corresponds to a big scary warning, and by a yellow or
 open lock instead of the green, closed lock that we have all been educated to
-respect.
+respect. It is however possible to pin them, so it is better than plain HTTP.
+The effort required to spoof a self-signed certificate is also greater than to
+spoof plain HTTP, but both are very easy.
 
 So, how are people expected to distribute their software? It depends what kind
-of guarantee you are looking for. A common argument I receive about this site is
-that installing a package from your distribution is essentially the same thing.
+of guarantee you are looking for. A common argument I hear is that installing a
+package from your distribution is essentially the same thing.
 
 Not exactly. when you install a package from the Debian archive, the .deb file
 is retrieved along with a digital signature that authenticates the file. This
@@ -66,10 +76,15 @@ is that it authenticates files and not connections.
 
 Of course, a signature from the Debian archive signing key does not
 automatically ensure that the package will not delete your root filesystem. But
-if it goes through your distribution, you may expect that some quality assurance
-has been made there.
+it ensures that the software has not been tampered with since its maintainer has
+uploaded it. Also, since it goes through a distribution, you may expect that
+some quality assurance has been made there.
 
-TODO sudo/not sudo
+There is also another problem with this approach, more precisely with "curl |
+sudo sh". This makes the installation run as `root`, which makes the software in
+question available to all users, but in the vast majority of cases this is
+unnecessary. It is possible to build and install software as a normal user, and
+this should be done when possible. This usually only consists in changing a few
+environment variables so that tools can find files in the correct directory.
 
 [curl | sh]: http://curlpipesh.tumblr.com/
-
