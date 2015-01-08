@@ -1,0 +1,55 @@
+---
+title: Podcast selection
+author: Etienne Millon
+tags: podcasts
+---
+
+I have been listening to podcasts since 2007 or so, and I love this medium.
+Here is the ones I listened to the most in 2014.
+
+  - [Serial].
+    This is the one that made podcasts fashionable again at the end of 2014.
+    I am sure you have heard about it, but it tells the story of a murder case
+    back in 1999. The specific part that is interesting in my opinion is that it
+    depicts the thought process of the journalist, Sarah Koenig. This is because
+    the podcast started to air while the reporting was still under way. Along
+    the episodes, we are wondering with Sarah "whether or not Adnan did it".
+    This raises a lot of questions on the ethics of this project of course.
+  - [Giant Robots Smashing into other Giant Robots Podcast]. Every week, Ben
+    Orenstein interviews people from the tech scene. I must say that he is a
+    great interviewer and that the selection is always good.
+  - [Healthy Hacker]. Same kind of energy as Giant Robots, but the structure is
+    a lot different. Chris Hunt starts with a "workout of the week" and then
+    goes on and talk about a subject he likes. Sometimes there are guests.
+  - [Michel Platiniste]. Shameless plug. That's my podcast. With a few friends,
+    we record mixes of (mostly) electronic music. We have a series of mixes
+    called The Pomodoro Sessions which are episodes of 25 minutes designed to work
+    with the pomodoro technique.
+  - [Radiolab]. Generic science stuff. It alternates full-length episodes of
+    approximately one hour and short episodes of twenty minutes or so. This is
+    well produced and the storytelling is often exciting, but the quality varies
+    a lot. I recommend the ["Colors" episode].
+  - [Stack Exchange Podcast]. What can I say: I do not even use Stack Exchange
+    and yet I listen to their podcast. Once more, the hosts' quality counts a
+    lot. If Joel Spolsky hosted an hour-long daily show I would listen to it. In
+    this podcast the team discusses new features and challenges that they have
+    to scale the site. What I like is that most of these challenges are not
+    technical, but mostly human. This is more of a podcast on how to build a
+    community. I got hooked on it after listening to the episode where they
+    tell how they recovered from [hurricane Sandy].
+  - [Debian & Stuff]. Only episode so far. Two friends talk about Debian, and
+    about stuff. Promising, would love to hear more.
+  - [Type Theory Podcast].
+  - [Wide Teams].
+
+[Serial]: http://serialpodcast.org/
+[Giant Robots Smashing into other Giant Robots Podcast]: http://giantrobots.fm/
+[Healthy Hacker]: http://healthyhacker.com/
+[Michel Platiniste]: http://tech.no.com/
+[Radiolab]: http://www.radiolab.org/series/podcasts/
+["Colors" episode]: http://www.radiolab.org/story/211119-colors/
+[Stack Exchange Podcast]: http://blog.stackoverflow.com/category/podcasts/
+[hurricane Sandy]: http://blog.stackoverflow.com/2012/11/se-podcast-36-we-got-hit-by-a-hurricane/
+[Debian & Stuff]: http://www.debianandstuff.com/
+[Type Theory Podcast]: http://typetheorypodcast.com/
+[Wide Teams]: http://www.wideteams.com/category/podcast/
