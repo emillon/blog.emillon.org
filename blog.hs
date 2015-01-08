@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
+import Control.Applicative
 import Control.Monad
 import Data.Monoid
 
@@ -52,6 +53,12 @@ finalRenderer tplPath ctx x1 = do
   x3 <- loadAndApplyTemplate "templates/default.html" ctx x2
   relativizeUrls x3
 
+hnField :: Context a
+hnField =
+    field "hn" $ \ i -> do
+        value <- getMetadataField (itemIdentifier i) "hn"
+        maybe empty return value
+
 renderPosts :: Tags -> Rules ()
 renderPosts tags = do
   void $ match "posts/*" $ do
@@ -60,6 +67,7 @@ renderPosts tags = do
         x1 <- markdownCompiler
         let ctx = mconcat [ dateField "date" "%B %e, %Y"
                           , tagsField "prettytags" tags
+                          , hnField
                           , defaultContext
                           ]
         x2 <- saveSnapshot "content" x1

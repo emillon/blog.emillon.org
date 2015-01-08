@@ -2,6 +2,7 @@
 title: On the curl | sh pattern
 author: Etienne Millon
 tags: security
+hn: 8804293
 ---
 
 Like many, I noticed a common pattern in the past few years: software authors
