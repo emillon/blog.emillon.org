@@ -44,7 +44,7 @@ Here is the ones I listened to the most in 2014.
 
 [Serial]: http://serialpodcast.org/
 [Giant Robots Smashing into other Giant Robots Podcast]: http://giantrobots.fm/
-[Healthy Hacker]: http://healthyhacker.com/
+[Healthy Hacker]: http://www.healthyhacker.com/
 [Michel Platiniste]: http://tech.no.com/
 [Radiolab]: http://www.radiolab.org/series/podcasts/
 ["Colors" episode]: http://www.radiolab.org/story/211119-colors/
