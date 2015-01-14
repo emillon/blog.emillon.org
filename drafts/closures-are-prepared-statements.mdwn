@@ -1,0 +1,41 @@
+---
+title: Closures are prepared statements
+author: Etienne Millon
+---
+
+When I was learning functional programming, I had the impression that for
+closures to work, it was necessary to create code at run-time.
+
+~~~ {.ocaml}
+let add n =
+    fun x -> n + x
+
+let add2 = add 2    
+
+let add3 = add 3
+
+Printf.printf "%d %d\n" (add2 1) (add3 1)
+~~~
+
+I mean, what happens when `add2` and `add3` are created?
+A function is created, so there has to be some compilation going on!
+
+Actually, no.
+They are compiled only once, without knowing what the parameter will be.
+
+This schema exists in another field, database systems.
+
+Most databases have a feature called prepared statements, which look like this:
+
+~~~ {.sql}
+SELECT * FROM users WHERE name = ? AND active = 1
+~~~
+
+They contain holes, marked with `?`. To use them, it necessary to pass both the
+code itself (with holes) and parameters will be replaced with. The database
+server will then use the parameters when it sees `?` wildcards.
+
+They have two advantages. The first one is that the code part can be reused with
+different parameters, without parsing the query again. The second one is that
+it prevents SQL injection vulnerabilities, since no erroneous query can be
+built.
