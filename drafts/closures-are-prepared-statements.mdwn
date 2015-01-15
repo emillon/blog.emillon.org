@@ -23,6 +23,21 @@ A function is created, so there has to be some compilation going on!
 Actually, no.
 They are compiled only once, without knowing what the parameter will be.
 
+The expression `fun x -> n + x` contains a free variable, `n`. Its value can not
+be known at compile time. So, to compile this function, every occurrence of `n`
+inside has to be replaced by a marker saying "the value of `n`".
+
+At some point during the program's execution this value is known. Here, it is
+when `add` is applied to 2 (resp. 3). At that time, "the value of `n`" is 2
+(resp. 3). There is enough information to apply the function:
+
+  - the code with wildcard values;
+  - values that they are replaced with.
+
+This is a closure.
+
+---
+
 This schema exists in another field, database systems.
 
 Most databases have a feature called prepared statements, which look like this:
