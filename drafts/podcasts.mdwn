@@ -18,13 +18,15 @@ Here is the ones I listened to the most in 2014.
   - [Giant Robots Smashing into other Giant Robots Podcast]. Every week, Ben
     Orenstein interviews people from the tech scene. I must say that he is a
     great interviewer and that the selection is always good.
+  - [The Bike Shed], also hosted by thoughtbot, more focused on code, especially
+    Rails. So far, so good.
   - [Healthy Hacker]. Same kind of energy as Giant Robots, but the structure is
     a lot different. Chris Hunt starts with a "workout of the week" and then
     goes on and talk about a subject he likes. Sometimes there are guests.
   - [Michel Platiniste]. Shameless plug. That's my podcast. With a few friends,
     we record mixes of (mostly) electronic music. We have a series of mixes
     called The Pomodoro Sessions which are episodes of 25 minutes designed to work
-    with the pomodoro technique.
+    with [the pomodoro technique].
   - [Radiolab]. Generic science stuff. It alternates full-length episodes of
     approximately one hour and short episodes of twenty minutes or so. This is
     well produced and the storytelling is often exciting, but the quality varies
@@ -39,8 +41,12 @@ Here is the ones I listened to the most in 2014.
     tell how they recovered from [hurricane Sandy].
   - [Debian & Stuff]. Only episode so far. Two friends talk about Debian, and
     about stuff. Promising, would love to hear more.
-  - [Type Theory Podcast].
-  - [Wide Teams].
+  - [Type Theory Podcast]. Very technical but since type theory is one of my
+    scientific interests, I tried. It requires some concentration, to say the
+    least. So far I am not persuaded that this is the good medium for this.
+  - [Wide Teams]. Focusing on distributed teams and remote workers. Nice to see
+    how different people accomodate. Too bad that this podcast is on hold at the
+    moment.
 
 [Serial]: http://serialpodcast.org/
 [Giant Robots Smashing into other Giant Robots Podcast]: http://giantrobots.fm/
@@ -53,3 +59,5 @@ Here is the ones I listened to the most in 2014.
 [Debian & Stuff]: http://www.debianandstuff.com/
 [Type Theory Podcast]: http://typetheorypodcast.com/
 [Wide Teams]: http://www.wideteams.com/category/podcast/
+[The Bike Shed]: http://bikeshed.fm/
+[the pomodoro technique]: http://pomodorotechnique.com/
