@@ -1,40 +1,60 @@
 ---
 title: Closures are prepared statements
 author: Etienne Millon
+tags: ocaml
 ---
 
-When I was learning functional programming, I had the impression that for
-closures to work, it was necessary to create code at run-time.
+The other day I saw [an interesting interview question]:
+
+> Implement function foo which takes an integer size, and returns an array of
+> that size where each element in that array is a function that returns the
+> index of that function in the array.
+
+It is a nice question to 
+
+Here is a possible OCaml solution[^init]:
+
+[^init]: A more idiomatic verion would use `Array.init`, but then it does not
+use closures.
 
 ~~~ {.ocaml}
-let add n =
-    fun x -> n + x
-
-let add2 = add 2    
-
-let add3 = add 3
-
-Printf.printf "%d %d\n" (add2 1) (add3 1)
+let build_array n =
+  let a = Array.make n (fun () -> assert false) in
+  for i = 0 to n - 1 do
+    let f () =
+      i
+    in
+    a.(i) <- f
+  done;
+  a
 ~~~
 
-I mean, what happens when `add2` and `add3` are created?
-A function is created, so there has to be some compilation going on!
+The initialization creates an array of the correct size, whose elements are all
+initialized to `fun () -> assert false`. That is because `Array.make` requires
+an initializer of the correct type, but that is not too important here.
 
-Actually, no.
-They are compiled only once, without knowing what the parameter will be.
+Then, in the for loop, we construct a function that returns the loop index, and
+assign it to the corresponding element in the array.
 
-The expression `fun x -> n + x` contains a free variable, `n`. Its value can not
-be known at compile time. So, to compile this function, every occurrence of `n`
-inside has to be replaced by a marker saying "the value of `n`".
+This is surprising because it seems that to work this needs to create code at
+run-time.
 
-At some point during the program's execution this value is known. Here, it is
-when `add` is applied to 2 (resp. 3). At that time, "the value of `n`" is 2
-(resp. 3). There is enough information to apply the function:
+But actually, `f` can be compiled only once, without knowing what `i` will be.
 
-  - the code with wildcard values;
-  - values that they are replaced with.
+The expression `fun () -> i` contains a free variable, `i`. Its value can not
+be known at compile time. So, to compile this function, every occurrence of `i`
+inside has to be replaced by a marker saying "the value of `i`".
+
+During the execution of the loop, at the `let f`, an object is created that
+combines:
+
+  - the code of `f` with the wildcard value;
+  - the value of `i`.
 
 This is a closure.
+
+Here, a total of `n` closures are created. The code part is shared by all, and
+the values captured are all different.
 
 ---
 
@@ -54,3 +74,5 @@ They have two advantages. The first one is that the code part can be reused with
 different parameters, without parsing the query again. The second one is that
 it prevents SQL injection vulnerabilities, since no erroneous query can be
 built.
+
+[an interesting interview question]: https://news.ycombinator.com/item?id=8917689
