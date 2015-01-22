@@ -10,7 +10,7 @@ The other day I saw [an interesting interview question]:
 > that size where each element in that array is a function that returns the
 > index of that function in the array.
 
-It is a nice question to 
+It is a nice question to evaluate how well a programmer understands closures.
 
 Here is a possible OCaml solution[^init]:
 
@@ -46,21 +46,58 @@ be known at compile time. So, to compile this function, every occurrence of `i`
 inside has to be replaced by a marker saying "the value of `i`".
 
 During the execution of the loop, at the `let f`, an object is created that
-combines:
+combines the code of `f` (with the wildcard value) with the value of `i`. This
+is a *closure*.
 
-  - the code of `f` with the wildcard value;
-  - the value of `i`.
+The code is roughly compiled like this:
 
-This is a closure.
+~~~ {.ocaml}
+let build_array n =
+  let a = Array.make n (fun () -> assert false) in
+  for i = 0 to n - 1 do
+    let f_code () =
+      closure_param 0
+    in
+    let f = build_closure f_code [|i|] in
+    a.(i) <- f
+  done;
+  a
+~~~
+
+This relies on the runtime having a function that can interpret calls to
+`closure_param` and replace them with the actual captured value. Note that at
+runtime, names are not necessary: it is enough to refer to captured values by
+number.
 
 Here, a total of `n` closures are created. The code part is shared by all, and
 the values captured are all different.
 
----
+~~~~
++---------+---------+---------+---------+---------+
+|    0    |    1    |    2    |    3    |    4    |     Array (a)
++---------+---------+---------+---------+---------+
+     |         |         |         |         |
+     v         v         v         v         v
+ +---+---+ +---+---+ +---+---+ +---+---+ +---+---+
+ |   |   | |   |   | |   |   | |   |   | |   |   |      Closures (f)
+ +---+---+ +---+---+ +---+---+ +---+---+ +---+---+
+   |   |     |   |     |   |     |   |     |   |
+   |   v     |   v     |   v     |   v     |   v
+   | +---+   | +---+   | +---+   | +---+   | +---+
+   | | 0 |   | | 1 |   | | 2 |   | | 3 |   | | 4 |      Captured values (i)
+   | +---+   | +---+   | +---+   | +---+   | +---+
+   |         |         |         |         |
+   v         v         v         v         v
++-------------------------------------------------+
+|                      Code                       |     Shared code (f_code)
++-------------------------------------------------+
+~~~~
 
-This schema exists in another field, database systems.
+This technique makes it possible to have compile-time "holes" in functions,
+without having to pass them explicitely.
 
-Most databases have a feature called prepared statements, which look like this:
+Surprisingly, it exists in another field: database systems. Most databases have
+a feature called prepared statements, which look like this:
 
 ~~~ {.sql}
 SELECT * FROM users WHERE name = ? AND active = 1
