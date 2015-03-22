@@ -97,3 +97,8 @@ ul.postList {
 .caption {
     font-size: smaller;
 }
+
+.figure img {
+    padding: 5px;
+    border: 1px solid #ccc;
+}
