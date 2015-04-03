@@ -65,7 +65,7 @@ tuned !
 
 [sendfile(2)]: http://manpages.debian.org/cgi-bin/man.cgi?query=sendfile&sektion=2&apropos=0&manpath=Debian%206.0%20squeeze
 [S3]:          http://aws.amazon.com/s3/
-[Disqus]:      http://disqus.com
+[Disqus]:      https://disqus.com
 [pelican]:     https://github.com/ametaireau/pelican/
 [blogofile]:   http://blogofile.com/
 [ikiwiki]:     http://ikiwiki.info/

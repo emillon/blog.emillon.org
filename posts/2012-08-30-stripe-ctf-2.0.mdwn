@@ -372,7 +372,7 @@ will be as interesting as this one, and that this time, I'll win a t-shirt :)
 
 [Flask]:        http://flask.pocoo.org/
 [FullSolution]: http://blog.matthewdfuller.com/2012/08/stripe-capture-flag-level-by-level.html
-[NodeJS]:       http://nodejs.org/
+[NodeJS]:       https://nodejs.org/
 [Sinatra]:      http://www.sinatrarb.com/
 [StripeCTF]:    https://stripe.com/blog/capture-the-flag-20
 [Stripe]:       https://stripe.com/
