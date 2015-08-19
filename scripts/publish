@@ -32,7 +32,7 @@ def main():
     slugtitle = fullslug + '.mdwn'
     dest = os.path.join('posts', slugtitle)
     os.rename(fname, dest)
-    asset_dir = fname[:-5]
+    asset_dir = os.path.splitext(fname)[0]
     if os.path.isdir(asset_dir):
         asset_dir_dest = os.path.join('posts', fullslug)
         os.rename(asset_dir, asset_dir_dest)
