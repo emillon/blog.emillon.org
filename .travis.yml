@@ -1,4 +1,5 @@
 language: haskell
+ghc: 7.8
 install:
   - sudo apt-get install linkchecker
   - cabal sandbox init
