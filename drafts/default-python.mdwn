@@ -4,7 +4,7 @@ author: Etienne Millon
 tags: python
 ---
 
-This is a minimal example reproducing [a bug I found in html2text(https://github.com/Alir3z4/html2text/pull/84).
+This is a minimal example reproducing [a bug I found in html2text](https://github.com/Alir3z4/html2text/pull/84).
 
 Suppose we have configuration module:
 
