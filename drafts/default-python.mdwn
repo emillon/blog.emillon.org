@@ -1,35 +1,59 @@
 ---
+title: In Python, default values are evaluated at import time
 author: Etienne Millon
 tags: python
 ---
-% tail *.py
-==> a.py <==
-import b1
-import b2
-import c
 
-c.default = True
-b1.f()
-b2.f()
+This is a minimal example reproducing [a bug I found in html2text(https://github.com/Alir3z4/html2text/pull/84).
 
-==> b1.py <==
-import c
+Suppose we have configuration module:
 
-def f(x=c.default):
+``` python
+# config.py
+default = False
+```
+
+A library that uses the configuration:
+
+``` python
+# lib.py
+import config
+
+def f(x=config.default):
     print x
+```
 
-==> b2.py <==
-import c
+And finally a main function that sets the configuration and calls `f`.
 
+``` python
+import config
+import lib
+
+config.default = True
+lib.f()
+```
+
+One would expect that the program prints `True`, but it actually prints `False`.
+
+Why is that?
+
+**In python, default values are evaluated at import time.**
+
+That's it.
+
+First, the main program first imports `config`. The definition of  `default` is evaluated and its value is `False`. 
+
+Then, `lib` is imported, and the definition of `lib.f` is evaluated. The value of this function includes the default value for `x`. So, the definition of this default value,`config.default`, is evaluated and it is `False`.
+
+Later, when the value `True` is assigned to `config.default`, it is too late in a sense, since the value `False` is already part of `lib.f`'s value.
+
+The correct way to write `f` is:
+
+``` python
 def f(x=None):
     if x is None:
-        x = c.default
+        x = config.default
     print x
+```
 
-==> c.py <==
-default = False
-
- % python a.py 
-False
-True
-
+Here the default value for `x` is `None` and the evaluation of `config.default` will happen at runtime, which is what we want here. The above program will indeed print `True`.
