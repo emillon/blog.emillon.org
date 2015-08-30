@@ -1,0 +1,35 @@
+---
+author: Etienne Millon
+tags: python
+---
+% tail *.py
+==> a.py <==
+import b1
+import b2
+import c
+
+c.default = True
+b1.f()
+b2.f()
+
+==> b1.py <==
+import c
+
+def f(x=c.default):
+    print x
+
+==> b2.py <==
+import c
+
+def f(x=None):
+    if x is None:
+        x = c.default
+    print x
+
+==> c.py <==
+default = False
+
+ % python a.py 
+False
+True
+
