@@ -52,11 +52,14 @@ finalRenderer tplPath ctx x1 = do
   x3 <- loadAndApplyTemplate "templates/default.html" ctx x2
   relativizeUrls x3
 
+metaField :: String -> Compiler String -> Context a
+metaField f d =
+    field f $ \ i -> do
+        value <- getMetadataField (itemIdentifier i) f
+        maybe d return value
+
 hnField :: Context a
-hnField =
-    field "hn" $ \ i -> do
-        value <- getMetadataField (itemIdentifier i) "hn"
-        maybe empty return value
+hnField = metaField "hn" empty
 
 renderPosts :: Tags -> Rules ()
 renderPosts tags = do
