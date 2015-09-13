@@ -108,7 +108,7 @@ lack of time and interest I did not go all the way.
 Fortunately Miles Lubin proposed to adopt these packages and is doing a great
 work on them. Thanks Miles!
 
-[coinor-cbc]: http://projects.coin-or.org/Cbc
+[coinor-cbc]: http://www.coin-or.org/projects/Cbc.xml
 
 ## Incomplete work
 
