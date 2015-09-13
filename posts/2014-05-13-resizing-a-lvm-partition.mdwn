@@ -57,4 +57,4 @@ space, ie fill the volume group).
 That was almost too easy!
 
 [LVM]: http://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)
-[fsadm]: http://linux.die.net/man/8/fsadm
+[fsadm]: http://manpages.debian.org/cgi-bin/man.cgi?query=fsadm&apropos=0&sektion=0&manpath=Debian+8+jessie&format=html&locale=en
