@@ -147,12 +147,12 @@ What's new about what you're making? What substitutes do people resort to becaus
 
 Who are your competitors, and who might become competitors? Who do you fear most?
 
-:   - [Prismatic](http://getprismatic.com)
-    - [Newsblur](http://newsblur.com)
-    - [Google Reader](https://www.google.com/reader/about/)
-    - [Zite](http://zite.com/)
-    - [FlipBoard](http://flipboard.com/)
-    - [Taptu](https://www.taptu.com/)
+:   - Prismatic `http://getprismatic.com`
+    - Newsblur `http://newsblur.com`
+    - Google Reader `https://www.google.com/reader/about/`
+    - Zite `http://zite.com/`
+    - FlipBoard `http://flipboard.com/`
+    - Taptu `https://www.taptu.com/`
 
     We don't really count daily debriefing (e.g. news.me) not "read-it-later"
     (e.g. instapaper) as concurrents, the later really are complementary to what
