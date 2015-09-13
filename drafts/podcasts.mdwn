@@ -54,7 +54,7 @@ Here is the ones I listened to the most in 2014.
 [Michel Platiniste]: http://tech.no.com/
 [Radiolab]: http://www.radiolab.org/series/podcasts/
 ["Colors" episode]: http://www.radiolab.org/story/211119-colors/
-[Stack Exchange Podcast]: http://blog.stackoverflow.com/category/podcasts/
+[Stack Exchange Podcast]: https://blog.stackexchange.com/feed/podcast/
 [hurricane Sandy]: http://blog.stackoverflow.com/2012/11/se-podcast-36-we-got-hit-by-a-hurricane/
 [Debian & Stuff]: http://www.debianandstuff.com/
 [Type Theory Podcast]: http://typetheorypodcast.com/

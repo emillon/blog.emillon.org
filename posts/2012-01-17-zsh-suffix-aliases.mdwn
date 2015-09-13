@@ -27,4 +27,4 @@ line matches a suffix alias. So, for example you can define :
 
 [zsh]:            http://www.zsh.org/
 [bash]:           http://www.gnu.org/software/bash/
-[zshbuiltins(1)]: http://linux.die.net/man/1/zshbuiltins
+[zshbuiltins(1)]: http://manpages.debian.org/cgi-bin/man.cgi?query=zshbuiltins&apropos=0&sektion=0&manpath=Debian+7.8+wheezy&format=html&locale=en

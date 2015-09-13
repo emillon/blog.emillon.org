@@ -10,4 +10,4 @@ runOrFail cmd = do
 main :: IO ()
 main = do
     runOrFail "./dist/build/blog/blog build"
-    runOrFail "linkchecker --check-html --check-css --anchors _site/index.html"
+    runOrFail "./dist/build/blog/blog check"

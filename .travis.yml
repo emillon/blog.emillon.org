@@ -1,6 +1,9 @@
 language: haskell
 ghc: 7.8
+sudo: False
 install:
-  - sudo apt-get install linkchecker
   - cabal sandbox init
   - cabal install --only-dependencies
+cache:
+  directories:
+    - .cabal-sandbox
