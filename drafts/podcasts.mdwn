@@ -39,8 +39,6 @@ Here is the ones I listened to the most in 2014.
     technical, but mostly human. This is more of a podcast on how to build a
     community. I got hooked on it after listening to the episode where they
     tell how they recovered from [hurricane Sandy].
-  - [Debian & Stuff]. Only episode so far. Two friends talk about Debian, and
-    about stuff. Promising, would love to hear more.
   - [Type Theory Podcast]. Very technical but since type theory is one of my
     scientific interests, I tried. It requires some concentration, to say the
     least. So far I am not persuaded that this is the good medium for this.
@@ -56,7 +54,6 @@ Here is the ones I listened to the most in 2014.
 ["Colors" episode]: http://www.radiolab.org/story/211119-colors/
 [Stack Exchange Podcast]: https://blog.stackexchange.com/feed/podcast/
 [hurricane Sandy]: http://blog.stackoverflow.com/2012/11/se-podcast-36-we-got-hit-by-a-hurricane/
-[Debian & Stuff]: http://www.debianandstuff.com/
 [Type Theory Podcast]: http://typetheorypodcast.com/
 [Wide Teams]: http://www.wideteams.com/category/podcast/
 [The Bike Shed]: http://bikeshed.fm/

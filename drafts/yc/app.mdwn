@@ -4,7 +4,7 @@ Company Name
 
 Company url, if any
 
-:   <http://cloverfeed.com>
+:   `http://cloverfeed.com`
 
 Phone number(s)
 
