@@ -14,7 +14,7 @@ from a lot of sources, and a lot are not directly relevant to you. Our goal is
 to aggregate this feeds and sort them according to how likely you're going to
 read them. Our pitch became the following:
 
-> [Cloverfeed] is a website and a mobile application to rank and filter entries
+> Cloverfeed is a website and a mobile application to rank and filter entries
 > from all your feeds: RSS, Facebook, Twitter, social news… It's like a spam
 > filter and "priority inbox" for all your notifications. With this service, we
 > want to empower our users to be more efficient reading their news feeds,
@@ -89,8 +89,7 @@ for this user
 
 ### The future
 
-[Gabriel Synnaeve]: http://snippyhollow.github.io/
-[Cloverfeed]: http://cloverfeed.com/
+[Gabriel Synnaeve]: https://research.facebook.com/researchers/911353072242054/gabriel-synnaeve/
 [Hacker News]: https://news.ycombinator.com/
 [at YC]: http://www.ycombinator.com/atyc/
 [YC App]: yc/app.html
