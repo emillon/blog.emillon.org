@@ -8,6 +8,5 @@ runOrFail cmd = do
     when (status /= ExitSuccess) $ exitWith status
 
 main :: IO ()
-main = do
+main =
     runOrFail "./dist/build/blog/blog build"
-    runOrFail "./dist/build/blog/blog check"
