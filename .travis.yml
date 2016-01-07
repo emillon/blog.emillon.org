@@ -13,6 +13,7 @@ deploy:
     secret_access_key:
         secure: J15oUmHCx4jAgEWgG69qKAcQFUlnxHAPqNdh6mSSO2Xx+55xKa7UaQlnI1LlBVyPYxwlmpUm8fsUIcURx3krN1P0TwJO9G6NmRG7AB23HEy6zH/fYWjYAkASDJEtGjk5fEXR9Vo4aJSAZd34RH3H/Lw68xdBoqi/gRSSIqKScUY=
     bucket: blog.emillon.org
+    skip_cleanup: true
     local-dir: _site
     acl: public_read
     on:
