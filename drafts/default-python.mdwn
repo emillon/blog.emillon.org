@@ -4,28 +4,22 @@ author: Etienne Millon
 tags: python
 ---
 
-This is a minimal example reproducing [a bug I found in html2text](https://github.com/Alir3z4/html2text/pull/84).
-
-Suppose we have configuration module:
+This is a minimal example reproducing [a bug I found in
+html2text](https://github.com/Alir3z4/html2text/pull/84). Suppose we have
+configuration module, a library that uses the configuration, and a main
+function.
 
 ``` python
 # config.py
 default = False
-```
 
-A library that uses the configuration:
-
-``` python
 # lib.py
 import config
 
 def f(x=config.default):
     print x
-```
 
-And finally a main function that sets the configuration and calls `f`.
-
-``` python
+# main.py
 import config
 import lib
 
@@ -33,21 +27,40 @@ config.default = True
 lib.f()
 ```
 
-One would expect that the program prints `True`, but it actually prints `False`.
+The main function sets the configuration, then calls `f`.
+One would expect that the program prints `True`...
+but it actually prints `False`.
 
-Why is that?
+This behavior can be surprising, but it is perfectly logical once you know the
+rule:
 
-**In python, default values are evaluated at import time.**
+**In Python, default values are evaluated at import time.**
 
-That's it.
+This is all there is to know about this problem.
+Here is what happens at runtime in the above example:
 
-First, the main program first imports `config`. The definition of  `default` is evaluated and its value is `False`. 
+  - The main program first imports `config`.
+    The definition of `default` is evaluated and its value is `False`.
+  - `lib` is imported, and the definition of `lib.f` is evaluated.
+    The value of this function includes the default value for `x`.
+    So, the definition of this default value, `config.default`, is evaluated and
+    it is `False`.
+  - When the value `True` is assigned to `config.default`, it is too late:
+    the value `False` is already part of the function's value.
 
-Then, `lib` is imported, and the definition of `lib.f` is evaluated. The value of this function includes the default value for `x`. So, the definition of this default value,`config.default`, is evaluated and it is `False`.
+That last part is not only a metaphor, the default value is actually part of the
+function object:
 
-Later, when the value `True` is assigned to `config.default`, it is too late in a sense, since the value `False` is already part of `lib.f`'s value.
+```python
+>>> def f(x=3):
+...     print x
+...
+>>> f.func_defaults
+(3,)
+```
 
-The correct way to write `f` is:
+In order to avoid this caveat, the usual solution is to use `None` for default
+values:
 
 ``` python
 def f(x=None):
@@ -56,4 +69,5 @@ def f(x=None):
     print x
 ```
 
-Here the default value for `x` is `None` and the evaluation of `config.default` will happen at runtime, which is what we want here. The above program will indeed print `True`.
+That way, the evaluation of `config.default` will happen at runtime, which is
+what we want here. The above program will indeed print `True`.
