@@ -1,0 +1,113 @@
+---
+title: NaBoMaMo 2016 writeup
+author: Etienne Millon
+tags: ocaml nabomamo slack bot
+---
+
+Hello! It's 2016, it's November, and apparently it rhymes with [#NaBoMaMo] 2016,
+the National Bot Making Month. [I made a bot!][github repo].
+
+*Full disclosure:* it's actually 2017, but I started writing this in 2016 so
+it's OK. Also I'm not actually from the US, but I'll relax the definition a bit
+and let's pretend it means International Bot Making Year. Close enough!
+
+Bots are all the rage - Twitter bots, IRC bots, Telegram bots... I decided to
+make a Slack bot to get more familiar with that API.
+
+I wanted this to be a very small project - write and forget, basically. I
+started by defining some specs and lock those down:
+
+- that bot works on Slack
+- it uses the "will it rain in the next hour" API from Météo France.
+- the bot understands 3 commands:
+  + tell you whether it will rain or not.
+  + show you a graph of rain level over the next hour.
+  + tell you when to go out to avoid the rain.
+
+The next step was choosing the tech stack. For hosting itself I was sold on
+using Heroku from previous projects (or another PaaS host, for what it's worth)
+
+As for the programming language itself, I hesitated between three choices:
+
+1. focus on the all-included experience: something that has libraries, tooling,
+   but somehow boring;
+2. focus on the shipping experience: stuff that I use daily, but looking to get
+   something online quickly;
+3. focus on learning something new.
+
+The first one means something like Python or Ruby. I am familiar with the
+languages and am pretty sure that there are libraries that can take care of the
+Slack API without me having to ever worry about HTTP endpoints. That means also
+first-class deployment and hosting.
+
+The second one is about OCaml: it's a programming language I use daily at work,
+but the real goal would be to focus on shipping: create a project, write tests,
+write implementation, deploy, repeat for new features, forget.
+
+The third one means a totally new programming language. I heard a lot of good
+things about Elixir for backend applications and figured that it would be a good
+intro project. Learning a new language is always an interesting experience,
+because it makes you a better programmer in all languages, and having clear
+specs would make this manageable.
+
+The Python/Ruby solution seemed a bit boring. I probably would not learn a lot,
+only, maybe add a couple libraries to my toolbelt at most.
+
+Elixir sounds great, but learning a new language and a new project at the same
+time is too hard and too time consuming. I would rather write in a new language
+something I previously wrote in another language. Though for something small and
+focused like this, that could have worked.
+
+I first created the project structure: github repo, ocaml project (topkg, opam,
+etc). I like to use TDD for this kind of projects, so I added a small [alcotest]
+suite. I also created the 12factor separation: a `Procfile`, a small `bin/`
+shell that reads the application configuration from the environment and starts a
+bot from `lib/`.
+
+I asked myself what to test: the [cohttp] library is very nice, because servers
+and clients are built using normal functions that take a request and returns a
+response. That makes it possible to test almost everything at the ocaml level
+without having to go to the HTTP level. This is especially important since there
+is no way to mock values and functions in ocaml. Everything has to be real
+objects.
+
+However, even if it was possible to test everything, I decided to just focus on
+the domain logic without testing the HTTP part: for example, I would pass data
+structures directly to my bot object rather than building a cohttp request.
+
+A part that is important for me even for a small project like that, is to have
+some sort of CI: have travis run my test suite, and make a binary ready to be
+deployed to Heroku. That way, it is impossible to forget how to make changes,
+test and deploy, since this is all in a script.
+
+The other part that needed work is the actual Slack integration. The "slash"
+command API is pretty simple: it is possible to configure a Slack team such that
+typing `/rain` will hit a particular URL. Some options are passed as `POST` data
+and whatever is returned is displayed in Slack.
+
+I set up the Slack integration, wrote a function to distinguish between
+`/rain` and `/rain list` (using the POST data), and by the end of the second
+iteraton I had my second feature implemented, working, and deployed.
+
+All in all, that was pretty great. The code or the bot itself are not
+particularly fantastic, but I learned some important lessons:
+
+- When you do not want to spend a lot of time on a task, invest in planning and
+  keep the list of features short. That is pretty obvious in the context of paid
+  work, but this is applies very well to hobby programming too.
+- Know what to test and what not to. Tests are useful to ensure that changes can
+  be made without breaking everything, but testing that your HTTP library can
+  parse POST data is a waste of time.
+- In languages where it is not possible to mock or monkey patch functions,
+  dependency injection is still possible. One may even argue that it leads to
+  a better solution, since it removes the coupling between the different
+  components.
+
+You can find [the source of this bot on Github][github repo].
+See you next year, [#NaBoMaMo]!
+And thanks to Tully Hansen for organizing this.
+
+[#NaBoMaMo]: http://nabomamo.botally.net/
+[alcotest]: https://github.com/mirage/alcotest
+[cohttp]: https://github.com/mirage/ocaml-cohttp
+[github repo]: https://github.com/emillon/rain-bot
