@@ -63,10 +63,11 @@ instance Walkable Target Inline where
     walkM _ LineBreak = return LineBreak
     walkM _ (Math mt s) = return $ Math mt s
     walkM _ (RawInline fmt s) = return $ RawInline fmt s
-    walkM f (Link is tgt) = liftM2 Link (mapM (walkM f) is) (f tgt)
-    walkM f (Image is tgt) = liftM2 Image (mapM (walkM f) is) (f tgt)
+    walkM f (Link attr is tgt) = liftM2 (Link attr) (mapM (walkM f) is) (f tgt)
+    walkM f (Image attr is tgt) = liftM2 (Image attr) (mapM (walkM f) is) (f tgt)
     walkM f (Note bs) = Note <$> mapM (walkM f) bs
     walkM f (Span a is) = Span a <$> mapM (walkM f) is
+    walkM f SoftBreak = return SoftBreak
 
     walk = walkFromWalkM walkM
     query = queryFromWalkM walkM
