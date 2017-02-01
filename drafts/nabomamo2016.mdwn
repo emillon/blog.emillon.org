@@ -14,8 +14,8 @@ and let's pretend it means International Bot Making Year. Close enough!
 Bots are all the rage - Twitter bots, IRC bots, Telegram bots... I decided to
 make a Slack bot to get more familiar with that API.
 
-I wanted this to be a very small project - write and forget, basically. I
-started by defining some specs and lock those down:
+I wanted this to be a small project - write and forget, basically. I started by
+defining some specs and lock those down:
 
 - that bot works on Slack
 - it uses the "will it rain in the next hour" API from Météo France.
@@ -64,8 +64,8 @@ suite. I also created the 12factor separation: a `Procfile`, a small `bin/`
 shell that reads the application configuration from the environment and starts a
 bot from `lib/`.
 
-I asked myself what to test: the [cohttp] library is very nice, because servers
-and clients are built using normal functions that take a request and returns a
+I asked myself what to test: the [cohttp] library is nice, because servers and
+clients are built using normal functions that take a request and returns a
 response. That makes it possible to test almost everything at the ocaml level
 without having to go to the HTTP level. This is especially important since there
 is no way to mock values and functions in ocaml. Everything has to be real
@@ -94,7 +94,7 @@ particularly fantastic, but I learned some important lessons:
 
 - When you do not want to spend a lot of time on a task, invest in planning and
   keep the list of features short. That is pretty obvious in the context of paid
-  work, but this is applies very well to hobby programming too.
+  work, but this is applies well to hobby programming too.
 - Know what to test and what not to. Tests are useful to ensure that changes can
   be made without breaking everything, but testing that your HTTP library can
   parse POST data is a waste of time.
