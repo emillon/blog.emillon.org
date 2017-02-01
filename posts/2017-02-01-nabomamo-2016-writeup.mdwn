@@ -1,7 +1,7 @@
 ---
 title: NaBoMaMo 2016 writeup
 author: Etienne Millon
-tags: ocaml nabomamo slack bot
+tags: ocaml, nabomamo, slack, bot
 ---
 
 Hello! It's 2016, it's November, and apparently it rhymes with [#NaBoMaMo] 2016,
