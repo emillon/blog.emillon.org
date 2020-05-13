@@ -19,11 +19,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 
 main :: IO ()
-main =
-  hakyllWith conf rules
-    where
-      conf = defaultConfiguration { deployCommand = s3deploy }
-      s3deploy = "s3cmd --guess-mime-type --no-mime-magic -P sync _site/ s3://blog.emillon.org/"
+main = hakyll rules
 
 rules :: Rules ()
 rules = do
