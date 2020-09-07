@@ -1,0 +1,43 @@
+# This Github Actions workflow is modified from
+# https://kodimensional.dev/github-actions
+name: 'CI'
+
+# Trigger the workflow on push or pull request, but only for the master branch
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    # https://github.com/actions/setup-haskell
+    - uses: actions/setup-haskell@v1.1
+      name: Setup Haskell Stack
+      with:
+        stack-version: "latest"
+        enable-stack: true
+        stack-no-global: true
+
+    # https://github.com/actions/cache
+    - uses: actions/cache@v2
+      name: Cache ~/.stack
+      with:
+        path: ~/.stack
+        key: ${{ runner.os }}-${{ hashFiles('stack.yaml') }}
+
+    - name: Test (Ubuntu)
+      run: |
+        stack test --no-terminal --fast --stack-yaml stack.yaml
+
+    - name: Build
+      run: |
+        stack exec --no-terminal --stack-yaml stack.yaml blog build
+
+    - name: Deploy
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      run: |
+        echo Deploying
