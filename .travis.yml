@@ -16,6 +16,7 @@ install:
 script:
   - cabal build
   - cabal test
+  - ./dist/build/blog/blog build
   - cabal sdist
 cache:
   directories:
