@@ -14,15 +14,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # https://github.com/actions/setup-haskell
-    - uses: actions/setup-haskell@v1.1
-      name: Setup Haskell Stack
+    - uses: haskell/actions/setup@v1
       with:
         stack-version: "latest"
         enable-stack: true
         stack-no-global: true
 
-    # https://github.com/actions/cache
     - uses: actions/cache@v2
       name: Cache ~/.stack
       with:
@@ -39,5 +36,7 @@ jobs:
 
     - name: Deploy
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-      run: |
-        echo Deploying
+      uses: JamesIves/github-pages-deploy-action@4.1.5
+      with:
+        branch: gh-pages
+        folder: _site
