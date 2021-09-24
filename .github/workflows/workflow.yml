@@ -14,15 +14,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # https://github.com/actions/setup-haskell
-    - uses: actions/setup-haskell@v1.1
-      name: Setup Haskell Stack
+    - uses: haskell/actions/setup@v1
       with:
         stack-version: "latest"
         enable-stack: true
         stack-no-global: true
 
-    # https://github.com/actions/cache
     - uses: actions/cache@v2
       name: Cache ~/.stack
       with:
