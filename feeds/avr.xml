@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Enter the void *</title>
+        <link>http://blog.emillon.org</link>
+        <description><![CDATA[Yet another random hacker]]></description>
+        <atom:link href="http://blog.emillon.org/feeds/avr.xml" rel="self"
+                   type="application/rss+xml" />
+        <lastBuildDate>Thu, 27 Nov 2014 00:00:00 UT</lastBuildDate>
+        <item>
+    <title>Converting a Dance Dance Revolution mat to USB</title>
+    <link>http://blog.emillon.org/posts/2014-11-27-converting-a-dance-dance-revolution-mat-to-usb.html</link>
+    <description><![CDATA[<p><strong>Abstract:</strong> <em>I transform a Playstation/parallel port converter to USB. This includes finding the pinout of the previous circuit, making an AVR toolchain work, and writing the firmware. Some bugs are found, and fixed. The <a href="https://github.com/emillon/psx-usb">result</a> is open source.</em></p>
+<p>Do you pine for the days when people were people and wrote their own device drivers? Some days are still like that, you just have to take the opportunity.</p>
+<p>Recently while organizing my place I found two abandoned items that were meant to meet each other: a Dance Dance Revolution mat and a Teensy++ development board. This project is the story of their union.</p>
+<h2 id="finding-the-pinout">Finding the pinout</h2>
+<p>So, I stumbled upon an old DDR mat and I wanted to play with it. The easiest way is using <a href="http://www.stepmania.com/">Stepmania</a>, a simulator that works on Linux (and that I am trying to <a href="http://blog.emillon.org/posts/2014-11-21-my-part-of-work-in-debian-jessie.html">package for Debian</a>). But some interface is needed to connect dancing mats (usually made for the Playstation) to a computer.</p>
+<p>In a previous life I replaced the Playstation connector of this mat with a parallel port connector. In the beginning of the 2000s, the popular circuit to do this was <a href="http://arcadecontrols.com/Mirrors/www.ziplabel.com/dpadpro/psx.html">Direct Pad Pro</a>, and on Linux there was a similar driver documented in <a href="https://www.kernel.org/doc/Documentation/input/joystick-parport.txt">joystick-parport.txt</a>.</p>
+<p>Needless to say, I do not have a parallel port on my computer anymore, so some conversion is required. I also happen to have a USB development board on hand, so a possible solution is to program it to drive the Playstation mat.</p>
+<figure>
+<img src="2014-11-27-converting-a-dance-dance-revolution-mat-to-usb/mat.jpg" alt="A DDR mat with unusual connectors" /><figcaption>A DDR mat with unusual connectors</figcaption>
+</figure>
+<p>On the above picture, two things are connected to the parallel port: the DDR mat and a female SNES connector. The driver indeed supported several gamepads, even of different types.</p>
+<p>The first step was to note the pinout of the existing connection:</p>
+<figure>
+<img src="2014-11-27-converting-a-dance-dance-revolution-mat-to-usb/inside.jpg" alt="Strange things inside the connector" /><figcaption>Strange things inside the connector</figcaption>
+</figure>
+<pre><code>DB25
+
+ 2 ───────── orange
+ 3 ───────── yellow
+ 4 ───────── blue
+ 5 ──▷|─┐
+ 6 ──▷|─┤
+ 7 ──▷|─┼─── pink
+ 8 ──▷|─┤
+ 9 ──▷|─┘
+11 ───────── brown
+19 ─────┐
+20 ─────┤
+21 ─────┤
+22 ─────┼─── black
+23 ─────┤
+24 ─────┤
+25 ─────┘
+      NC  ── green</code></pre>
+<p>Looking at the kernel documentation, it means that the 11 is the data pin for the Playstation connector (the SNES pad was #1 and the PSX pad was #2).</p>
+<p>This was enough to reconstruct the correct pinout. Note that the kernel numbers PSX pins in the opposite order of everything else I have seen. The following table uses kernel order.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Color</th>
+<th style="text-align: center;">DB25 #</th>
+<th style="text-align: center;">PSX #</th>
+<th style="text-align: center;">Function</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">orange</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">Command</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">yellow</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">Select</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">blue</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">Clock</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">pink</td>
+<td style="text-align: center;">5-9 <a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">Vcc</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">brown</td>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">Data</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">black</td>
+<td style="text-align: center;">19-25</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">Ground</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">green</td>
+<td style="text-align: center;">NC</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<p>At first, I was worried by the green wire that was not connected but this confirms that it was not needed.</p>
+<h2 id="connecting-it-to-the-teensy">Connecting it to the teensy++</h2>
+<p>The teensy++ is a development board with an AT90USB1286 microcontroller, from the AVR family. It has many GPIO ports, so I had to make a choice regarding the pins to be used. I chose this pinout:</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">AVR port</th>
+<th style="text-align: center;">Color</th>
+<th style="text-align: center;">Function</th>
+<th style="text-align: center;">Direction</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Vcc</td>
+<td style="text-align: center;">pink</td>
+<td style="text-align: center;">Vcc</td>
+<td style="text-align: center;">Power</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">GND</td>
+<td style="text-align: center;">black</td>
+<td style="text-align: center;">Ground</td>
+<td style="text-align: center;">Power</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">PC0</td>
+<td style="text-align: center;">brown</td>
+<td style="text-align: center;">Data</td>
+<td style="text-align: center;">D→H</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">PC1</td>
+<td style="text-align: center;">orange</td>
+<td style="text-align: center;">Command</td>
+<td style="text-align: center;">H→D</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">PC2</td>
+<td style="text-align: center;">yellow</td>
+<td style="text-align: center;">Select</td>
+<td style="text-align: center;">H→D</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">PC3</td>
+<td style="text-align: center;">blue</td>
+<td style="text-align: center;">Clock</td>
+<td style="text-align: center;">H→D</td>
+</tr>
+</tbody>
+</table>
+<p>The Data signal is the only one that goes from the Device (DDR mat) to the Host (microcontroller), but since each pin can be used as an input or as an output, this does not constrain the choice.</p>
+<p>So, let’s connect the DDR mat to the microcontroller. As the board already has male pin headers for breadboard usage, I soldered female pin headers to wires.</p>
+<figure>
+<img src="2014-11-27-converting-a-dance-dance-revolution-mat-to-usb/wires.jpg" alt="Female pin headers on wires. A bit backwards, I know." /><figcaption>Female pin headers on wires. A bit backwards, I know.</figcaption>
+</figure>
+<figure>
+<img src="2014-11-27-converting-a-dance-dance-revolution-mat-to-usb/assembled.jpg" alt="The completed adapter. The spoon was used to unplug the board from a piece of breadboard. And for breakfast, earlier." /><figcaption>The completed adapter. The spoon was used to unplug the board from a piece of breadboard. And for breakfast, earlier.</figcaption>
+</figure>
+<h2 id="programming-the-teensy">Programming the teensy++</h2>
+<p>I had two main problems writing the firmware: first, the manufacturer seems to recommend <a href="https://www.pjrc.com/teensy/loader.html">Teensy Loader</a> to program the microcontroller. This is a GUI app and which does not seem to be free software. Fortunately, I found a packaged version of <a href="https://github.com/raphendyr/teensy-loader-cli">teensy-loader-cli</a> which is CLI, GPL3, and works well. The following command will program the microcontroller:</p>
+<pre><code>teensy-loader-cli -mmcu=at90usb1286 blink_slow_Teensy2pp.hex</code></pre>
+<p>The second quirk is that most of the documentation that can be found is for using the teensy++ as an Arduino. But I prefer writing low-level code: just memory-mapped registers, a C compiler, and me. So I aptitude-installed <code>gcc-avr</code> and <code>avr-lib</code> and opened vim.</p>
+<p>There are several differences in how you program microcontrollers as an Arduino and as a plain AVR. For example here is how you configure PC0 to be an input with a pull-up resistor (so that it reads 1 when the pin is disconnected):</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><a class="sourceLine" id="cb3-1" title="1">DDRC &amp;= ~(<span class="dv">1</span> &lt;&lt; PC0);</a>
+<a class="sourceLine" id="cb3-2" title="2">PORTC |= (<span class="dv">1</span> &lt;&lt; PC0);</a></code></pre></div>
+<p>This clears bit PC0 of register DDRC (Data Direction Register C, nothing to do with Dance Dance Revolution) and sets bit PC0 of the PORTC register. Instead, the corresponding Arduino code is:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><a class="sourceLine" id="cb4-1" title="1">pinMode(<span class="dv">10</span>, INPUT_PULLUP);</a></code></pre></div>
+<p>To do that, the library has a mapping from pin numbers (an Arduino-specific terminology, it seems) to register names.</p>
+<h2 id="the-psx-protocol">The PSX protocol</h2>
+<p>Time to write the code itself. My absolute reference for programming and interfacing the Playstation is <a href="http://www.raphnet.net/electronique/psx_adaptor/Playstation.txt">Everything You Have Always Wanted to Know about the Playstation But Were Afraid to Ask</a>. See section 9 for controllers.</p>
+<p>The idea is that every frame (16 ms), Select becomes low, and bytes are transfered, LSB first, in a synchronous way over the Command (D→H) and Data (H→D) pins. Select becomes high back again after all bytes are transfered.</p>
+<p>This means that every time a bit is transfered to the gamepad, a bit is read at the same time. For every bit, the following operations are needed:</p>
+<ul>
+<li>set Command according to the bit to transmit;</li>
+<li>put Clock down;</li>
+<li>wait half a clock cycle;</li>
+<li>read Data: that is the bit received;</li>
+<li>put Clock up;</li>
+<li>wait half a clock cycle.</li>
+</ul>
+<p>Or, if you prefer in C:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><a class="sourceLine" id="cb5-1" title="1"><span class="dt">static</span> <span class="dt">uint8_t</span> transmit(<span class="dt">uint8_t</span> in)</a>
+<a class="sourceLine" id="cb5-2" title="2">{</a>
+<a class="sourceLine" id="cb5-3" title="3">        <span class="dt">uint8_t</span> out = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb5-4" title="4">        <span class="cf">for</span> (<span class="dt">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">8</span> ; i++) {</a>
+<a class="sourceLine" id="cb5-5" title="5">                <span class="dt">int</span> bit_in = in &amp; (<span class="dv">1</span> &lt;&lt; i);</a>
+<a class="sourceLine" id="cb5-6" title="6">                <span class="cf">if</span> (bit_in) {</a>
+<a class="sourceLine" id="cb5-7" title="7">                        signal_up(PSX_PIN_CMD);</a>
+<a class="sourceLine" id="cb5-8" title="8">                } <span class="cf">else</span> {</a>
+<a class="sourceLine" id="cb5-9" title="9">                        signal_down(PSX_PIN_CMD);</a>
+<a class="sourceLine" id="cb5-10" title="10">                }</a>
+<a class="sourceLine" id="cb5-11" title="11">                signal_down(PSX_PIN_CLOCK);</a>
+<a class="sourceLine" id="cb5-12" title="12">                _delay_us(DELAY_CLOCK_US);</a>
+<a class="sourceLine" id="cb5-13" title="13">                <span class="dt">int</span> bit_out = signal_read(PSX_PIN_DATA);</a>
+<a class="sourceLine" id="cb5-14" title="14">                <span class="cf">if</span> (bit_out) {</a>
+<a class="sourceLine" id="cb5-15" title="15">                        out |= (<span class="dv">1</span> &lt;&lt; i);</a>
+<a class="sourceLine" id="cb5-16" title="16">                } <span class="cf">else</span> {</a>
+<a class="sourceLine" id="cb5-17" title="17">                        out &amp;= ~(<span class="dv">1</span> &lt;&lt; i);</a>
+<a class="sourceLine" id="cb5-18" title="18">                }</a>
+<a class="sourceLine" id="cb5-19" title="19">                signal_up(PSX_PIN_CLOCK);</a>
+<a class="sourceLine" id="cb5-20" title="20">                _delay_us(DELAY_CLOCK_US);</a>
+<a class="sourceLine" id="cb5-21" title="21">        }</a>
+<a class="sourceLine" id="cb5-22" title="22">        <span class="cf">return</span> out;</a>
+<a class="sourceLine" id="cb5-23" title="23">}</a></code></pre></div>
+<p>During a normal operation, the bytes exchanged should be the following:</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Byte #</th>
+<th style="text-align: center;">Command</th>
+<th style="text-align: center;">Data</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0x01</td>
+<td style="text-align: center;">0xFF</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0x42</td>
+<td style="text-align: center;">0x41</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">0x00</td>
+<td style="text-align: center;">0x5A</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">0x00</td>
+<td style="text-align: center;">data1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">0x00</td>
+<td style="text-align: center;">data2</td>
+</tr>
+</tbody>
+</table>
+<p>Keypress information can be found in the 16-bit number <code>(data2 &lt;&lt; 8) | data1)</code>. If a bit is 0, it means that the corresponding button is pressed.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Bit #</th>
+<th style="text-align: center;">Key</th>
+<th style="text-align: center;">Bit #</th>
+<th style="text-align: center;">Key</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">Select</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">L2</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">(always 1)</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">R2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">(always 1)</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">L1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">Start</td>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">R1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">Up</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">Triangle</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">Right</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">Circle</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">Down</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">Cross</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">Left</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">Square</td>
+</tr>
+</tbody>
+</table>
+<p>At first, it was not obvious how to debug the implementation of this protocol. Fortunately, this microcontroller has a USB port and it is possible to transmit debug messages using the <a href="https://www.pjrc.com/teensy/usb_debug_only.html">usb_debug_only</a> code sample from the manufacturer.</p>
+<p>With no real surprise, my first iteration did not work and printed the following.</p>
+<pre><code>01 -&gt; FF
+42 -&gt; FF
+00 -&gt; FF
+00 -&gt; FF
+00 -&gt; FF</code></pre>
+<p>I re-read my code carefully and I found two bugs:</p>
+<ul>
+<li>I was not putting Clock back up.</li>
+<li>I was using PORTC for reading input even though PINC was needed… the registers are mapped in memory but not at the same address for reading and writing. Rookie mistake.</li>
+</ul>
+<p>After reprogramming and reloading I saw a satisfying output:</p>
+<pre><code>01 -&gt; FF
+42 -&gt; 41
+00 -&gt; 5A
+00 -&gt; FF
+00 -&gt; DF</code></pre>
+<p>The output bytes correspond to the device ID part (41 5A) and a value (FF DF) that indicates that nothing is pressed except the Circle button.</p>
+<h2 id="interfacing-with-the-computer">Interfacing with the computer</h2>
+<p>At that moment the firmware just computes the result and prints it over USB. To do something useful with it on the computer side, this information needs to be exposed as a USB joystick or keyboard. I used the <a href="https://www.pjrc.com/teensy/usb_keyboard.html">usb_keyboard</a> code sample which exports a <code>usb_keyboard_press</code> function.</p>
+<p>It was necessary to slightly alter the main loop: in a debug setting it is possible to print the state at every frame, but a keyboard works differently. You are supposed to send a message only when a key is pressed. So, at each frame, it is necessary to keep track of the previous state and to diff it with the current one. If a bit was previously set (meaning that the button is not pressed) and is now set, the USB code has to be notified that a key was pressed. This code is run for every <code>btn</code> if the state changes:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><a class="sourceLine" id="cb8-1" title="1"><span class="dt">int</span> was_released = last_js &amp; (<span class="dv">1</span> &lt;&lt; btn);</a>
+<a class="sourceLine" id="cb8-2" title="2"><span class="dt">int</span> is_pressed = !(js &amp; (<span class="dv">1</span> &lt;&lt; btn));</a>
+<a class="sourceLine" id="cb8-3" title="3"><span class="cf">if</span> (was_released &amp;&amp; is_pressed) {</a>
+<a class="sourceLine" id="cb8-4" title="4">        <span class="dt">int</span> key = mapping[btn];</a>
+<a class="sourceLine" id="cb8-5" title="5">        usb_keyboard_press(key, <span class="dv">0</span>);</a>
+<a class="sourceLine" id="cb8-6" title="6">}</a></code></pre></div>
+<p>This is simple, yet it works quite well and is enough to play <a href="http://www.stepmania.com/">Stepmania</a>!</p>
+<p>I noticed that however it does not work perfectly since the key is released immediately: this is a problem for DDR since the patterns where you have to hold keys do not work.</p>
+<p>Let’s have a look at this function from the library:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><a class="sourceLine" id="cb9-1" title="1"><span class="dt">int8_t</span> usb_keyboard_press(<span class="dt">uint8_t</span> key, <span class="dt">uint8_t</span> modifier)</a>
+<a class="sourceLine" id="cb9-2" title="2">{</a>
+<a class="sourceLine" id="cb9-3" title="3">        <span class="dt">int8_t</span> r;</a>
+<a class="sourceLine" id="cb9-4" title="4">        keyboard_modifier_keys = modifier;</a>
+<a class="sourceLine" id="cb9-5" title="5">        keyboard_keys[<span class="dv">0</span>] = key;</a>
+<a class="sourceLine" id="cb9-6" title="6">        r = usb_keyboard_send();</a>
+<a class="sourceLine" id="cb9-7" title="7">        <span class="cf">if</span> (r) <span class="cf">return</span> r;</a>
+<a class="sourceLine" id="cb9-8" title="8">        keyboard_modifier_keys = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb9-9" title="9">        keyboard_keys[<span class="dv">0</span>] = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb9-10" title="10">        <span class="cf">return</span> usb_keyboard_send();</a>
+<a class="sourceLine" id="cb9-11" title="11">}</a></code></pre></div>
+<p>When <code>usb_keyboard_send</code> is called, it transmits the contents of <code>keyboard_keys</code> over USB. All nonzero elements correspond to keys that are pressed. So what this function does is transmit a state where a key is pressed, then transmit a state where nothing is pressed.</p>
+<p>This has two limitations:</p>
+<ul>
+<li>it does not separate key press from key release;</li>
+<li>it does not work if several keys are pressed at once.</li>
+</ul>
+<h2 id="making-rollover-work">Making rollover work</h2>
+<p>It would be nice to implement n-key rollover (NKRO) so that all keys can be pressed independently. This is possible, by increasing the size of <code>keyboard_keys</code> to 14 (the number of keys on a Playstation gamepad). But this means fiddling with the USB descriptor code, so that the USB host side can know how many bytes to expect, and I am not really comfortable with that.</p>
+<p>In the library, the size of <code>keyboard_keys</code> is 6, so I stuck with 6-key rollover which ought to be enough for everybody.</p>
+<p>Here is the new version of the code that is called for every button:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><a class="sourceLine" id="cb10-1" title="1"><span class="dt">int</span> was_pressed = !(last_js &amp; (<span class="dv">1</span> &lt;&lt; i));</a>
+<a class="sourceLine" id="cb10-2" title="2"><span class="dt">int</span> is_pressed = !(js &amp; (<span class="dv">1</span> &lt;&lt; i));</a>
+<a class="sourceLine" id="cb10-3" title="3"></a>
+<a class="sourceLine" id="cb10-4" title="4"><span class="cf">if</span> (is_pressed &amp;&amp; !was_pressed) {</a>
+<a class="sourceLine" id="cb10-5" title="5">        keypress_add(mapping[i]);</a>
+<a class="sourceLine" id="cb10-6" title="6">}</a>
+<a class="sourceLine" id="cb10-7" title="7"><span class="cf">if</span> (was_pressed &amp;&amp; !is_pressed) {</a>
+<a class="sourceLine" id="cb10-8" title="8">        keypress_remove(mapping[i]);</a>
+<a class="sourceLine" id="cb10-9" title="9">}</a></code></pre></div>
+<p>The <code>keypress_add</code> function walks the <code>keyboard_keys</code> array and replace the first 0 with the correct button. <code>keypress_remove</code> does the opposite.</p>
+<p>And… this works! I found this very refreshing to write low-level code for an existing, documented protocol. If you are interested, all the code can be found in this <a href="https://github.com/emillon/psx-usb">github repository</a>. Thanks for reading!</p>
+<section class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Protected by 1N4148 diodes.<a href="#fnref1" class="footnote-back">↩</a></p></li>
+</ol>
+</section>]]></description>
+    <pubDate>Thu, 27 Nov 2014 00:00:00 UT</pubDate>
+    <guid>http://blog.emillon.org/posts/2014-11-27-converting-a-dance-dance-revolution-mat-to-usb.html</guid>
+    <dc:creator>Etienne Millon</dc:creator>
+</item>
+
+    </channel>
+</rss>

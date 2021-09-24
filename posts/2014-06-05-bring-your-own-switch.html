@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Enter the void * - Bring your own switch</title>
+        <link rel="stylesheet" type="text/css" href="../css/bootstrap.css" />
+        <link rel="stylesheet" type="text/css" href="../css/extra.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+        <link rel="alternate" type="application/rss+xml" title="Enter the void *" href="../rss.xml" />
+        <link rel="shortcut icon" href="../favicon.ico" />
+        <link href="http://fonts.googleapis.com/css?family=Merriweather:400,300" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <div class="header container">
+            <h1 class="maintitle">Enter the void *</h1>
+               <div class="nav-hdr">
+                   <ul>
+                      <li><a href="../">Home</a></li>
+                      <li><a href="../posts.html">All posts</a></li>
+                      <li><a href="../rss.xml">Feed</a></li>
+                      <li><a href="https://github.com/emillon">Github</a></li>
+                      <li><a href="https://qa.debian.org/developer.php?login=me%40emillon.org">Debian</a></li>
+                      <li><a href="https://twitter.com/etiennemillon">Twitter</a></li>
+                   </ul>
+                </div>
+        </div>
+        <div class="maincontainer container">
+          <div class="col-md-8 col-md-offset-2">
+            <h1>Bring your own switch</h1>
+
+<p>by <em>Etienne Millon</em> on <strong>June  5, 2014</strong></p>
+
+<p>Tagged as: <a href="../tags/tex.html">tex</a>.</p>
+
+<p>TeX is a very primitive language. Everything is dynamic, even parsing. This explains in part why it’s so long to compile.</p>
+<p>It also means that it’s very flexible : it’s possible to define your own control structures. Here is a small explanation of an implementation of a “switch” macro I made last year. It is released as part of my <a href="https://github.com/emillon/discotex">discotex</a> library (a collection of macros, really).</p>
+<p>We want to define a control structure that we can use in the following way:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode latex"><code class="sourceCode latex"><a class="sourceLine" id="cb1-1" title="1"><span class="fu">\switch</span>{what}{case1}{then1}</a>
+<a class="sourceLine" id="cb1-2" title="2">             {case2}{then2}</a>
+<a class="sourceLine" id="cb1-3" title="3">             {case3}{then3}</a>
+<a class="sourceLine" id="cb1-4" title="4">             {END}</a></code></pre></div>
+<p>Then, if <code>what</code> is equal to <code>case1</code>, the whole construct evaluates to <code>then1</code>, etc. This looks like a function with a variable number of arguments, but actually this is well adapted to how TeX works.</p>
+<p>In TeX, control is provided through macros, i.e. rules to rewrite text. Suppose we want to do a macro  that expands to “x and y”. LaTeX users are used to the following syntax:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode latex"><code class="sourceCode latex"><a class="sourceLine" id="cb2-1" title="1"><span class="fu">\newcommand</span>{<span class="ex">\couple</span>}[2]{#1 and #2}</a></code></pre></div>
+<p>But in TeX this is written:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode latex"><code class="sourceCode latex"><a class="sourceLine" id="cb3-1" title="1"><span class="fu">\def</span>\couple#1#2{#1 and #2}</a></code></pre></div>
+<p>Which roughly means that after reading <code>\couple</code>, TeX will read two strings<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> and bind them to <code>#1</code> and <code>#2</code> in the body. So <code>\couple{A}{B}</code> is expanded to <code>A and B</code>.</p>
+<p>Here comes the trick used for defining variadic functions: if more arguments are provided than the number of arguments at the definition point, the extra ones are kept at their place. If fewer arguments are provided, the strings after the call site will be used. So, one can look at TeX functions as just a system to pop strings from the calling site.</p>
+<p>Using this, we can implement <code>\switch</code>:</p>
+<ul>
+<li><p>After reading <code>\switch</code>, read two arguments so that we’re considering <code>\switch{what}{x}</code>.</p>
+<ul>
+<li>If <code>x</code> is equal to <code>END</code>, it is an error: we did not find the entry. The <code>END</code> string is not special to TeX, it is just a convention of our macro.</li>
+</ul></li>
+<li><p>Otherwise, pop one more string so that we’re considering <code>\switch{what}{case}{then}</code>.</p>
+<ul>
+<li>If <code>what</code> is not equal to <code>case</code>, we have to recursively call <code>\switch{what}</code> which will pop the rest.</li>
+</ul></li>
+<li><p>If <code>what</code> is equal to <code>case</code>, then the result is <code>then</code>. But it is not enough to return it: we have to pop strings until <code>END</code> is reached. Otherwise they would be output normally and put it the document.</p></li>
+</ul>
+<p>These 3 points map well to the final TeX code.</p>
+<p>To read the first case, we write a function with only two parameters. For string comparison we use <code>\ifstrequal{a}{b}{t}{f}</code><a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> which expands to <code>t</code> if <code>a</code> and <code>b</code> are equal, or <code>f</code> otherwise. Note that <code>\switch@next</code> is the name of a function. In <code>.sty</code> files, it is possible to use <code>@</code> in symbol names. It is a convention for private macros as they can not be directly used in <code>.tex</code> files.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode latex"><code class="sourceCode latex"><a class="sourceLine" id="cb4-1" title="1"><span class="fu">\def</span>\switch#1#2{</a>
+<a class="sourceLine" id="cb4-2" title="2">  \ifstrequal{#2}{END}{</a>
+<a class="sourceLine" id="cb4-3" title="3">    \errmessage{switch : case &quot;#1&quot; not found}</a>
+<a class="sourceLine" id="cb4-4" title="4">  }{</a>
+<a class="sourceLine" id="cb4-5" title="5">    \switch@next{#1}{#2}</a>
+<a class="sourceLine" id="cb4-6" title="6">  }</a>
+<a class="sourceLine" id="cb4-7" title="7">}</a></code></pre></div>
+<p>It is also used to do the actual comparison and the recursive call.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode latex"><code class="sourceCode latex"><a class="sourceLine" id="cb5-1" title="1"><span class="fu">\def</span>\switch@next#1#2#3{</a>
+<a class="sourceLine" id="cb5-2" title="2">  \ifstrequal{#1}{#2}</a>
+<a class="sourceLine" id="cb5-3" title="3">    {#3\switch@last}</a>
+<a class="sourceLine" id="cb5-4" title="4">    {</a>
+<a class="sourceLine" id="cb5-5" title="5">      \switch{#1}</a>
+<a class="sourceLine" id="cb5-6" title="6">    }</a>
+<a class="sourceLine" id="cb5-7" title="7">}</a></code></pre></div>
+<p>Then <code>\switch@last</code> is a simple recursive function which simulates a loop. Because the recursive call is done without an explicit parameter, it will keep on popping strings until finding <code>END</code>.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode latex"><code class="sourceCode latex"><a class="sourceLine" id="cb6-1" title="1"><span class="fu">\def</span>\switch@last#1{</a>
+<a class="sourceLine" id="cb6-2" title="2">  \ifstrequal{#1}{END}{}</a>
+<a class="sourceLine" id="cb6-3" title="3">  {\switch@last}</a>
+<a class="sourceLine" id="cb6-4" title="4">}</a></code></pre></div>
+<p>That’s it, the macro works. <a href="https://github.com/emillon/discotex">You can even try it!</a></p>
+<p>I am not sure that I would like to write more complex control structures but this was useful to me both in writing it and using it. I hope that you enjoyed it!</p>
+<section class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>I am not sure that this is the correct denomination. For example it will read a string between curly braces, or a single character if they are omitted. In that case it also eats whitespace, which is why you need stuff like <code>\xspace</code> to prevent your macros from glueing string together.<a href="#fnref1" class="footnote-back">↩</a></p></li>
+<li id="fn2"><p>It is from the <code>etoolbox</code> package. How it works is an implementation detail here, though it would probably be interesting.<a href="#fnref2" class="footnote-back">↩</a></p></li>
+</ol>
+</section>
+
+
+
+          </div>
+        </div>
+        <div class="footer container">
+            <p>
+                I love feedback! Feel free to catch me on twitter
+                (<a href="https://twitter.com/etiennemillon">@etiennemillon</a>)
+                or drop me mail (me AT emillon DOT org).
+            </p>
+        </div>
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-51676253-1', 'emillon.org');
+          ga('send', 'pageview');
+
+        </script>
+    </body>
+</html>

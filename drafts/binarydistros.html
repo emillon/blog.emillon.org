@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Enter the void * - Binary distros = static type systems</title>
+        <link rel="stylesheet" type="text/css" href="../css/bootstrap.css" />
+        <link rel="stylesheet" type="text/css" href="../css/extra.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+        <link rel="alternate" type="application/rss+xml" title="Enter the void *" href="../rss.xml" />
+        <link rel="shortcut icon" href="../favicon.ico" />
+        <link href="http://fonts.googleapis.com/css?family=Merriweather:400,300" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <div class="header container">
+            <h1 class="maintitle">Enter the void *</h1>
+               <div class="nav-hdr">
+                   <ul>
+                      <li><a href="../">Home</a></li>
+                      <li><a href="../posts.html">All posts</a></li>
+                      <li><a href="../rss.xml">Feed</a></li>
+                      <li><a href="https://github.com/emillon">Github</a></li>
+                      <li><a href="https://qa.debian.org/developer.php?login=me%40emillon.org">Debian</a></li>
+                      <li><a href="https://twitter.com/etiennemillon">Twitter</a></li>
+                   </ul>
+                </div>
+        </div>
+        <div class="maincontainer container">
+          <div class="col-md-8 col-md-offset-2">
+            <h1>Binary distros = static type systems</h1>
+
+<p>by <em>Etienne Millon</em> on <strong>No date</strong></p>
+
+<p>Tagged as: .</p>
+
+<p>As programmers, we’re used to hear the same debates over &amp; again: vim vs emacs, static vs dynamic typing, interpreted vs compiled, XML vs JSON, binary vs source, etc. The list goes on.</p>
+<p>I’m usually not interested in these “religious wars”. Actually, if both alternatives exist and have survived, it means that they are a local maximum evolution and that both have pros and cons. That is to say, you can pick the one you prefer, or the one that is the most appropriate for the job ; while respecting the existence of an alternative. Same foes for, e.g., music: there is no point in trying to convince a metal fan that electronic music is better.</p>
+<blockquote>
+<p>De gustibus et coloribus non est disputandum.</p>
+</blockquote>
+<p>Among these debates, one is particularly interesting to me: source vs binary distributions. The former ones provide sources that will be compiled on the user’s machine; the latter ones provide a set of precompiled binary files that are downloaded from the network.</p>
+<p>As I said, there are pros and cons for both of these systems: in a nutshell, source distros are more flexible and binary distros are more convenient. For example, if a package can be compiled with a set of options, they can be chosen <em>à la carte</em> in a source distro. In binary distributions on the other hand, it is up to the packager to provide a set of reasonable choices.</p>
+<p>For example, on Debian, several versions of Vim are available:</p>
+<ul>
+<li>vim-athena</li>
+<li>vim-gnome</li>
+<li>vim-gtk</li>
+<li>vim-nox</li>
+<li>vim-tiny</li>
+</ul>
+<p>They are as many packages that you can install. All of these packages contain <code>/usr/bin/vim</code>.</p>
+<hr />
+<p>This morning I was upgrading my Debian system. Well, trying to. When running the usual <code>aptitude upgrade</code> command, the package manager asked me for my confirmation to remove <code>weechat-plugins</code>. Package removal can be a normal step of a system upgrade (for example, if a new version of package does not depend anymore on a package). However, I definitely want to keep <code>weechat-plugins</code>, as I use it daily as my instant messenging program.</p>
+<p>This happens from time to time; that’s the price to pay for running Debian testing. Usually it means that a transition is ongoing: library A introduces a breaking change, so it is necessary to recompile all the packages that depend on libA1 so that they instead depend on libA2. Then libA2 will be automatically installed and libA1 can be removed. Most of the time, testing users do not see this because all the dependencies will migrate at the same time. However, it is possible that something goes wrong and that parts are not available in testing.</p>
+<p>In that case, it prevents the upgrade. Deleting the offending packages (as suggested by <code>aptitude</code>) is not the only solution. It is also possible to wait a few days until the transition is completed. Another solution is to pull packages from unstable to honor the version constraints.</p>
+<p>When you do this, you have to fight with <code>aptitude</code>. Sometimes a lot. It consists in examining the solutions it proposes and rejecting the ones that remove needed packages. You can also help it by upgrading some packages to their version in unstable (<code>aptitude install pkg/unstable</code>) in a previous preliminary step. This is a definitely a dark art.</p>
+
+
+
+          </div>
+        </div>
+        <div class="footer container">
+            <p>
+                I love feedback! Feel free to catch me on twitter
+                (<a href="https://twitter.com/etiennemillon">@etiennemillon</a>)
+                or drop me mail (me AT emillon DOT org).
+            </p>
+        </div>
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-51676253-1', 'emillon.org');
+          ga('send', 'pageview');
+
+        </script>
+    </body>
+</html>

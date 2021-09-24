@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Enter the void * - Comonadic Life</title>
+        <link rel="stylesheet" type="text/css" href="../css/bootstrap.css" />
+        <link rel="stylesheet" type="text/css" href="../css/extra.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+        <link rel="alternate" type="application/rss+xml" title="Enter the void *" href="../rss.xml" />
+        <link rel="shortcut icon" href="../favicon.ico" />
+        <link href="http://fonts.googleapis.com/css?family=Merriweather:400,300" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <div class="header container">
+            <h1 class="maintitle">Enter the void *</h1>
+               <div class="nav-hdr">
+                   <ul>
+                      <li><a href="../">Home</a></li>
+                      <li><a href="../posts.html">All posts</a></li>
+                      <li><a href="../rss.xml">Feed</a></li>
+                      <li><a href="https://github.com/emillon">Github</a></li>
+                      <li><a href="https://qa.debian.org/developer.php?login=me%40emillon.org">Debian</a></li>
+                      <li><a href="https://twitter.com/etiennemillon">Twitter</a></li>
+                   </ul>
+                </div>
+        </div>
+        <div class="maincontainer container">
+          <div class="col-md-8 col-md-offset-2">
+            <h1>Comonadic Life</h1>
+
+<p>by <em>Etienne Millon</em> on <strong>October 18, 2012</strong></p>
+
+<p>Tagged as: <a href="../tags/haskell.html">haskell</a>, <a href="../tags/conway.html">conway</a>, <a href="../tags/life.html">life</a>, <a href="../tags/comonad.html">comonad</a>, <a href="../tags/algebra.html">algebra</a>.</p>
+
+<h2 id="of-monads-and-comonads">Of monads and comonads</h2>
+<p>This post is written in <a href="http://www.haskell.org/haskellwiki/Literate_programming">Literate Haskell</a>. This means that you can copy it into a <code>.lhs</code> file<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> and run it through a Haskell compiler or interpreter.</p>
+<p>Today we’ll talk about…</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">import</span> <span class="dt">Control.Comonad</span></a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="kw">import</span> <span class="dt">Control.Monad</span></a></code></pre></div>
+<p>Comonads ! They are the categoric dual of monads, which means that the type signatures of comonadic functions look like monadic functions, but with the arrow reversed. I am not an expert in category theory, so I won’t go further.</p>
+<p>I will use the following typeclass for comonads : it’s from <a href="http://comonad.com">Edward Kmett</a>’s <a href="http://hackage.haskell.org/package/comonad-3.0.0.2/docs/Control-Comonad.html">comonad package</a> (split from the infamous <a href="http://hackage.haskell.org/package/category-extras-1.0.2">category-extras package</a>).</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">class</span> <span class="dt">Functor</span> w <span class="ot">=&gt;</span> <span class="dt">Comonad</span> w <span class="kw">where</span></a>
+<a class="sourceLine" id="cb2-2" title="2"><span class="ot">  extract ::</span> w a <span class="ot">-&gt;</span> a</a>
+<a class="sourceLine" id="cb2-3" title="3"><span class="ot">  extend ::</span> (w a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> w a <span class="ot">-&gt;</span> w b</a>
+<a class="sourceLine" id="cb2-4" title="4"><span class="ot">  duplicate ::</span> w a <span class="ot">-&gt;</span> w (w a)</a></code></pre></div>
+<p><code>extend</code> or <code>duplicate</code> are optional, as one can be written in terms of the other one. The Monad typeclass, for reference, can be described as<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> :</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">class</span> <span class="dt">Functor</span> m <span class="ot">=&gt;</span> <span class="dt">Monad</span> m <span class="kw">where</span></a>
+<a class="sourceLine" id="cb3-2" title="2"><span class="ot">  return ::</span> a <span class="ot">-&gt;</span> m a</a>
+<a class="sourceLine" id="cb3-3" title="3"><span class="ot">  (=&lt;&lt;) ::</span> (a <span class="ot">-&gt;</span> m b) <span class="ot">-&gt;</span> m a <span class="ot">-&gt;</span> m b</a>
+<a class="sourceLine" id="cb3-4" title="4"><span class="ot">  join ::</span> m (m a) <span class="ot">-&gt;</span> m a</a></code></pre></div>
+<p>The duality is quite easy to see : <code>extract</code> is the dual of <code>return</code>, <code>extend</code> the one of <code>(=&lt;&lt;)</code> and <code>duplicate</code> the one of <code>join</code>.</p>
+<p>So what are comonads good for ?</p>
+<p>I stumbled upon <a href="http://blog.sigfpe.com/2006/12/evaluating-cellular-automata-is.html">an article</a> which explains that they can be used for computations which depend on some local environment, like <a href="http://en.wikipedia.org/wiki/Cellular_automaton">cellular automata</a>. Comments ask whether it’s possible to generalize to higher dimensions, which I will do by implementing <a href="http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway’s Game of Life</a> in a comonadic way.</p>
+<h2 id="list-zippers">List Zippers</h2>
+<p>List zippers are a fantastic data structure, allowing O(1) edits at a “cursor”. Moving the cursor element to element is O(1) too. This makes it a very nice data structure when your edits are local (say, in a text editor). You can learn more about zippers in general in this <a href="http://blog.ezyang.com/2010/04/you-could-have-invented-zippers/">post from Edward Z Yang</a>. The seminal paper is of course <a href="http://www.st.cs.uni-saarland.de/edu/seminare/2005/advanced-fp/docs/huet-zipper.pdf">Huet’s article</a>.</p>
+<p>A list zipper is composed of a cursor and two lists.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">data</span> <span class="dt">ListZipper</span> a <span class="fu">=</span> <span class="dt">LZ</span> [a] a [a]</a></code></pre></div>
+<p>To go in a direction, you pick the head of a list, set it as your cursor, and push the cursor on top of the other list. We assume that we will only infinte lists, so this operation can not fail. This assumption is reasonnable especially in the context of cellular automata<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb5-1" title="1"><span class="ot">listLeft ::</span> <span class="dt">ListZipper</span> a <span class="ot">-&gt;</span> <span class="dt">ListZipper</span> a</a>
+<a class="sourceLine" id="cb5-2" title="2">listLeft (<span class="dt">LZ</span> (l<span class="fu">:</span>ls) x rs) <span class="fu">=</span> <span class="dt">LZ</span> ls l (x<span class="fu">:</span>rs)</a>
+<a class="sourceLine" id="cb5-3" title="3">listLeft _ <span class="fu">=</span> <span class="fu">error</span> <span class="st">&quot;listLeft&quot;</span></a>
+<a class="sourceLine" id="cb5-4" title="4"></a>
+<a class="sourceLine" id="cb5-5" title="5"><span class="ot">listRight ::</span> <span class="dt">ListZipper</span> a <span class="ot">-&gt;</span> <span class="dt">ListZipper</span> a</a>
+<a class="sourceLine" id="cb5-6" title="6">listRight (<span class="dt">LZ</span> ls x (r<span class="fu">:</span>rs)) <span class="fu">=</span> <span class="dt">LZ</span> (x<span class="fu">:</span>ls) r rs</a>
+<a class="sourceLine" id="cb5-7" title="7">listRight _ <span class="fu">=</span> <span class="fu">error</span> <span class="st">&quot;listRight&quot;</span></a></code></pre></div>
+<p>Reading and writing on a list zipper at the cursor is straightforward :</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb6-1" title="1"><span class="ot">listRead ::</span> <span class="dt">ListZipper</span> a <span class="ot">-&gt;</span> a</a>
+<a class="sourceLine" id="cb6-2" title="2">listRead (<span class="dt">LZ</span> _ x _) <span class="fu">=</span> x</a>
+<a class="sourceLine" id="cb6-3" title="3"></a>
+<a class="sourceLine" id="cb6-4" title="4"><span class="ot">listWrite ::</span> a <span class="ot">-&gt;</span> <span class="dt">ListZipper</span> a <span class="ot">-&gt;</span> <span class="dt">ListZipper</span> a</a>
+<a class="sourceLine" id="cb6-5" title="5">listWrite x (<span class="dt">LZ</span> ls _ rs) <span class="fu">=</span> <span class="dt">LZ</span> ls x rs</a></code></pre></div>
+<p>We can also define a function to convert a list zipper to a list, for example for printing. As it’s infinite on both sizes, it’s not possible to convert it to the whole list, so we have to pass a size parameter.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb7-1" title="1"><span class="ot">toList ::</span> <span class="dt">ListZipper</span> a <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> [a]</a>
+<a class="sourceLine" id="cb7-2" title="2">toList (<span class="dt">LZ</span> ls x rs) n <span class="fu">=</span></a>
+<a class="sourceLine" id="cb7-3" title="3">  <span class="fu">reverse</span> (<span class="fu">take</span> n ls) <span class="fu">++</span> [x] <span class="fu">++</span> <span class="fu">take</span> n rs</a></code></pre></div>
+<p>We can easily define a <code>Functor</code> instance for <code>ListZipper</code>. To apply a function on whole zipper, we apply it to the cursor and map it on the two lists :</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb8-1" title="1"><span class="kw">instance</span> <span class="dt">Functor</span> <span class="dt">ListZipper</span> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb8-2" title="2">  <span class="fu">fmap</span> f (<span class="dt">LZ</span> ls x rs) <span class="fu">=</span> <span class="dt">LZ</span> (<span class="fu">map</span> f ls) (f x) (<span class="fu">map</span> f rs)</a></code></pre></div>
+<p>Time for the <code>Comonad</code> instance. The <code>extract</code> method returns an element from the structure : we can pick the one at the cursor.</p>
+<p><code>duplicate</code> is a bit harder to grasp. From a list zipper, we have to build a list zipper of list zippers. The signification behind this (confirmed by the comonad laws that every instance has to fulfill) is that moving inside the duplicated structure returns the original structure, altered by the same move : for example, <code>listRead (listLeft (duplicate z)) == listLeft z</code>.</p>
+<p>This means that at the cursor of the duplicated structure, there is the original structure <code>z</code>. And the left list is composed of <code>listLeft z</code>, <code>listLeft (listLeft z)</code>, <code>listLeft (listLeft (listLeft z))</code>, etc (same goes for the right list).</p>
+<p>The following function applies repeatedly two movement functions on each side of the zipper (its type is more generic than needed for this specific case but we’ll instanciate <code>z</code> with something other than <code>ListZipper</code> in the next section).</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb9-1" title="1"><span class="ot">genericMove ::</span> (z a <span class="ot">-&gt;</span> z a)</a>
+<a class="sourceLine" id="cb9-2" title="2">            <span class="ot">-&gt;</span> (z a <span class="ot">-&gt;</span> z a)</a>
+<a class="sourceLine" id="cb9-3" title="3">            <span class="ot">-&gt;</span> z a</a>
+<a class="sourceLine" id="cb9-4" title="4">            <span class="ot">-&gt;</span> <span class="dt">ListZipper</span> (z a)</a>
+<a class="sourceLine" id="cb9-5" title="5">genericMove a b z <span class="fu">=</span></a>
+<a class="sourceLine" id="cb9-6" title="6">  <span class="dt">LZ</span> (iterate' a z) z (iterate' b z)</a>
+<a class="sourceLine" id="cb9-7" title="7"></a>
+<a class="sourceLine" id="cb9-8" title="8"><span class="ot">iterate' ::</span> (a <span class="ot">-&gt;</span> a) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> [a]</a>
+<a class="sourceLine" id="cb9-9" title="9">iterate' f <span class="fu">=</span> <span class="fu">tail</span> <span class="fu">.</span> <span class="fu">iterate</span> f</a></code></pre></div>
+<p>And finally we can implement the instance.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb10-1" title="1"><span class="kw">instance</span> <span class="dt">Comonad</span> <span class="dt">ListZipper</span> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb10-2" title="2">  extract <span class="fu">=</span> listRead</a>
+<a class="sourceLine" id="cb10-3" title="3"></a>
+<a class="sourceLine" id="cb10-4" title="4">  duplicate <span class="fu">=</span> genericMove listLeft listRight</a></code></pre></div>
+<p>Using this comonad instance we can already implement 1D cellular automata, as explained in the <a href="http://blog.sigfpe.com/2006/12/evaluating-cellular-automata-is.html">sigfpe article</a>. Let’s see how they can be extended to 2D automata.</p>
+<h2 id="plane-zippers">Plane zippers</h2>
+<p>Let’s generalize list zippers to plane zippers, which are cursors on a plane of cells. We will implement them using a list zipper of list zippers.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb11-1" title="1"><span class="kw">data</span> <span class="dt">Z</span> a <span class="fu">=</span> <span class="dt">Z</span> (<span class="dt">ListZipper</span> (<span class="dt">ListZipper</span> a))</a></code></pre></div>
+<p>We start by defining move functions. As a convention, the external list will hold lines : to move up and down, we will really move left and right at the root level.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb12-1" title="1"><span class="ot">up ::</span> <span class="dt">Z</span> a <span class="ot">-&gt;</span> <span class="dt">Z</span> a</a>
+<a class="sourceLine" id="cb12-2" title="2">up (<span class="dt">Z</span> z) <span class="fu">=</span> <span class="dt">Z</span> (listLeft z)</a>
+<a class="sourceLine" id="cb12-3" title="3"></a>
+<a class="sourceLine" id="cb12-4" title="4"><span class="ot">down ::</span> <span class="dt">Z</span> a <span class="ot">-&gt;</span> <span class="dt">Z</span> a</a>
+<a class="sourceLine" id="cb12-5" title="5">down (<span class="dt">Z</span> z) <span class="fu">=</span> <span class="dt">Z</span> (listRight z)</a></code></pre></div>
+<p>For left and right, it is necessary to alter every line, using the <code>Functor</code> instance.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb13-1" title="1"><span class="ot">left ::</span> <span class="dt">Z</span> a <span class="ot">-&gt;</span> <span class="dt">Z</span> a</a>
+<a class="sourceLine" id="cb13-2" title="2">left (<span class="dt">Z</span> z) <span class="fu">=</span> <span class="dt">Z</span> (<span class="fu">fmap</span> listLeft z)</a>
+<a class="sourceLine" id="cb13-3" title="3"></a>
+<a class="sourceLine" id="cb13-4" title="4"><span class="ot">right ::</span> <span class="dt">Z</span> a <span class="ot">-&gt;</span> <span class="dt">Z</span> a</a>
+<a class="sourceLine" id="cb13-5" title="5">right (<span class="dt">Z</span> z) <span class="fu">=</span> <span class="dt">Z</span> (<span class="fu">fmap</span> listRight z)</a></code></pre></div>
+<p>Finally, editing is quite straightforward : reading is direct (first read the line, then the cursor) ; and in order to write, it is necessary to fetch the current line, write to it and write the new line.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb14-1" title="1"><span class="ot">zRead ::</span> <span class="dt">Z</span> a <span class="ot">-&gt;</span> a</a>
+<a class="sourceLine" id="cb14-2" title="2">zRead (<span class="dt">Z</span> z) <span class="fu">=</span> listRead <span class="fu">$</span> listRead z</a>
+<a class="sourceLine" id="cb14-3" title="3"></a>
+<a class="sourceLine" id="cb14-4" title="4"><span class="ot">zWrite ::</span> a <span class="ot">-&gt;</span> <span class="dt">Z</span> a <span class="ot">-&gt;</span> <span class="dt">Z</span> a</a>
+<a class="sourceLine" id="cb14-5" title="5">zWrite x (<span class="dt">Z</span> z) <span class="fu">=</span></a>
+<a class="sourceLine" id="cb14-6" title="6">  <span class="dt">Z</span> <span class="fu">$</span> listWrite newLine z</a>
+<a class="sourceLine" id="cb14-7" title="7">    <span class="kw">where</span></a>
+<a class="sourceLine" id="cb14-8" title="8">      newLine <span class="fu">=</span> listWrite x oldLine</a>
+<a class="sourceLine" id="cb14-9" title="9">      oldLine <span class="fu">=</span> listRead z</a></code></pre></div>
+<p>Time for algebra. Let’s define a <code>Functor</code> instance : applying a function everywhere can be achieved by applying it on every line.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb15-1" title="1"><span class="kw">instance</span> <span class="dt">Functor</span> <span class="dt">Z</span> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb15-2" title="2">  <span class="fu">fmap</span> f (<span class="dt">Z</span> z) <span class="fu">=</span> <span class="dt">Z</span> (<span class="fu">fmap</span> (<span class="fu">fmap</span> f) z)</a></code></pre></div>
+<p>The idea behind the <code>Comonad</code> instance for <code>Z</code> is the same that the <code>ListZipper</code> one : moving “up” in the structure (really, “left” at the root level) returns the original structure moved in this direction.</p>
+<p>We will reuse the <code>genericMove</code> defined earlier in order to build list zippers that describe movements in the two axes<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a>.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb16-1" title="1"><span class="ot">horizontal ::</span> <span class="dt">Z</span> a <span class="ot">-&gt;</span> <span class="dt">ListZipper</span> (<span class="dt">Z</span> a)</a>
+<a class="sourceLine" id="cb16-2" title="2">horizontal <span class="fu">=</span> genericMove left right</a>
+<a class="sourceLine" id="cb16-3" title="3"></a>
+<a class="sourceLine" id="cb16-4" title="4"><span class="ot">vertical ::</span> <span class="dt">Z</span> a <span class="ot">-&gt;</span> <span class="dt">ListZipper</span> (<span class="dt">Z</span> a)</a>
+<a class="sourceLine" id="cb16-5" title="5">vertical <span class="fu">=</span> genericMove up down</a></code></pre></div>
+<p>This is enough to define the instance.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb17-1" title="1"><span class="kw">instance</span> <span class="dt">Comonad</span> <span class="dt">Z</span> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb17-2" title="2">  extract <span class="fu">=</span> zRead</a>
+<a class="sourceLine" id="cb17-3" title="3"></a>
+<a class="sourceLine" id="cb17-4" title="4">  duplicate z <span class="fu">=</span></a>
+<a class="sourceLine" id="cb17-5" title="5">    <span class="dt">Z</span> <span class="fu">$</span> <span class="fu">fmap</span> horizontal <span class="fu">$</span> vertical z</a></code></pre></div>
+<h2 id="conways-comonadic-game-of-life">Conway’s (comonadic) Game of Life</h2>
+<p>Let’s define a neighbourhood function. Here, directions are moves on a plane zipper. Neighbours are : horizontal moves, vertical moves and their compositions (<code>liftM2 (.)</code>)<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a>.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb18-1" title="1"><span class="ot">neighbours ::</span> [<span class="dt">Z</span> a <span class="ot">-&gt;</span> <span class="dt">Z</span> a]</a>
+<a class="sourceLine" id="cb18-2" title="2">neighbours <span class="fu">=</span></a>
+<a class="sourceLine" id="cb18-3" title="3">  horiz <span class="fu">++</span> vert <span class="fu">++</span> liftM2 (<span class="fu">.</span>) horiz vert</a>
+<a class="sourceLine" id="cb18-4" title="4">    <span class="kw">where</span></a>
+<a class="sourceLine" id="cb18-5" title="5">      horiz <span class="fu">=</span> [left, right]</a>
+<a class="sourceLine" id="cb18-6" title="6">      vert  <span class="fu">=</span> [up, down]</a>
+<a class="sourceLine" id="cb18-7" title="7"></a>
+<a class="sourceLine" id="cb18-8" title="8"><span class="ot">aliveNeighbours ::</span> <span class="dt">Z</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></a>
+<a class="sourceLine" id="cb18-9" title="9">aliveNeighbours z <span class="fu">=</span></a>
+<a class="sourceLine" id="cb18-10" title="10">  card <span class="fu">$</span> <span class="fu">map</span> (\ dir <span class="ot">-&gt;</span> extract <span class="fu">$</span> dir z) neighbours</a>
+<a class="sourceLine" id="cb18-11" title="11"></a>
+<a class="sourceLine" id="cb18-12" title="12"><span class="ot">card ::</span> [<span class="dt">Bool</span>] <span class="ot">-&gt;</span> <span class="dt">Int</span></a>
+<a class="sourceLine" id="cb18-13" title="13">card <span class="fu">=</span> <span class="fu">length</span> <span class="fu">.</span> <span class="fu">filter</span> (<span class="fu">==</span><span class="dt">True</span>)</a></code></pre></div>
+<p>The core rule of the game fits in the following function : if two neighbours are alive, return the previous state ; if three neighbours are alive, a new cell is born, and any other count causes the cell to die (of under-population or overcrowding).</p>
+<p>It is remarkable that its type is the dual of that of a Kleisli arrow (<code>a -&gt; m b</code>).</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb19-1" title="1"><span class="ot">rule ::</span> <span class="dt">Z</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span></a>
+<a class="sourceLine" id="cb19-2" title="2">rule z <span class="fu">=</span></a>
+<a class="sourceLine" id="cb19-3" title="3">  <span class="kw">case</span> aliveNeighbours z <span class="kw">of</span></a>
+<a class="sourceLine" id="cb19-4" title="4">    <span class="dv">2</span> <span class="ot">-&gt;</span> extract z</a>
+<a class="sourceLine" id="cb19-5" title="5">    <span class="dv">3</span> <span class="ot">-&gt;</span> <span class="dt">True</span></a>
+<a class="sourceLine" id="cb19-6" title="6">    _ <span class="ot">-&gt;</span> <span class="dt">False</span></a></code></pre></div>
+<p>And then the comonadic magic happens with the use of <code>extend</code> :</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb20-1" title="1"><span class="ot">evolve ::</span> <span class="dt">Z</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">Z</span> <span class="dt">Bool</span></a>
+<a class="sourceLine" id="cb20-2" title="2">evolve <span class="fu">=</span> extend rule</a></code></pre></div>
+<p><code>evolve</code> is our main transition function between world states, and yet it’s only defined in terms of the local transition function !</p>
+<p>Let’s define a small printer to see what’s going on.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb21-1" title="1"><span class="ot">dispLine ::</span> <span class="dt">ListZipper</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">String</span></a>
+<a class="sourceLine" id="cb21-2" title="2">dispLine z <span class="fu">=</span></a>
+<a class="sourceLine" id="cb21-3" title="3">  <span class="fu">map</span> dispC <span class="fu">$</span> toList z <span class="dv">6</span></a>
+<a class="sourceLine" id="cb21-4" title="4">    <span class="kw">where</span></a>
+<a class="sourceLine" id="cb21-5" title="5">      dispC <span class="dt">True</span>  <span class="fu">=</span> <span class="ch">'*'</span></a>
+<a class="sourceLine" id="cb21-6" title="6">      dispC <span class="dt">False</span> <span class="fu">=</span> <span class="ch">' '</span></a>
+<a class="sourceLine" id="cb21-7" title="7"></a>
+<a class="sourceLine" id="cb21-8" title="8"><span class="ot">disp ::</span> <span class="dt">Z</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">String</span></a>
+<a class="sourceLine" id="cb21-9" title="9">disp (<span class="dt">Z</span> z) <span class="fu">=</span></a>
+<a class="sourceLine" id="cb21-10" title="10">  <span class="fu">unlines</span> <span class="fu">$</span> <span class="fu">map</span> dispLine <span class="fu">$</span> toList z <span class="dv">6</span></a></code></pre></div>
+<p>Here is the classic glider pattern to test. The definition has a lot of boilerplate because we did not bother to create a <code>fromList</code> function.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb22-1" title="1"><span class="ot">glider ::</span> <span class="dt">Z</span> <span class="dt">Bool</span></a>
+<a class="sourceLine" id="cb22-2" title="2">glider <span class="fu">=</span></a>
+<a class="sourceLine" id="cb22-3" title="3">  <span class="dt">Z</span> <span class="fu">$</span> <span class="dt">LZ</span> (<span class="fu">repeat</span> fz) fz rs</a>
+<a class="sourceLine" id="cb22-4" title="4">    <span class="kw">where</span></a>
+<a class="sourceLine" id="cb22-5" title="5">      rs <span class="fu">=</span> [ line [f, t, f]</a>
+<a class="sourceLine" id="cb22-6" title="6">           , line [f, f, t]</a>
+<a class="sourceLine" id="cb22-7" title="7">           , line [t, t, t]</a>
+<a class="sourceLine" id="cb22-8" title="8">           ] <span class="fu">++</span> <span class="fu">repeat</span> fz</a>
+<a class="sourceLine" id="cb22-9" title="9">      t <span class="fu">=</span> <span class="dt">True</span></a>
+<a class="sourceLine" id="cb22-10" title="10">      f <span class="fu">=</span> <span class="dt">False</span></a>
+<a class="sourceLine" id="cb22-11" title="11">      fl <span class="fu">=</span> <span class="fu">repeat</span> f</a>
+<a class="sourceLine" id="cb22-12" title="12">      fz <span class="fu">=</span> <span class="dt">LZ</span> fl f fl</a>
+<a class="sourceLine" id="cb22-13" title="13">      line l <span class="fu">=</span></a>
+<a class="sourceLine" id="cb22-14" title="14">        <span class="dt">LZ</span> fl f (l <span class="fu">++</span> fl)</a></code></pre></div>
+<pre><code>*Main&gt; putStr $ disp glider
+             
+             
+             
+             
+             
+             
+             
+        *    
+         *   
+       ***   
+             
+             
+             
+*Main&gt; putStr $ disp $ evolve glider
+             
+             
+             
+             
+             
+             
+             
+             
+       * *   
+        **   
+        *    
+             
+             </code></pre>
+<p>We did it ! Implementing Conway’s Game of Life is usually full of ad-hoc boilerplate code : iterating loops, managing copies of cells, etc. Using the comonadic structure of cellular automata, the code can be a lot simpler.</p>
+<p>In this example, <code>ListZipper</code> and <code>Z</code> should be library functions, so the actual implementation is only a dozen lines long!</p>
+<p>The real benefit is that it has really helped be grasp the concept of comonads. I hope that I did not just fall into the comonad tutorial fallacy :)</p>
+<p><strong>Update (March 10th):</strong> Brian Cohen contributed <a href="http://lpaste.net/83811">a simple extension to simulate a closed topology</a>. Thanks !</p>
+<section class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Or download the <a href="https://github.com/emillon/blog.emillon.org">source on github</a>.<a href="#fnref1" class="footnote-back">↩</a></p></li>
+<li id="fn2"><p>In the real Haskell typeclass, there are the following differences: Monad and Functor are not related, <code>join</code> is a library function (you can’t use it to define an instance), <code>(&gt;&gt;=)</code> is used instead of its flipped counterpart <code>(=&lt;&lt;)</code> and there two more methods <code>(&gt;&gt;)</code> and <code>fail</code>.<a href="#fnref2" class="footnote-back">↩</a></p></li>
+<li id="fn3"><p>Simulating a closed topology such as a torus may even be possible using cyclic lists instead of lazy infinite lists. <strong>Update:</strong> see Brian Cohen’s response at the end of this post.<a href="#fnref3" class="footnote-back">↩</a></p></li>
+<li id="fn4"><p>At first I thought that it was possible to only use the <code>Comonad</code> instance of <code>ListZipper</code> to define <code>horizontal</code> and <code>vertical</code>, but I couldn’t come up with a solution. But in that case, the <code>z</code> generic parameter is instanciated to <code>Z</code>, not <code>ListZipper</code>. For that reason I believe that my initial thought can’t be implemented. Maybe it’s possible with a comonad transformer or something like that.<a href="#fnref4" class="footnote-back">↩</a></p></li>
+<li id="fn5"><p>This could have been written in extension as there are only 8 cases, but it’s funnier and arguably less error prone this way :-)<a href="#fnref5" class="footnote-back">↩</a></p></li>
+</ol>
+</section>
+
+
+
+          </div>
+        </div>
+        <div class="footer container">
+            <p>
+                I love feedback! Feel free to catch me on twitter
+                (<a href="https://twitter.com/etiennemillon">@etiennemillon</a>)
+                or drop me mail (me AT emillon DOT org).
+            </p>
+        </div>
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-51676253-1', 'emillon.org');
+          ga('send', 'pageview');
+
+        </script>
+    </body>
+</html>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Enter the void * - On the curl | sh pattern</title>
+        <link rel="stylesheet" type="text/css" href="../css/bootstrap.css" />
+        <link rel="stylesheet" type="text/css" href="../css/extra.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+        <link rel="alternate" type="application/rss+xml" title="Enter the void *" href="../rss.xml" />
+        <link rel="shortcut icon" href="../favicon.ico" />
+        <link href="http://fonts.googleapis.com/css?family=Merriweather:400,300" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <div class="header container">
+            <h1 class="maintitle">Enter the void *</h1>
+               <div class="nav-hdr">
+                   <ul>
+                      <li><a href="../">Home</a></li>
+                      <li><a href="../posts.html">All posts</a></li>
+                      <li><a href="../rss.xml">Feed</a></li>
+                      <li><a href="https://github.com/emillon">Github</a></li>
+                      <li><a href="https://qa.debian.org/developer.php?login=me%40emillon.org">Debian</a></li>
+                      <li><a href="https://twitter.com/etiennemillon">Twitter</a></li>
+                   </ul>
+                </div>
+        </div>
+        <div class="maincontainer container">
+          <div class="col-md-8 col-md-offset-2">
+            <h1>On the curl | sh pattern</h1>
+
+<p>by <em>Etienne Millon</em> on <strong>December 27, 2014</strong></p>
+
+<p>Tagged as: <a href="../tags/security.html">security</a>.</p>
+
+<p>Like many, I noticed a common pattern in the past few years: software authors publishing instructions to download and install their program from their website, directly in the terminal, through a variant of <code>curl URL | sh</code>.</p>
+<p>Since I think that it should be considered bad practice, I created a tumblr called “<a href="http://curlpipesh.tumblr.com/">curl | sh</a>” which lists occurrences of this pattern.</p>
+<p>I would like to address some of the criticism I received about this list. Most came from Hacker News where <a href="https://news.ycombinator.com/item?id=8550511">it has been posted</a>.</p>
+<h3 id="if-the-url-starts-with-https-it-is-secure">“If the URL starts with HTTPS, it is secure”</h3>
+<p>The websites I post here fall roughly into three categories:</p>
+<ol type="1">
+<li>downloads over HTTP.</li>
+<li>downloads over HTTPS with certificate verification deactivated (<code>curl -k</code>/<code>--insecure</code>, <code>wget --no-check-certificate</code>).</li>
+<li>downloads over HTTPS.</li>
+</ol>
+<p>Type 1 downloads are the most insecure ones, since it is possible to change the original response from the server without the client noticing. Modifying traffic like this is very easy, for example on wifi hotspots. This is not something that happens only in hacker movies: some places use this to insert ads in web pages.</p>
+<p>Type 2 downloads are a bit better since the content is encrypted, but encryption without authentication is mostly useless since you do not know who you are talking to. The client will connect to anything that responds to url:443, which means that it is still possible to spoof a connection and actively change the response. To the client, an encrypted connection to an attacker looks the same as an encrypted connection to the legit site.</p>
+<p>Type 3 downloads prevent this because they require that the certificate presented by the server matches the server name and is signed by a trusted Certificate Authority (CA). This means that the certificate has been handed to the person in charge of the website.</p>
+<p>This is not foolproof either because the client has to trust a list of root CAs. This can be a problem for example in corporate environments, where the company can include their own CA to this list of trusted roots. At every HTTPS connection, they can create on the fly a certificate that is signed by themselves and with the correct server name. In other words, they can vouch for the identity of any website. As a consequence, they are able to spoof the TLS connection, in the same way that it is possible for type 2 downloads. Having a rogue trusted root is almost the same as disabling certification checking since it is able to create correct certificates for any site.</p>
+<p>A way to mitigate this problem is to enable certificate pinning, which alerts the user when the certificate presented by a website has changed since the last time they consulted it. But this is not a perfect solution, since there are legitimate reasons to change a certificate. For example, they are usually limited in time, and every year or so it is necessary to generate a new one. However, if a website presents a certificate with a different anchor than before, this may mean that the connection is being spoofed.</p>
+<p>Note that the main reason people disable certificate checking (i.e., use type 2 instead of type 3) is because they use self-signed certificates. These are certificates that are not signed by a CA. They are free and simpler to use, but do not authenticate the server, so they are rejected by default by clients. In browsers, this sometimes corresponds to a big scary warning, and by a yellow or open lock instead of the green, closed lock that we have all been educated to respect. It is however possible to pin them, so it is better than plain HTTP. The effort required to spoof a self-signed certificate is also greater than to spoof plain HTTP, but both are reasonably easy.</p>
+<h3 id="apt-get-install-pkg-does-the-same-thing">“apt-get install $pkg does the same thing”</h3>
+<p>Not exactly. When you install a package from the Debian archive, the .deb file is retrieved along with a digital signature that authenticates the file. This signature is checked against a key that is on all Debian systems. You obtain it at install time on a CD, but you can easily get it from another trusted Debian system if you can not trust a CD from some reason. The key here (pun intended) is that this scheme authenticates files and not connections.</p>
+<p>For example, if a HTTPS website is compromised, you will not be able to detect that the files have been modified on the server (and thus <code>curl | sh</code> will work as before). But if your local Debian mirror is compromised, the files you download will fail to validate against the key that is on your computer.</p>
+<p>Of course, a signature from the Debian archive signing key does not automatically ensure that the package will not delete your root filesystem. But it ensures that the software has not been tampered with since its maintainer has uploaded it. Also, since it goes through a distribution, you may expect that some quality assurance has been made there.</p>
+<p>It is hard to distribute software in a secure manner. Protecting the connection is definitely a first step, but protecting the files themselves is better. Fortunately it is possible to take this further, by having reproducible builds for example. I highly encourage anyone to read the <a href="https://defuse.ca/triangle-of-secure-code-delivery.htm">triangle of secure code delivery</a> on what it takes to deliver programs in a secure manner.</p>
+<p>In the meantime, feel free to send me more examples of this pattern so that I can publish them. Get in touch either directly on <a href="http://curlpipesh.tumblr.com/">curl | sh</a>, on <a href="https://twitter.com/etiennemillon">twitter</a> or by email (see the footer below). Thanks for reading!</p>
+
+
+<hr>
+
+You can see the comments about this article
+<a href="https://news.ycombinator.com/item?id=8804293">on Hacker News</a>.
+
+
+          </div>
+        </div>
+        <div class="footer container">
+            <p>
+                I love feedback! Feel free to catch me on twitter
+                (<a href="https://twitter.com/etiennemillon">@etiennemillon</a>)
+                or drop me mail (me AT emillon DOT org).
+            </p>
+        </div>
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-51676253-1', 'emillon.org');
+          ga('send', 'pageview');
+
+        </script>
+    </body>
+</html>

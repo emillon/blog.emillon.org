@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Enter the void *</title>
+        <link>http://blog.emillon.org</link>
+        <description><![CDATA[Yet another random hacker]]></description>
+        <atom:link href="http://blog.emillon.org/feeds/linux.xml" rel="self"
+                   type="application/rss+xml" />
+        <lastBuildDate>Mon, 28 Nov 2011 00:00:00 UT</lastBuildDate>
+        <item>
+    <title>Unicode : Math, greek, symbols - you name it !</title>
+    <link>http://blog.emillon.org/posts/2011-11-28-unicode-math-greek-symbols-you-name-it.html</link>
+    <description><![CDATA[<h2 id="ebcdic-ascii-the-power-of-legacy">EBCDIC, ASCII &amp; the power of legacy</h2>
+<p>… and no, that’s not a movie title.</p>
+<p>As you know, all your computer knows about is numbers, yet when you type on a keyboard, a character appears on your screen. This is thanks to character encodings.</p>
+<p>There are several norms that defines how characters (ie, glyphs) are encoded into numbers. Besides dinosaurs such as <a href="https://en.wikipedia.org/wiki/EBCDIC">EBCDIC</a>, the “classic” way of encoding is <a href="https://en.wikipedia.org/wiki/ASCII">ASCII</a> – that is what most modern<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> operating systems use internally.</p>
+<p>The problem with ASCII is that it maps every character to a single byte with <a href="https://en.wikipedia.org/wiki/Most_significant_bit">MSB</a> reset, meaning that you can have a maximum of 128 glyphs. It’s “good enough” for English (hey, the A stands for American) but terrible for international characters. This is even worse considering that 32 of them are control characters, ie mostly legacy. Did you ever need to interpret <code>DC2</code>, <code>SI</code> or <code>GS</code> in a program ?</p>
+<p>The eighth bit being “reserved” can be used to support “extended characters”. Several vendors (including Microsoft) used the concept of “code pages” to use extra glyphs in the 128-255 range. For example, Latin-1 was used in western europe to display accentuated characters.</p>
+<p>If all your data comes from one part of the world, it works fine, but with the following limitations if you need to handle international data :</p>
+<ul>
+<li>it becomes necessary to have metadata specifying which codepage has to be used.</li>
+<li>you have to choose exactly one codepage per document.</li>
+</ul>
+<p>In other words, a more extensible system is needed. Hopefully, this system exists and is called…</p>
+<h2 id="unicode">Unicode</h2>
+<p>Unicode separates two notions :</p>
+<ul>
+<li>what is a character. Unicode include a large collection of glyph names. For example, version 6.0 includes 109449 characters.</li>
+<li>how a character is encoded as bytes. More precisely, this is the role of encodings such as <a href="https://en.wikipedia.org/wiki/UTF-8">UTF-8</a>. Usually, they are compatible with ASCII (the byte representation coincides on characters 0-127).</li>
+</ul>
+<p>What’s nice is that it’s easy to enter Unicode under X11. The last two sections explain how you can configure your system to type (for example) √, β and ✈ !</p>
+<h2 id="configure-a-compose-key">Configure a compose key</h2>
+<p>A “compose” key, or <code>Multi_key</code> under X11, will begin a character compose sequence. For example, when I type <code>&lt;Multi_key&gt; &lt;s&gt; &lt;q&gt;</code>, a square root (U+221A √) is entered.</p>
+<p>To configure a compose key, you can use <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=xmodmap&amp;sektion=1">xmodmap(1)</a>. Put the following into <code>~/.Xmodmap</code> to make your right control key act as a <code>Multi_key</code> :</p>
+<pre><code>keysym Control_R = Multi_key</code></pre>
+<p>Unfortunately, this file is not loaded automatically, so you have to run <code>xmodmap ~/.Xmodmap</code> when opening a X session (this can be done automatically if you put in in your <code>~/.xsession</code>, for example).</p>
+<h2 id="define-a-.xcompose-mapping">Define a .XCompose mapping</h2>
+<p>The second part is to define mappings between key sequences and unicode codepoints. This is the role of the <code>~/.XCompose</code> file.</p>
+<p>As described in <a href="http://manpages.ubuntu.com/manpages/precise/en/man5/XCompose.5.html">xcompose(5)</a>, a line looks like :</p>
+<pre><code>&lt;Multi_key&gt; &lt;ampersand&gt; &lt;p&gt; &lt;l&gt; &lt;a&gt; &lt;n&gt; &lt;e&gt;     : &quot;✈&quot;   U2708     # AIRPLANE</code></pre>
+<p>ie, a key sequence, a colon, a string and a character name. The comment does not hurt, as usual.</p>
+<p>To start your own list of bindings, I suggest <a href="https://github.com/kragen/xcompose">kragen’s repository</a>, which includes an excellent set. And if you need to find a specific unicode character, the <a href="http://kassiopeia.juls.savba.sk/~garabik/software/unicode/">unicode</a> script is very useful !</p>
+<p><strong>TL;DR:</strong> Spread the word, ♥ Unicode ☺</p>
+<section class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Yes, that excludes AS/400.<a href="#fnref1" class="footnote-back">↩</a></p></li>
+</ol>
+</section>]]></description>
+    <pubDate>Mon, 28 Nov 2011 00:00:00 UT</pubDate>
+    <guid>http://blog.emillon.org/posts/2011-11-28-unicode-math-greek-symbols-you-name-it.html</guid>
+    <dc:creator>Etienne Millon</dc:creator>
+</item>
+<item>
+    <title>ZSH suffix aliases</title>
+    <link>http://blog.emillon.org/posts/2012-01-17-zsh-suffix-aliases.html</link>
+    <description><![CDATA[<p>I recently changed my login shell to use <a href="http://www.zsh.org/">zsh</a> instead of the venerable <a href="http://www.gnu.org/software/bash/">bash</a>. I am still wondering why I didn’t make the change earlier. Zsh’s infamous slowness almost not perceptible, at least with the default configuration.</p>
+<p>One cool feature present in zsh is the notion of <em>suffix alias</em> (described in <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=zshbuiltins&amp;apropos=0&amp;sektion=0&amp;manpath=Debian+7.8+wheezy&amp;format=html&amp;locale=en">zshbuiltins(1)</a>). Quick example :</p>
+<pre><code>$ alias -s pdf=evince
+$ filename.pdf</code></pre>
+<p>… will open filename.pdf under evince, as if <code>evince filename.pdf</code> had been typed. Handy !</p>
+<p>But it is not restricted to files : the command is executed whenever the command line matches a suffix alias. So, for example you can define :</p>
+<pre><code>alias -s git=&#39;git clone&#39;</code></pre>
+<p>… so that everytime you paste a URL ending in <code>git</code>, say <code>git://git.debian.org/git/aptitude/aptitude.git</code>, it will be <code>git-clone</code>d.</p>]]></description>
+    <pubDate>Tue, 17 Jan 2012 00:00:00 UT</pubDate>
+    <guid>http://blog.emillon.org/posts/2012-01-17-zsh-suffix-aliases.html</guid>
+    <dc:creator>Etienne Millon</dc:creator>
+</item>
+<item>
+    <title>Resizing a LVM partition</title>
+    <link>http://blog.emillon.org/posts/2014-05-13-resizing-a-lvm-partition.html</link>
+    <description><![CDATA[<p>I like to have <code>/home</code> on a separate partition. But sometimes it can backfire. If the root partition is full, you don’t have a lot of solutions. In particular, I found that debian-installer’s “automatic partitioning” sometimes creates very small root partitions. If you want to install big packages (ghc, eclipse, libreoffice, …), a 16GiB root partition is not enough.</p>
+<p>In the past, filesystems were sitting on directly on top of partitions. It means that it was very difficult to change their size.</p>
+<p>Modern systems (post-1998) can use <a href="http://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)">LVM</a>, which is a layer between filesystems and partitions. One of its advantages is that you can resize logical volumes (a LV is the virtual device node where the filesystem sits) after they have been created.</p>
+<p>To resize the <code>/</code> and <code>/home</code> filesystems, it is necessary to change the change the size of both the filesystems and the LVs. But it is not possible to do it in any order: at any time, the filesystem must be smaller than its LV. So, the correct order of operations is:</p>
+<ul>
+<li>shrink home filesystem</li>
+<li>shrink home LV</li>
+<li>expand root LV</li>
+<li>expand root filesystem</li>
+</ul>
+<p>Wait a second before you start reaching for your favorite live CD: all these operations can be done online. Actually, the two first ones need <code>/home</code> to be unmounted, so it has to be done in single user mode. Online expansion of the root file system is fairly new (it’s from Linux 3.3, 2012) but it works like a charm.</p>
+<p>Manipulating partition and volume sizes are always a bit tricky. Sometimes you have to give sizes in blocks, sometimes in bytes. Sometimes it’s multiples of 1000 and sometimes it’s multiples of 1024. I would not feel comfortable after typing 4 commands with 4 sizes. Fortunately, LVM tools are wonderful and can “talk” to the underlying filesystem (using <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=fsadm&amp;apropos=0&amp;sektion=0&amp;manpath=Debian+8+jessie&amp;format=html&amp;locale=en">fsadm</a>). And LVM knows how much space is free, so it can expand a partition to fill completely the disk (or more precisely the volume group).</p>
+<p>In a nutshell, this complex operation can be done in two commands (in single user mode):</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" title="1"><span class="ex">lvresize</span> -r -L 800G /dev/mapper/machine-home</a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="ex">lvresize</span> -r -l <span class="st">&#39;+100%FREE&#39;</span> /dev/mapper/machine-root</a></code></pre></div>
+<p>The <code>-r</code> switch enables <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=fsadm&amp;apropos=0&amp;sektion=0&amp;manpath=Debian+8+jessie&amp;format=html&amp;locale=en">fsadm</a>. <code>-L</code> indicates the new size in terms of bytes, and <code>-l</code> in terms of LVM units (<code>+100%FREE</code> means: increase by the whole free space, ie fill the volume group).</p>
+<p>That was almost too easy!</p>]]></description>
+    <pubDate>Tue, 13 May 2014 00:00:00 UT</pubDate>
+    <guid>http://blog.emillon.org/posts/2014-05-13-resizing-a-lvm-partition.html</guid>
+    <dc:creator>Etienne Millon</dc:creator>
+</item>
+
+    </channel>
+</rss>

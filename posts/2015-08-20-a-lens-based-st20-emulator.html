@@ -1,0 +1,716 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Enter the void * - A lens-based ST20 emulator</title>
+        <link rel="stylesheet" type="text/css" href="../css/bootstrap.css" />
+        <link rel="stylesheet" type="text/css" href="../css/extra.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+        <link rel="alternate" type="application/rss+xml" title="Enter the void *" href="../rss.xml" />
+        <link rel="shortcut icon" href="../favicon.ico" />
+        <link href="http://fonts.googleapis.com/css?family=Merriweather:400,300" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <div class="header container">
+            <h1 class="maintitle">Enter the void *</h1>
+               <div class="nav-hdr">
+                   <ul>
+                      <li><a href="../">Home</a></li>
+                      <li><a href="../posts.html">All posts</a></li>
+                      <li><a href="../rss.xml">Feed</a></li>
+                      <li><a href="https://github.com/emillon">Github</a></li>
+                      <li><a href="https://qa.debian.org/developer.php?login=me%40emillon.org">Debian</a></li>
+                      <li><a href="https://twitter.com/etiennemillon">Twitter</a></li>
+                   </ul>
+                </div>
+        </div>
+        <div class="maincontainer container">
+          <div class="col-md-8 col-md-offset-2">
+            <h1>A lens-based ST20 emulator</h1>
+
+<p>by <em>Etienne Millon</em> on <strong>August 20, 2015</strong></p>
+
+<p>Tagged as: <a href="../tags/haskell.html">haskell</a>, <a href="../tags/emulator.html">emulator</a>, <a href="../tags/lenses.html">lenses</a>.</p>
+
+<p>Every year, as part of the <a href="https://www.sstic.org/">SSTIC conference</a>, there is a forensics/reverse engineering challenge. I participated in the 2015 edition. Though I did not manage to complete it, I made an emulator for the exotic ST20 architecture, which is probably worth describing here.</p>
+<figure>
+<img src="2015-08-20-a-lens-based-st20-emulator/t00f.png" alt="Some programs will loop. It’s OK." /><figcaption>Some programs will loop. It’s OK.</figcaption>
+</figure>
+<p>Note that this emulator is not really optimized for pure speed. In the actual challenge I actually had to rewrite it as pure Haskell (i.e., removing the emulation part) so that it was faster. Instead, the goal of this article is to show a few techniques to write powerful emulators in Haskell.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1"><span class="ot">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span></a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="ot">{-# LANGUAGE Rank2Types #-}</span></a>
+<a class="sourceLine" id="cb1-3" title="3"><span class="ot">{-# LANGUAGE TemplateHaskell #-}</span></a>
+<a class="sourceLine" id="cb1-4" title="4"><span class="kw">import</span> <span class="dt">Control.Applicative</span></a>
+<a class="sourceLine" id="cb1-5" title="5"><span class="kw">import</span> <span class="dt">Control.Concurrent</span></a>
+<a class="sourceLine" id="cb1-6" title="6"><span class="kw">import</span> <span class="dt">Control.Monad.RWS</span></a>
+<a class="sourceLine" id="cb1-7" title="7"><span class="kw">import</span> <span class="dt">Control.Lens</span> <span class="kw">hiding</span> (imap, op)</a>
+<a class="sourceLine" id="cb1-8" title="8"><span class="kw">import</span> <span class="dt">Data.Bits</span></a>
+<a class="sourceLine" id="cb1-9" title="9"><span class="kw">import</span> <span class="dt">Data.Int</span></a>
+<a class="sourceLine" id="cb1-10" title="10"><span class="kw">import</span> <span class="dt">Data.Maybe</span></a>
+<a class="sourceLine" id="cb1-11" title="11"><span class="kw">import</span> <span class="dt">Data.Word</span></a>
+<a class="sourceLine" id="cb1-12" title="12"><span class="kw">import</span> <span class="dt">Numeric</span></a>
+<a class="sourceLine" id="cb1-13" title="13"><span class="kw">import</span> <span class="dt">System.Exit</span></a>
+<a class="sourceLine" id="cb1-14" title="14"><span class="kw">import</span> <span class="dt">System.IO</span></a>
+<a class="sourceLine" id="cb1-15" title="15"><span class="kw">import</span> <span class="dt">Text.Printf</span></a>
+<a class="sourceLine" id="cb1-16" title="16"></a>
+<a class="sourceLine" id="cb1-17" title="17"><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.ByteString</span> <span class="kw">as</span> <span class="dt">BS</span></a>
+<a class="sourceLine" id="cb1-18" title="18"><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Map</span> <span class="kw">as</span> <span class="dt">M</span></a>
+<a class="sourceLine" id="cb1-19" title="19"><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Set</span> <span class="kw">as</span> <span class="dt">S</span></a></code></pre></div>
+<h2 id="the-evaluation-monad">The evaluation monad</h2>
+<p>This program uses Template Haskell to define lenses, so unfortunately we need to start with a few type definitions.</p>
+<p>The ST20’s memory goes from <code>0x80000000</code> to <code>0x7fffffff</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">type</span> <span class="dt">Address</span> <span class="fu">=</span> <span class="dt">Int32</span></a></code></pre></div>
+<p>We’ll represent the memory using a map. The performance is surprisingly close to that of an array. It is possible to get significantly speeds up memory access by using an <code>IOUArray</code> but it turns loads and stores become monadic operations and makes it impossible to use lenses.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">type</span> <span class="dt">Mem</span> <span class="fu">=</span> <span class="dt">M.Map</span> <span class="dt">Address</span> <span class="dt">Word8</span></a></code></pre></div>
+<p>As we’ll see, <em>transputers</em> (hardware threads) can communicate together. We’ll be able to connect it either between them, or to a tty.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">data</span> <span class="dt">IChannel</span> <span class="fu">=</span> <span class="dt">InChan</span> (<span class="dt">Chan</span> <span class="dt">Word8</span>)</a>
+<a class="sourceLine" id="cb4-2" title="2">              <span class="fu">|</span> <span class="dt">InHandle</span> <span class="dt">Handle</span></a>
+<a class="sourceLine" id="cb4-3" title="3"></a>
+<a class="sourceLine" id="cb4-4" title="4"><span class="kw">data</span> <span class="dt">OChannel</span> <span class="fu">=</span> <span class="dt">OutChan</span> (<span class="dt">Chan</span> <span class="dt">Word8</span>)</a>
+<a class="sourceLine" id="cb4-5" title="5">              <span class="fu">|</span> <span class="dt">OutHandle</span> <span class="dt">Handle</span></a>
+<a class="sourceLine" id="cb4-6" title="6"></a>
+<a class="sourceLine" id="cb4-7" title="7"><span class="kw">type</span> <span class="dt">IChannelMap</span> <span class="fu">=</span> [(<span class="dt">Int32</span>, <span class="dt">IChannel</span>)]</a>
+<a class="sourceLine" id="cb4-8" title="8"><span class="kw">type</span> <span class="dt">OChannelMap</span> <span class="fu">=</span> [(<span class="dt">Int32</span>, <span class="dt">OChannel</span>)]</a></code></pre></div>
+<p>All evaluations take place in a <code>Eval</code> Monad which is a monad transformer stack with the following capabilities:</p>
+<ul>
+<li>read and write an <code>EvalState</code> value;</li>
+<li>read an <code>EvalEnv</code> value</li>
+<li>do some I/O.</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">newtype</span> <span class="dt">Eval</span> a <span class="fu">=</span> <span class="dt">Eval</span> (<span class="dt">RWST</span> <span class="dt">EvalEnv</span> () <span class="dt">EvalState</span> <span class="dt">IO</span> a)</a>
+<a class="sourceLine" id="cb5-2" title="2">    <span class="kw">deriving</span> ( <span class="dt">Functor</span></a>
+<a class="sourceLine" id="cb5-3" title="3">             , <span class="dt">Monad</span></a>
+<a class="sourceLine" id="cb5-4" title="4">             , <span class="dt">MonadIO</span></a>
+<a class="sourceLine" id="cb5-5" title="5">             , <span class="dt">MonadReader</span> <span class="dt">EvalEnv</span></a>
+<a class="sourceLine" id="cb5-6" title="6">             , <span class="dt">MonadState</span> <span class="dt">EvalState</span></a>
+<a class="sourceLine" id="cb5-7" title="7">             )</a>
+<a class="sourceLine" id="cb5-8" title="8"></a>
+<a class="sourceLine" id="cb5-9" title="9"><span class="kw">data</span> <span class="dt">EvalEnv</span> <span class="fu">=</span></a>
+<a class="sourceLine" id="cb5-10" title="10">    <span class="dt">EvalEnv</span></a>
+<a class="sourceLine" id="cb5-11" title="11">        {<span class="ot"> envInChans ::</span> <span class="dt">IChannelMap</span></a>
+<a class="sourceLine" id="cb5-12" title="12">        ,<span class="ot"> envOutChans ::</span> <span class="dt">OChannelMap</span></a>
+<a class="sourceLine" id="cb5-13" title="13">        }</a>
+<a class="sourceLine" id="cb5-14" title="14"></a>
+<a class="sourceLine" id="cb5-15" title="15"><span class="kw">data</span> <span class="dt">EvalState</span> <span class="fu">=</span></a>
+<a class="sourceLine" id="cb5-16" title="16">    <span class="dt">EvalState</span></a>
+<a class="sourceLine" id="cb5-17" title="17">        {<span class="ot"> _iptr ::</span> <span class="fu">!</span><span class="dt">Address</span></a>
+<a class="sourceLine" id="cb5-18" title="18">        ,<span class="ot"> _intStack ::</span> [<span class="dt">Int32</span>]</a>
+<a class="sourceLine" id="cb5-19" title="19">        ,<span class="ot"> _wptr ::</span> <span class="fu">!</span><span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb5-20" title="20">        ,<span class="ot"> _mem ::</span> <span class="fu">!</span><span class="dt">Mem</span></a>
+<a class="sourceLine" id="cb5-21" title="21">        }</a>
+<a class="sourceLine" id="cb5-22" title="22"><span class="fu">$</span>(makeLenses '<span class="dt">'EvalState</span>)</a>
+<a class="sourceLine" id="cb5-23" title="23"></a>
+<a class="sourceLine" id="cb5-24" title="24"><span class="ot">runEval ::</span> <span class="dt">Mem</span> <span class="ot">-&gt;</span> <span class="dt">IChannelMap</span> <span class="ot">-&gt;</span> <span class="dt">OChannelMap</span> <span class="ot">-&gt;</span> <span class="dt">Eval</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> a</a>
+<a class="sourceLine" id="cb5-25" title="25">runEval memory imap omap (<span class="dt">Eval</span> m) <span class="fu">=</span></a>
+<a class="sourceLine" id="cb5-26" title="26">    <span class="fu">fst</span> <span class="fu">&lt;$&gt;</span> evalRWST m env st</a>
+<a class="sourceLine" id="cb5-27" title="27">        <span class="kw">where</span></a>
+<a class="sourceLine" id="cb5-28" title="28">            env <span class="fu">=</span> <span class="dt">EvalEnv</span> imap omap</a>
+<a class="sourceLine" id="cb5-29" title="29">            st <span class="fu">=</span></a>
+<a class="sourceLine" id="cb5-30" title="30">                 <span class="dt">EvalState</span></a>
+<a class="sourceLine" id="cb5-31" title="31">                     { _iptr <span class="fu">=</span> memStart</a>
+<a class="sourceLine" id="cb5-32" title="32">                     , _intStack <span class="fu">=</span> []</a>
+<a class="sourceLine" id="cb5-33" title="33">                     , _wptr <span class="fu">=</span> <span class="bn">0xaaaaaaaa</span></a>
+<a class="sourceLine" id="cb5-34" title="34">                     , _mem <span class="fu">=</span> memory</a>
+<a class="sourceLine" id="cb5-35" title="35">                     }</a></code></pre></div>
+<p>The above <code>$(...)</code> is a Template Haskell splice. It creates <em>lenses</em> based on the record declaration of <code>EvalState</code>. Lenses are a very powerful tool that makes it possible to compose record reads and updates in a functional way. Here, it defines a lens for each record field; for example, the splice expands to a top-level declaration <code>iptr :: Lens' EvalState Address</code>. But we will define our own lenses too, and everything will remain composable.</p>
+<h2 id="memory">Memory</h2>
+<p>This is naturally adapted to byte access:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb6-1" title="1"><span class="ot">memByteOpt ::</span> <span class="dt">Address</span> <span class="ot">-&gt;</span> <span class="dt">Lens'</span> <span class="dt">EvalState</span> (<span class="dt">Maybe</span> <span class="dt">Word8</span>)</a>
+<a class="sourceLine" id="cb6-2" title="2">memByteOpt addr <span class="fu">=</span></a>
+<a class="sourceLine" id="cb6-3" title="3">  mem <span class="fu">.</span> at addr</a></code></pre></div>
+<p>See? We composed the <code>mem</code> lens (between an evaluation state and a memory state) with <code>at addr</code>, which is a lens between a memory state and the value at address <code>addr</code>. Well, not exactly: <code>at</code> actually returns a <code>Maybe Word8</code>. We will assume that all memory accesses will succeed, so we want a lens that returns a plain <code>Word8</code>. To achieve this, we can compose with a lens that treats <code>Maybe a</code> as a container of <code>a</code>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb7-1" title="1"><span class="ot">maybeLens ::</span> <span class="dt">Lens'</span> (<span class="dt">Maybe</span> a) a</a>
+<a class="sourceLine" id="cb7-2" title="2">maybeLens <span class="fu">=</span> lens fromJust (<span class="fu">const</span> <span class="dt">Just</span>)</a>
+<a class="sourceLine" id="cb7-3" title="3"></a>
+<a class="sourceLine" id="cb7-4" title="4"><span class="ot">memByte ::</span> <span class="dt">Address</span> <span class="ot">-&gt;</span> <span class="dt">Lens'</span> <span class="dt">EvalState</span> <span class="dt">Word8</span></a>
+<a class="sourceLine" id="cb7-5" title="5">memByte addr <span class="fu">=</span></a>
+<a class="sourceLine" id="cb7-6" title="6">  memByteOpt addr <span class="fu">.</span> maybeLens</a></code></pre></div>
+<p>Sometimes we will also need to access memory word by word. To achieve that, we first define conversion functions.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb8-1" title="1"><span class="ot">bytesToWord ::</span> (<span class="dt">Word8</span>, <span class="dt">Word8</span>, <span class="dt">Word8</span>, <span class="dt">Word8</span>) <span class="ot">-&gt;</span> <span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb8-2" title="2">bytesToWord (b0, b1, b2, b3) <span class="fu">=</span></a>
+<a class="sourceLine" id="cb8-3" title="3">    <span class="fu">sum</span> [ <span class="fu">fromIntegral</span> b0</a>
+<a class="sourceLine" id="cb8-4" title="4">        , <span class="fu">fromIntegral</span> b1 <span class="ot">`shiftL`</span> <span class="dv">8</span></a>
+<a class="sourceLine" id="cb8-5" title="5">        , <span class="fu">fromIntegral</span> b2 <span class="ot">`shiftL`</span> <span class="dv">16</span></a>
+<a class="sourceLine" id="cb8-6" title="6">        , <span class="fu">fromIntegral</span> b3 <span class="ot">`shiftL`</span> <span class="dv">24</span></a>
+<a class="sourceLine" id="cb8-7" title="7">        ]</a>
+<a class="sourceLine" id="cb8-8" title="8"></a>
+<a class="sourceLine" id="cb8-9" title="9"><span class="ot">wordToBytes ::</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> (<span class="dt">Word8</span>, <span class="dt">Word8</span>, <span class="dt">Word8</span>, <span class="dt">Word8</span>)</a>
+<a class="sourceLine" id="cb8-10" title="10">wordToBytes w <span class="fu">=</span></a>
+<a class="sourceLine" id="cb8-11" title="11">    (b0, b1, b2, b3)</a>
+<a class="sourceLine" id="cb8-12" title="12">        <span class="kw">where</span></a>
+<a class="sourceLine" id="cb8-13" title="13">            b0 <span class="fu">=</span> <span class="fu">fromIntegral</span> <span class="fu">$</span> w <span class="fu">.&amp;.</span> <span class="bn">0x000000ff</span></a>
+<a class="sourceLine" id="cb8-14" title="14">            b1 <span class="fu">=</span> <span class="fu">fromIntegral</span> <span class="fu">$</span> (w <span class="fu">.&amp;.</span> <span class="bn">0x0000ff00</span>) <span class="ot">`shiftR`</span> <span class="dv">8</span></a>
+<a class="sourceLine" id="cb8-15" title="15">            b2 <span class="fu">=</span> <span class="fu">fromIntegral</span> <span class="fu">$</span> (w <span class="fu">.&amp;.</span> <span class="bn">0x00ff0000</span>) <span class="ot">`shiftR`</span> <span class="dv">16</span></a>
+<a class="sourceLine" id="cb8-16" title="16">            b3 <span class="fu">=</span> <span class="fu">fromIntegral</span> <span class="fu">$</span> (w <span class="fu">.&amp;.</span> <span class="bn">0xff000000</span>) <span class="ot">`shiftR`</span> <span class="dv">24</span></a></code></pre></div>
+<p>Then, we can define a lens focusing on a 32-bit value.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb9-1" title="1"><span class="ot">compose ::</span> [a <span class="ot">-&gt;</span> a] <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a</a>
+<a class="sourceLine" id="cb9-2" title="2">compose <span class="fu">=</span> <span class="fu">foldr</span> (<span class="fu">.</span>) <span class="fu">id</span></a>
+<a class="sourceLine" id="cb9-3" title="3"></a>
+<a class="sourceLine" id="cb9-4" title="4"><span class="ot">get32 ::</span> <span class="dt">Address</span> <span class="ot">-&gt;</span> <span class="dt">EvalState</span> <span class="ot">-&gt;</span> <span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb9-5" title="5">get32 base s <span class="fu">=</span></a>
+<a class="sourceLine" id="cb9-6" title="6">    bytesToWord (b0, b1, b2, b3)</a>
+<a class="sourceLine" id="cb9-7" title="7">        <span class="kw">where</span></a>
+<a class="sourceLine" id="cb9-8" title="8">            b0 <span class="fu">=</span> s <span class="fu">^.</span> memByte base</a>
+<a class="sourceLine" id="cb9-9" title="9">            b1 <span class="fu">=</span> s <span class="fu">^.</span> memByte (base <span class="fu">+</span> <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb9-10" title="10">            b2 <span class="fu">=</span> s <span class="fu">^.</span> memByte (base <span class="fu">+</span> <span class="dv">2</span>)</a>
+<a class="sourceLine" id="cb9-11" title="11">            b3 <span class="fu">=</span> s <span class="fu">^.</span> memByte (base <span class="fu">+</span> <span class="dv">3</span>)</a>
+<a class="sourceLine" id="cb9-12" title="12"></a>
+<a class="sourceLine" id="cb9-13" title="13"><span class="ot">set32 ::</span> <span class="dt">Address</span> <span class="ot">-&gt;</span> <span class="dt">EvalState</span> <span class="ot">-&gt;</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">EvalState</span></a>
+<a class="sourceLine" id="cb9-14" title="14">set32 base s v <span class="fu">=</span></a>
+<a class="sourceLine" id="cb9-15" title="15">   compose</a>
+<a class="sourceLine" id="cb9-16" title="16">       [ set (memByte base) b0</a>
+<a class="sourceLine" id="cb9-17" title="17">       , set (memByte (base <span class="fu">+</span> <span class="dv">1</span>)) b1</a>
+<a class="sourceLine" id="cb9-18" title="18">       , set (memByte (base <span class="fu">+</span> <span class="dv">2</span>)) b2</a>
+<a class="sourceLine" id="cb9-19" title="19">       , set (memByte (base <span class="fu">+</span> <span class="dv">3</span>)) b3</a>
+<a class="sourceLine" id="cb9-20" title="20">       ] s</a>
+<a class="sourceLine" id="cb9-21" title="21">        <span class="kw">where</span></a>
+<a class="sourceLine" id="cb9-22" title="22">            (b0, b1, b2, b3) <span class="fu">=</span> wordToBytes v</a>
+<a class="sourceLine" id="cb9-23" title="23"></a>
+<a class="sourceLine" id="cb9-24" title="24"><span class="ot">memWord ::</span> <span class="dt">Address</span> <span class="ot">-&gt;</span> <span class="dt">Lens'</span> <span class="dt">EvalState</span> <span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb9-25" title="25">memWord addr <span class="fu">=</span> lens (get32 addr) (set32 addr)</a></code></pre></div>
+<p>The instruction set reference defines a handy operator to shift an address by a word offset:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb10-1" title="1"><span class="ot">(@@) ::</span> <span class="dt">Address</span> <span class="ot">-&gt;</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">Address</span></a>
+<a class="sourceLine" id="cb10-2" title="2">a <span class="fu">@@</span> n <span class="fu">=</span> a <span class="fu">+</span> <span class="dv">4</span> <span class="fu">*</span> n</a></code></pre></div>
+<p>It will be also handy to access the memory in list chunks:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb11-1" title="1"><span class="ot">mem8s ::</span> <span class="dt">Address</span> <span class="ot">-&gt;</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">Lens'</span> <span class="dt">EvalState</span> [<span class="dt">Word8</span>]</a>
+<a class="sourceLine" id="cb11-2" title="2">mem8s base len <span class="fu">=</span> lens getList setList</a>
+<a class="sourceLine" id="cb11-3" title="3">    <span class="kw">where</span></a>
+<a class="sourceLine" id="cb11-4" title="4">        getList s <span class="fu">=</span></a>
+<a class="sourceLine" id="cb11-5" title="5">            <span class="fu">map</span> (\ off <span class="ot">-&gt;</span> s <span class="fu">^.</span> memByte (base <span class="fu">+</span> off)) [<span class="dv">0</span> <span class="fu">..</span> len <span class="fu">-</span> <span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb11-6" title="6">        setList s0 ws <span class="fu">=</span></a>
+<a class="sourceLine" id="cb11-7" title="7">            compose (<span class="fu">zipWith</span> (\ off w <span class="ot">-&gt;</span> set (memByte (base <span class="fu">+</span> off)) w) [<span class="dv">0</span><span class="fu">..</span>] ws) s0</a></code></pre></div>
+<h2 id="instruction-decoding">Instruction decoding</h2>
+<p>Instructions are usually encoded on a single byte: the opcode is in the first nibble, and a parameter is in the second one. For example this is how a LDC (load constant) is encoded:</p>
+<pre><code>   .--- 0x40 LDC
+  |.---          0x5
+  ||
+0x45         LDC 0x5</code></pre>
+<p>This only works for 4-bytes constants. To load bigger constants, there is a “prefix” operation that will shift the current operand:</p>
+<pre><code>   .-------- 0x20 PFX
+  |.--------          0x2
+  ||
+  ||    .--- 0x40 LDC
+  ||   |.---          0x5
+  ||   ||
+0x22 0x45    LDC 0x25</code></pre>
+<p>Those are chainable; for example <code>0x21 0x22 0x45</code> encodes <code>LDC 0x125</code>.</p>
+<p>Another prefix shifts and complements the current operand value:</p>
+<pre><code>   .-------- 0x60 NFX
+  |.--------          0x2
+  ||
+  ||    .--- 0x40 LDC
+  ||   |.---          0x5
+  ||   ||
+0x62 0x45    LDC (~0x25)</code></pre>
+<p>The ST20 architecture actually provides two type of instructions:</p>
+<ul>
+<li>“primary” instructions such as <code>LDC</code>. Their operand is directly encoded.</li>
+<li>“secondary” instructions such as <code>MINT</code> (equivalent to <code>LDC 0x80000000</code>). They do not have operands. On the contrary, they are actually a special case of the first type, using a special <code>OPR n</code> opcode. For example, <code>MINT</code> is <code>OPR 0x42</code>, which is encoded using <code>0x24 0xF2</code>.</li>
+</ul>
+<p>We know enough to draft an instruction decoder.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb15-1" title="1"><span class="kw">data</span> <span class="dt">PInstr</span> <span class="fu">=</span> <span class="dt">AJW</span>   <span class="fu">|</span> <span class="dt">ADC</span></a>
+<a class="sourceLine" id="cb15-2" title="2">            <span class="fu">|</span> <span class="dt">LDC</span>   <span class="fu">|</span> <span class="dt">STL</span></a>
+<a class="sourceLine" id="cb15-3" title="3">            <span class="fu">|</span> <span class="dt">LDL</span>   <span class="fu">|</span> <span class="dt">LDNL</span></a>
+<a class="sourceLine" id="cb15-4" title="4">            <span class="fu">|</span> <span class="dt">LDLP</span>  <span class="fu">|</span> <span class="dt">LDNLP</span></a>
+<a class="sourceLine" id="cb15-5" title="5">            <span class="fu">|</span> <span class="dt">CJ</span>    <span class="fu">|</span> <span class="dt">J</span></a>
+<a class="sourceLine" id="cb15-6" title="6">            <span class="fu">|</span> <span class="dt">EQC</span>   <span class="fu">|</span> <span class="dt">CALL</span></a>
+<a class="sourceLine" id="cb15-7" title="7">            <span class="fu">|</span> <span class="dt">STNL</span></a>
+<a class="sourceLine" id="cb15-8" title="8">    <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Ord</span>, <span class="dt">Show</span>)</a>
+<a class="sourceLine" id="cb15-9" title="9"></a>
+<a class="sourceLine" id="cb15-10" title="10"><span class="kw">data</span> <span class="dt">SInstr</span> <span class="fu">=</span> <span class="dt">PROD</span>  <span class="fu">|</span> <span class="dt">MINT</span>   <span class="fu">|</span> <span class="dt">GAJW</span></a>
+<a class="sourceLine" id="cb15-11" title="11">            <span class="fu">|</span> <span class="dt">LDPI</span>  <span class="fu">|</span> <span class="dt">OUT</span>    <span class="fu">|</span> <span class="dt">IN</span></a>
+<a class="sourceLine" id="cb15-12" title="12">            <span class="fu">|</span> <span class="dt">LB</span>    <span class="fu">|</span> <span class="dt">XOR</span>    <span class="fu">|</span> <span class="dt">SB</span></a>
+<a class="sourceLine" id="cb15-13" title="13">            <span class="fu">|</span> <span class="dt">BSUB</span>  <span class="fu">|</span> <span class="dt">SSUB</span>   <span class="fu">|</span> <span class="dt">DUP</span></a>
+<a class="sourceLine" id="cb15-14" title="14">            <span class="fu">|</span> <span class="dt">GTx</span>   <span class="fu">|</span> <span class="dt">WSUB</span>   <span class="fu">|</span> <span class="dt">AND</span></a>
+<a class="sourceLine" id="cb15-15" title="15">            <span class="fu">|</span> <span class="dt">RET</span>   <span class="fu">|</span> <span class="dt">GCALL</span>  <span class="fu">|</span> <span class="dt">SHR</span></a>
+<a class="sourceLine" id="cb15-16" title="16">            <span class="fu">|</span> <span class="dt">SHL</span>   <span class="fu">|</span> <span class="dt">REM</span></a>
+<a class="sourceLine" id="cb15-17" title="17">    <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Ord</span>, <span class="dt">Show</span>)</a>
+<a class="sourceLine" id="cb15-18" title="18"></a>
+<a class="sourceLine" id="cb15-19" title="19"><span class="kw">data</span> <span class="dt">Instr</span> <span class="fu">=</span> <span class="dt">Pri</span> <span class="dt">PInstr</span> <span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb15-20" title="20">           <span class="fu">|</span> <span class="dt">Sec</span> <span class="dt">SInstr</span></a>
+<a class="sourceLine" id="cb15-21" title="21">    <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Ord</span>)</a>
+<a class="sourceLine" id="cb15-22" title="22"></a>
+<a class="sourceLine" id="cb15-23" title="23"><span class="kw">instance</span> <span class="dt">Show</span> <span class="dt">Instr</span> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb15-24" title="24">    <span class="fu">show</span> (<span class="dt">Pri</span> p n) <span class="fu">=</span> <span class="fu">show</span> p <span class="fu">++</span> <span class="st">&quot; &quot;</span> <span class="fu">++</span> <span class="fu">show</span> n</a>
+<a class="sourceLine" id="cb15-25" title="25">    <span class="fu">show</span> (<span class="dt">Sec</span> s) <span class="fu">=</span> <span class="fu">show</span> s</a></code></pre></div>
+<p>Instruction decoding will need to move within the instruction stream, so it is part of the evaluation monad.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb16-1" title="1"><span class="ot">decodeInstr ::</span> <span class="dt">Eval</span> <span class="dt">Instr</span></a>
+<a class="sourceLine" id="cb16-2" title="2">decodeInstr <span class="fu">=</span> decodeInstr_ <span class="dv">0</span></a>
+<a class="sourceLine" id="cb16-3" title="3"></a>
+<a class="sourceLine" id="cb16-4" title="4"><span class="ot">decodeInstr_ ::</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">Eval</span> <span class="dt">Instr</span></a>
+<a class="sourceLine" id="cb16-5" title="5">decodeInstr_ acc <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb16-6" title="6">    b <span class="ot">&lt;-</span> peekAndIncr</a>
+<a class="sourceLine" id="cb16-7" title="7">    <span class="kw">let</span> acc' <span class="fu">=</span> acc <span class="fu">+</span> <span class="fu">fromIntegral</span> (b <span class="fu">.&amp;.</span> <span class="bn">0xf</span>)</a>
+<a class="sourceLine" id="cb16-8" title="8">    <span class="kw">case</span> () <span class="kw">of</span></a>
+<a class="sourceLine" id="cb16-9" title="9">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0x0f</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Pri</span> <span class="dt">J</span> acc'</a>
+<a class="sourceLine" id="cb16-10" title="10">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0x1f</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Pri</span> <span class="dt">LDLP</span> acc'</a>
+<a class="sourceLine" id="cb16-11" title="11">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0x2f</span> <span class="ot">-&gt;</span> decodeInstr_ <span class="fu">$</span> acc' <span class="ot">`shiftL`</span> <span class="dv">4</span></a>
+<a class="sourceLine" id="cb16-12" title="12">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0x3f</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Pri</span> <span class="dt">LDNL</span> acc'</a>
+<a class="sourceLine" id="cb16-13" title="13">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0x4f</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Pri</span> <span class="dt">LDC</span> acc'</a>
+<a class="sourceLine" id="cb16-14" title="14">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0x5f</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Pri</span> <span class="dt">LDNLP</span> acc'</a>
+<a class="sourceLine" id="cb16-15" title="15">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0x6f</span> <span class="ot">-&gt;</span> decodeInstr_ <span class="fu">$</span> complement acc' <span class="ot">`shiftL`</span> <span class="dv">4</span></a>
+<a class="sourceLine" id="cb16-16" title="16">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0x7f</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Pri</span> <span class="dt">LDL</span> acc'</a>
+<a class="sourceLine" id="cb16-17" title="17">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0x8f</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Pri</span> <span class="dt">ADC</span> acc'</a>
+<a class="sourceLine" id="cb16-18" title="18">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0x9f</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Pri</span> <span class="dt">CALL</span> acc'</a>
+<a class="sourceLine" id="cb16-19" title="19">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0xaf</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Pri</span> <span class="dt">CJ</span> acc'</a>
+<a class="sourceLine" id="cb16-20" title="20">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0xbf</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Pri</span> <span class="dt">AJW</span> acc'</a>
+<a class="sourceLine" id="cb16-21" title="21">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0xcf</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Pri</span> <span class="dt">EQC</span> acc'</a>
+<a class="sourceLine" id="cb16-22" title="22">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0xdf</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Pri</span> <span class="dt">STL</span> acc'</a>
+<a class="sourceLine" id="cb16-23" title="23">        _ <span class="fu">|</span> b <span class="fu">&lt;=</span> <span class="bn">0xef</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Pri</span> <span class="dt">STNL</span> acc'</a>
+<a class="sourceLine" id="cb16-24" title="24">        _             <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Sec</span> <span class="fu">$</span> parseSecondary acc'</a>
+<a class="sourceLine" id="cb16-25" title="25"></a>
+<a class="sourceLine" id="cb16-26" title="26"><span class="ot">peekAndIncr ::</span> <span class="dt">Eval</span> <span class="dt">Word8</span></a>
+<a class="sourceLine" id="cb16-27" title="27">peekAndIncr <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb16-28" title="28">    addr <span class="ot">&lt;-</span> use iptr</a>
+<a class="sourceLine" id="cb16-29" title="29">    b <span class="ot">&lt;-</span> use (memByte addr)</a>
+<a class="sourceLine" id="cb16-30" title="30">    iptr <span class="fu">+=</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb16-31" title="31">    <span class="fu">return</span> b</a>
+<a class="sourceLine" id="cb16-32" title="32"></a>
+<a class="sourceLine" id="cb16-33" title="33"><span class="ot">parseSecondary ::</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">SInstr</span></a>
+<a class="sourceLine" id="cb16-34" title="34">parseSecondary <span class="bn">0x01</span> <span class="fu">=</span> <span class="dt">LB</span></a>
+<a class="sourceLine" id="cb16-35" title="35">parseSecondary <span class="bn">0x02</span> <span class="fu">=</span> <span class="dt">BSUB</span></a>
+<a class="sourceLine" id="cb16-36" title="36">parseSecondary <span class="bn">0x06</span> <span class="fu">=</span> <span class="dt">GCALL</span></a>
+<a class="sourceLine" id="cb16-37" title="37">parseSecondary <span class="bn">0x07</span> <span class="fu">=</span> <span class="dt">IN</span></a>
+<a class="sourceLine" id="cb16-38" title="38">parseSecondary <span class="bn">0x08</span> <span class="fu">=</span> <span class="dt">PROD</span></a>
+<a class="sourceLine" id="cb16-39" title="39">parseSecondary <span class="bn">0x09</span> <span class="fu">=</span> <span class="dt">GTx</span></a>
+<a class="sourceLine" id="cb16-40" title="40">parseSecondary <span class="bn">0x0a</span> <span class="fu">=</span> <span class="dt">WSUB</span></a>
+<a class="sourceLine" id="cb16-41" title="41">parseSecondary <span class="bn">0x0b</span> <span class="fu">=</span> <span class="dt">OUT</span></a>
+<a class="sourceLine" id="cb16-42" title="42">parseSecondary <span class="bn">0x1b</span> <span class="fu">=</span> <span class="dt">LDPI</span></a>
+<a class="sourceLine" id="cb16-43" title="43">parseSecondary <span class="bn">0x1f</span> <span class="fu">=</span> <span class="dt">REM</span></a>
+<a class="sourceLine" id="cb16-44" title="44">parseSecondary <span class="bn">0x20</span> <span class="fu">=</span> <span class="dt">RET</span></a>
+<a class="sourceLine" id="cb16-45" title="45">parseSecondary <span class="bn">0x33</span> <span class="fu">=</span> <span class="dt">XOR</span></a>
+<a class="sourceLine" id="cb16-46" title="46">parseSecondary <span class="bn">0x3b</span> <span class="fu">=</span> <span class="dt">SB</span></a>
+<a class="sourceLine" id="cb16-47" title="47">parseSecondary <span class="bn">0x3c</span> <span class="fu">=</span> <span class="dt">GAJW</span></a>
+<a class="sourceLine" id="cb16-48" title="48">parseSecondary <span class="bn">0x40</span> <span class="fu">=</span> <span class="dt">SHR</span></a>
+<a class="sourceLine" id="cb16-49" title="49">parseSecondary <span class="bn">0x41</span> <span class="fu">=</span> <span class="dt">SHL</span></a>
+<a class="sourceLine" id="cb16-50" title="50">parseSecondary <span class="bn">0x42</span> <span class="fu">=</span> <span class="dt">MINT</span></a>
+<a class="sourceLine" id="cb16-51" title="51">parseSecondary <span class="bn">0x46</span> <span class="fu">=</span> <span class="dt">AND</span></a>
+<a class="sourceLine" id="cb16-52" title="52">parseSecondary <span class="bn">0x5a</span> <span class="fu">=</span> <span class="dt">DUP</span></a>
+<a class="sourceLine" id="cb16-53" title="53">parseSecondary <span class="bn">0xc1</span> <span class="fu">=</span> <span class="dt">SSUB</span></a>
+<a class="sourceLine" id="cb16-54" title="54">parseSecondary b <span class="fu">=</span> <span class="fu">error</span> <span class="fu">$</span> <span class="st">&quot;Unknown secondary 0x&quot;</span> <span class="fu">++</span> showHex b <span class="st">&quot;&quot;</span></a></code></pre></div>
+<h2 id="the-two-stacks">The two stacks</h2>
+<p>Data is manipulated using two different mechanisms: the integer stack and the workspace.</p>
+<p>The integer stack is a set of three registers: <code>A</code>, <code>B</code>, and <code>C</code>, which can be used as a stack using these operations. Actually, it can only be manipulated through push and pop operations, so we represent this using a list.</p>
+<p>The instruction set reference says that an undefined value will be popped if the stack is empty; here we consider that this will not happen, and allow a partial pattern matching.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb17-1" title="1"><span class="ot">pushInt ::</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">Eval</span> ()</a>
+<a class="sourceLine" id="cb17-2" title="2">pushInt n <span class="fu">=</span></a>
+<a class="sourceLine" id="cb17-3" title="3">    intStack <span class="fu">%=</span> (n<span class="fu">:</span>)</a>
+<a class="sourceLine" id="cb17-4" title="4"></a>
+<a class="sourceLine" id="cb17-5" title="5"><span class="ot">popInt ::</span> <span class="dt">Eval</span> <span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb17-6" title="6">popInt <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb17-7" title="7">    (h<span class="fu">:</span>t) <span class="ot">&lt;-</span> use intStack</a>
+<a class="sourceLine" id="cb17-8" title="8">    intStack <span class="fu">.=</span> t</a>
+<a class="sourceLine" id="cb17-9" title="9">    <span class="fu">return</span> h</a>
+<a class="sourceLine" id="cb17-10" title="10"></a>
+<a class="sourceLine" id="cb17-11" title="11"><span class="ot">popAll ::</span> <span class="dt">Eval</span> (<span class="dt">Int32</span>, <span class="dt">Int32</span>, <span class="dt">Int32</span>)</a>
+<a class="sourceLine" id="cb17-12" title="12">popAll <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb17-13" title="13">    a <span class="ot">&lt;-</span> popInt</a>
+<a class="sourceLine" id="cb17-14" title="14">    b <span class="ot">&lt;-</span> popInt</a>
+<a class="sourceLine" id="cb17-15" title="15">    c <span class="ot">&lt;-</span> popInt</a>
+<a class="sourceLine" id="cb17-16" title="16">    <span class="fu">return</span> (a, b, c)</a></code></pre></div>
+<p>Only the head (<code>A</code>) can be directly accessed, so we first define a lens between a list and its head, and compose it with <code>intStack</code>.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb18-1" title="1"><span class="ot">headLens ::</span> <span class="dt">Lens'</span> [a] a</a>
+<a class="sourceLine" id="cb18-2" title="2">headLens <span class="fu">=</span> lens <span class="fu">head</span> <span class="fu">$</span> \ l x <span class="ot">-&gt;</span> x<span class="fu">:tail</span> l</a>
+<a class="sourceLine" id="cb18-3" title="3"></a>
+<a class="sourceLine" id="cb18-4" title="4"><span class="ot">areg ::</span> <span class="dt">Lens'</span> <span class="dt">EvalState</span> <span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb18-5" title="5">areg <span class="fu">=</span> intStack <span class="fu">.</span> headLens</a></code></pre></div>
+<p>The workspace is a place in memory (pointed to by a register <code>wptr</code>) where local variables can be stored and loaded, a bit like a stack pointer. We first define push and pop operations.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb19-1" title="1"><span class="ot">pushWorkspace ::</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">Eval</span> ()</a>
+<a class="sourceLine" id="cb19-2" title="2">pushWorkspace value <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb19-3" title="3">    wptr <span class="fu">-=</span> <span class="dv">4</span></a>
+<a class="sourceLine" id="cb19-4" title="4">    var <span class="dv">0</span> <span class="fu">.=</span> value</a>
+<a class="sourceLine" id="cb19-5" title="5"></a>
+<a class="sourceLine" id="cb19-6" title="6"><span class="ot">popWorkspace ::</span> <span class="dt">Eval</span> <span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb19-7" title="7">popWorkspace <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb19-8" title="8">    w <span class="ot">&lt;-</span> use <span class="fu">$</span> var <span class="dv">0</span></a>
+<a class="sourceLine" id="cb19-9" title="9">    wptr <span class="fu">+=</span> <span class="dv">4</span></a>
+<a class="sourceLine" id="cb19-10" title="10">    <span class="fu">return</span> w</a></code></pre></div>
+<p>Then we define a lens to focus on a variable.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb20-1" title="1"><span class="ot">var ::</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">Lens'</span> <span class="dt">EvalState</span> <span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb20-2" title="2">var n <span class="fu">=</span></a>
+<a class="sourceLine" id="cb20-3" title="3">    lens getVar setVar</a>
+<a class="sourceLine" id="cb20-4" title="4">        <span class="kw">where</span></a>
+<a class="sourceLine" id="cb20-5" title="5">            varLens s <span class="fu">=</span> memWord ((s <span class="fu">^.</span> wptr) <span class="fu">@@</span> n)</a>
+<a class="sourceLine" id="cb20-6" title="6">            getVar s <span class="fu">=</span> s <span class="fu">^.</span> varLens s</a>
+<a class="sourceLine" id="cb20-7" title="7">            setVar s v <span class="fu">=</span> set (varLens s) v s</a></code></pre></div>
+<h2 id="input-and-output">Input and output</h2>
+<p>The main particularity of the ST20 architecture is that it has hardware support of message channels. They map fairly naturally to <code>Control.Concurrent.Chan</code> channels. Each ST20 thread will have a map from channel numbers to input or output channels:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb21-1" title="1"><span class="ot">getXChan ::</span> (<span class="dt">EvalEnv</span> <span class="ot">-&gt;</span> [(<span class="dt">Int32</span>, a)]) <span class="ot">-&gt;</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">EvalEnv</span> <span class="ot">-&gt;</span> a</a>
+<a class="sourceLine" id="cb21-2" title="2">getXChan member w st <span class="fu">=</span></a>
+<a class="sourceLine" id="cb21-3" title="3">    fromJust <span class="fu">$</span> <span class="fu">lookup</span> w <span class="fu">$</span> member st</a>
+<a class="sourceLine" id="cb21-4" title="4"></a>
+<a class="sourceLine" id="cb21-5" title="5"><span class="ot">getIChan ::</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">EvalEnv</span> <span class="ot">-&gt;</span> <span class="dt">IChannel</span></a>
+<a class="sourceLine" id="cb21-6" title="6">getIChan <span class="fu">=</span> getXChan envInChans</a>
+<a class="sourceLine" id="cb21-7" title="7"></a>
+<a class="sourceLine" id="cb21-8" title="8"><span class="ot">getOChan ::</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">EvalEnv</span> <span class="ot">-&gt;</span> <span class="dt">OChannel</span></a>
+<a class="sourceLine" id="cb21-9" title="9">getOChan <span class="fu">=</span> getXChan envOutChans</a></code></pre></div>
+<p>And these channels can be either a <code>Chan Word8</code> or a plain <code>Handle</code>, to connect a thread to the process’ standard input and output.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb22-1" title="1"><span class="ot">readFromIChan ::</span> <span class="dt">IChannel</span> <span class="ot">-&gt;</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">Eval</span> [<span class="dt">Word8</span>]</a>
+<a class="sourceLine" id="cb22-2" title="2">readFromIChan (<span class="dt">InChan</span> chan) n <span class="fu">=</span></a>
+<a class="sourceLine" id="cb22-3" title="3">    liftIO <span class="fu">$</span> <span class="fu">mapM</span> (\ _ <span class="ot">-&gt;</span> readChan chan) [<span class="dv">1</span><span class="fu">..</span>n]</a>
+<a class="sourceLine" id="cb22-4" title="4">readFromIChan (<span class="dt">InHandle</span> h) n <span class="fu">=</span></a>
+<a class="sourceLine" id="cb22-5" title="5">    liftIO <span class="fu">$</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb22-6" title="6">        bs <span class="ot">&lt;-</span> BS.hGet h <span class="fu">$</span> <span class="fu">fromIntegral</span> n</a>
+<a class="sourceLine" id="cb22-7" title="7">        <span class="fu">return</span> <span class="fu">$</span> BS.unpack bs</a>
+<a class="sourceLine" id="cb22-8" title="8"></a>
+<a class="sourceLine" id="cb22-9" title="9"><span class="ot">writeToOChan ::</span> <span class="dt">OChannel</span> <span class="ot">-&gt;</span> [<span class="dt">Word8</span>] <span class="ot">-&gt;</span> <span class="dt">Eval</span> ()</a>
+<a class="sourceLine" id="cb22-10" title="10">writeToOChan (<span class="dt">OutChan</span> chan) ws <span class="fu">=</span></a>
+<a class="sourceLine" id="cb22-11" title="11">    liftIO <span class="fu">$</span> writeList2Chan chan ws</a>
+<a class="sourceLine" id="cb22-12" title="12">writeToOChan (<span class="dt">OutHandle</span> h) ws <span class="fu">=</span></a>
+<a class="sourceLine" id="cb22-13" title="13">    liftIO <span class="fu">$</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb22-14" title="14">        BS.hPutStr h <span class="fu">$</span> BS.pack ws</a>
+<a class="sourceLine" id="cb22-15" title="15">        hFlush h</a></code></pre></div>
+<h2 id="a-few-combinators">A few combinators</h2>
+<p>We first define a few combinators that will help us define the <code>interpret</code> function.</p>
+<p>Pop two operands, and push the result:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb23-1" title="1"><span class="ot">liftOp ::</span> (<span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">Int32</span>) <span class="ot">-&gt;</span> <span class="dt">Eval</span> ()</a>
+<a class="sourceLine" id="cb23-2" title="2">liftOp op <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb23-3" title="3">    a <span class="ot">&lt;-</span> popInt</a>
+<a class="sourceLine" id="cb23-4" title="4">    b <span class="ot">&lt;-</span> popInt</a>
+<a class="sourceLine" id="cb23-5" title="5">    pushInt <span class="fu">$</span> op a b</a></code></pre></div>
+<p>Exchange two registers:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb24-1" title="1"><span class="ot">xchg ::</span> <span class="dt">Lens'</span> <span class="dt">EvalState</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">Lens'</span> <span class="dt">EvalState</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">Eval</span> ()</a>
+<a class="sourceLine" id="cb24-2" title="2">xchg l1 l2 <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb24-3" title="3">  x1 <span class="ot">&lt;-</span> use l1</a>
+<a class="sourceLine" id="cb24-4" title="4">  x2 <span class="ot">&lt;-</span> use l2</a>
+<a class="sourceLine" id="cb24-5" title="5">  l1 <span class="fu">.=</span> x2</a>
+<a class="sourceLine" id="cb24-6" title="6">  l2 <span class="fu">.=</span> x1</a></code></pre></div>
+<p>Convert a boolean to an integer:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb25-1" title="1"><span class="ot">fromBool ::</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb25-2" title="2">fromBool <span class="dt">False</span> <span class="fu">=</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb25-3" title="3">fromBool <span class="dt">True</span> <span class="fu">=</span> <span class="dv">1</span></a></code></pre></div>
+<h2 id="the-interpret-function">The <code>interpret</code> function</h2>
+<p>The core of the interpreter is the following function. It takes an instruction and transforms it into a monadic action in <code>Eval</code>.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb26-1" title="1"><span class="ot">interpret ::</span> <span class="dt">Instr</span> <span class="ot">-&gt;</span> <span class="dt">Eval</span> ()</a></code></pre></div>
+<p>Some cases are very simple.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb27-1" title="1">interpret (<span class="dt">Pri</span> <span class="dt">AJW</span> n) <span class="fu">=</span> wptr <span class="fu">+=</span> <span class="dv">4</span> <span class="fu">*</span> n</a>
+<a class="sourceLine" id="cb27-2" title="2">interpret (<span class="dt">Pri</span> <span class="dt">LDNLP</span> n) <span class="fu">=</span> areg <span class="fu">+=</span> <span class="dv">4</span> <span class="fu">*</span> n</a>
+<a class="sourceLine" id="cb27-3" title="3">interpret (<span class="dt">Pri</span> <span class="dt">J</span> n) <span class="fu">=</span> iptr <span class="fu">+=</span> n</a>
+<a class="sourceLine" id="cb27-4" title="4">interpret (<span class="dt">Pri</span> <span class="dt">LDC</span> n) <span class="fu">=</span> pushInt n</a>
+<a class="sourceLine" id="cb27-5" title="5">interpret (<span class="dt">Sec</span> <span class="dt">MINT</span>) <span class="fu">=</span> pushInt <span class="bn">0x80000000</span></a>
+<a class="sourceLine" id="cb27-6" title="6">interpret (<span class="dt">Sec</span> <span class="dt">GAJW</span>) <span class="fu">=</span> xchg areg wptr</a>
+<a class="sourceLine" id="cb27-7" title="7">interpret (<span class="dt">Sec</span> <span class="dt">GCALL</span>) <span class="fu">=</span> xchg areg iptr</a>
+<a class="sourceLine" id="cb27-8" title="8">interpret (<span class="dt">Pri</span> <span class="dt">ADC</span> n) <span class="fu">=</span> areg <span class="fu">+=</span> n</a>
+<a class="sourceLine" id="cb27-9" title="9">interpret (<span class="dt">Pri</span> <span class="dt">EQC</span> n) <span class="fu">=</span> areg <span class="fu">%=</span> (\ a <span class="ot">-&gt;</span> fromBool <span class="fu">$</span> a <span class="fu">==</span> n)</a></code></pre></div>
+<p>For some others, we can lift them into the host language and use Haskell operations.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb28-1" title="1">interpret (<span class="dt">Sec</span> <span class="dt">PROD</span>) <span class="fu">=</span> liftOp (<span class="fu">*</span>)</a>
+<a class="sourceLine" id="cb28-2" title="2">interpret (<span class="dt">Sec</span> <span class="dt">XOR</span>) <span class="fu">=</span> liftOp xor</a>
+<a class="sourceLine" id="cb28-3" title="3">interpret (<span class="dt">Sec</span> <span class="dt">AND</span>) <span class="fu">=</span> liftOp (<span class="fu">.&amp;.</span>)</a>
+<a class="sourceLine" id="cb28-4" title="4">interpret (<span class="dt">Sec</span> <span class="dt">BSUB</span>) <span class="fu">=</span> liftOp (<span class="fu">+</span>)</a>
+<a class="sourceLine" id="cb28-5" title="5">interpret (<span class="dt">Sec</span> <span class="dt">SSUB</span>) <span class="fu">=</span> liftOp <span class="fu">$</span> \ a b <span class="ot">-&gt;</span> a <span class="fu">+</span> <span class="dv">2</span> <span class="fu">*</span> b</a>
+<a class="sourceLine" id="cb28-6" title="6">interpret (<span class="dt">Sec</span> <span class="dt">WSUB</span>) <span class="fu">=</span> liftOp (<span class="fu">@@</span>)</a>
+<a class="sourceLine" id="cb28-7" title="7">interpret (<span class="dt">Sec</span> <span class="dt">GTx</span>) <span class="fu">=</span> liftOp <span class="fu">$</span> \ a b <span class="ot">-&gt;</span> fromBool <span class="fu">$</span> b <span class="fu">&gt;</span> a</a>
+<a class="sourceLine" id="cb28-8" title="8">interpret (<span class="dt">Sec</span> <span class="dt">SHR</span>) <span class="fu">=</span> liftOp <span class="fu">$</span> \ a b <span class="ot">-&gt;</span> b <span class="ot">`shiftR`</span> <span class="fu">fromIntegral</span> a</a>
+<a class="sourceLine" id="cb28-9" title="9">interpret (<span class="dt">Sec</span> <span class="dt">SHL</span>) <span class="fu">=</span> liftOp <span class="fu">$</span> \ a b <span class="ot">-&gt;</span> b <span class="ot">`shiftL`</span> <span class="fu">fromIntegral</span> a</a>
+<a class="sourceLine" id="cb28-10" title="10">interpret (<span class="dt">Sec</span> <span class="dt">REM</span>) <span class="fu">=</span> liftOp <span class="fu">$</span> \ a b <span class="ot">-&gt;</span> b <span class="ot">`mod`</span> a</a></code></pre></div>
+<p>Others need a few operations to prepare the operands and access memory.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb29-1" title="1">interpret (<span class="dt">Sec</span> <span class="dt">SB</span>) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb29-2" title="2">    a <span class="ot">&lt;-</span> popInt</a>
+<a class="sourceLine" id="cb29-3" title="3">    b <span class="ot">&lt;-</span> popInt</a>
+<a class="sourceLine" id="cb29-4" title="4">    memByte a <span class="fu">.=</span> <span class="fu">fromIntegral</span> b</a>
+<a class="sourceLine" id="cb29-5" title="5">interpret (<span class="dt">Sec</span> <span class="dt">DUP</span>) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb29-6" title="6">    a <span class="ot">&lt;-</span> popInt</a>
+<a class="sourceLine" id="cb29-7" title="7">    pushInt a</a>
+<a class="sourceLine" id="cb29-8" title="8">    pushInt a</a>
+<a class="sourceLine" id="cb29-9" title="9">interpret (<span class="dt">Pri</span> <span class="dt">STL</span> n) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb29-10" title="10">    v <span class="ot">&lt;-</span> popInt</a>
+<a class="sourceLine" id="cb29-11" title="11">    var n <span class="fu">.=</span> v</a>
+<a class="sourceLine" id="cb29-12" title="12">interpret (<span class="dt">Pri</span> <span class="dt">LDLP</span> n) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb29-13" title="13">    v <span class="ot">&lt;-</span> use wptr</a>
+<a class="sourceLine" id="cb29-14" title="14">    pushInt <span class="fu">$</span> v <span class="fu">@@</span> n</a>
+<a class="sourceLine" id="cb29-15" title="15">interpret (<span class="dt">Pri</span> <span class="dt">LDL</span> n) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb29-16" title="16">    v <span class="ot">&lt;-</span> use <span class="fu">$</span> var n</a>
+<a class="sourceLine" id="cb29-17" title="17">    pushInt v</a>
+<a class="sourceLine" id="cb29-18" title="18">interpret (<span class="dt">Sec</span> <span class="dt">LDPI</span>) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb29-19" title="19">    ip <span class="ot">&lt;-</span> use iptr</a>
+<a class="sourceLine" id="cb29-20" title="20">    areg <span class="fu">+=</span> ip</a>
+<a class="sourceLine" id="cb29-21" title="21">interpret (<span class="dt">Pri</span> <span class="dt">CJ</span> n) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb29-22" title="22">    a <span class="ot">&lt;-</span> popInt</a>
+<a class="sourceLine" id="cb29-23" title="23">    <span class="kw">let</span> d <span class="fu">=</span> <span class="kw">if</span> a <span class="fu">==</span> <span class="dv">0</span> <span class="kw">then</span> n <span class="kw">else</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb29-24" title="24">    iptr <span class="fu">+=</span> d</a>
+<a class="sourceLine" id="cb29-25" title="25">interpret (<span class="dt">Sec</span> <span class="dt">LB</span>) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb29-26" title="26">    a <span class="ot">&lt;-</span> use areg</a>
+<a class="sourceLine" id="cb29-27" title="27">    a' <span class="ot">&lt;-</span> <span class="fu">fromIntegral</span> <span class="fu">&lt;$&gt;</span> use (memByte a)</a>
+<a class="sourceLine" id="cb29-28" title="28">    areg <span class="fu">.=</span> a'</a>
+<a class="sourceLine" id="cb29-29" title="29">interpret (<span class="dt">Pri</span> <span class="dt">STNL</span> n) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb29-30" title="30">    a <span class="ot">&lt;-</span> popInt</a>
+<a class="sourceLine" id="cb29-31" title="31">    b <span class="ot">&lt;-</span> popInt</a>
+<a class="sourceLine" id="cb29-32" title="32">    memWord (a <span class="fu">@@</span> n) <span class="fu">.=</span> b</a>
+<a class="sourceLine" id="cb29-33" title="33">interpret (<span class="dt">Pri</span> <span class="dt">LDNL</span> n) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb29-34" title="34">    a <span class="ot">&lt;-</span> use areg</a>
+<a class="sourceLine" id="cb29-35" title="35">    a' <span class="ot">&lt;-</span> use <span class="fu">$</span> memWord <span class="fu">$</span> a <span class="fu">@@</span> n</a>
+<a class="sourceLine" id="cb29-36" title="36">    areg <span class="fu">.=</span> a'</a></code></pre></div>
+<p>Call and return instructions use the workspace to pass arguments.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb30-1" title="1">interpret (<span class="dt">Pri</span> <span class="dt">CALL</span> n) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb30-2" title="2">    (a, b, c) <span class="ot">&lt;-</span> popAll</a>
+<a class="sourceLine" id="cb30-3" title="3">    pushWorkspace c</a>
+<a class="sourceLine" id="cb30-4" title="4">    pushWorkspace b</a>
+<a class="sourceLine" id="cb30-5" title="5">    pushWorkspace a</a>
+<a class="sourceLine" id="cb30-6" title="6">    ip <span class="ot">&lt;-</span> use iptr</a>
+<a class="sourceLine" id="cb30-7" title="7">    pushWorkspace ip</a>
+<a class="sourceLine" id="cb30-8" title="8">    areg <span class="fu">.=</span> ip</a>
+<a class="sourceLine" id="cb30-9" title="9">    iptr <span class="fu">+=</span> n</a>
+<a class="sourceLine" id="cb30-10" title="10">interpret (<span class="dt">Sec</span> <span class="dt">RET</span>) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb30-11" title="11">    newIp <span class="ot">&lt;-</span> popWorkspace</a>
+<a class="sourceLine" id="cb30-12" title="12">    _ <span class="ot">&lt;-</span> popWorkspace</a>
+<a class="sourceLine" id="cb30-13" title="13">    _ <span class="ot">&lt;-</span> popWorkspace</a>
+<a class="sourceLine" id="cb30-14" title="14">    _ <span class="ot">&lt;-</span> popWorkspace</a>
+<a class="sourceLine" id="cb30-15" title="15">    iptr <span class="fu">.=</span> newIp</a></code></pre></div>
+<p>To perform I/O, the calling transputer needs to supply three things in the int stack:</p>
+<ul>
+<li>the number of bytes to transfer;</li>
+<li>a pointer to a channel;</li>
+<li>where to read or write the message.</li>
+</ul>
+<p>The channel itself is abstracted in the transputer’s channel maps. Most reads succeed; however the first transputer’s channel 0 will read directly from a file, so it will reach end of file at some time. We can detect that when an empty list is read, and exit the process.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb31-1" title="1">interpret (<span class="dt">Sec</span> <span class="dt">OUT</span>) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb31-2" title="2">    (len, pChan, pMsg) <span class="ot">&lt;-</span> popAll</a>
+<a class="sourceLine" id="cb31-3" title="3">    message <span class="ot">&lt;-</span> use <span class="fu">$</span> mem8s pMsg len</a>
+<a class="sourceLine" id="cb31-4" title="4">    chan <span class="ot">&lt;-</span> asks <span class="fu">$</span> getOChan pChan</a>
+<a class="sourceLine" id="cb31-5" title="5">    writeToOChan chan message</a>
+<a class="sourceLine" id="cb31-6" title="6">interpret (<span class="dt">Sec</span> <span class="dt">IN</span>) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb31-7" title="7">    (len, pChan, pMsg) <span class="ot">&lt;-</span> popAll</a>
+<a class="sourceLine" id="cb31-8" title="8">    chan <span class="ot">&lt;-</span> asks <span class="fu">$</span> getIChan pChan</a>
+<a class="sourceLine" id="cb31-9" title="9">    input <span class="ot">&lt;-</span> readFromIChan chan len</a>
+<a class="sourceLine" id="cb31-10" title="10">    when (<span class="fu">null</span> input) <span class="fu">$</span> liftIO exitSuccess</a>
+<a class="sourceLine" id="cb31-11" title="11">    mem8s pMsg (<span class="fu">fromIntegral</span> <span class="fu">$</span> <span class="fu">length</span> input) <span class="fu">.=</span> input</a></code></pre></div>
+<p>The core of the interpreter is then very simple:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb32-1" title="1"><span class="ot">evalLoop ::</span> <span class="dt">Eval</span> ()</a>
+<a class="sourceLine" id="cb32-2" title="2">evalLoop <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb32-3" title="3">    i <span class="ot">&lt;-</span> decodeInstr</a>
+<a class="sourceLine" id="cb32-4" title="4">    interpret i</a>
+<a class="sourceLine" id="cb32-5" title="5">    evalLoop</a></code></pre></div>
+<h2 id="boot-from-link">Boot from link</h2>
+<p>Several things are missing: the memory map, and how the system boots.</p>
+<p>It turns out that the ST20 has a very simple boot protocol:</p>
+<ul>
+<li>read 1 byte from port 0, call it <code>n</code></li>
+<li>read <code>n</code> bytes from port 0</li>
+<li>store those at <code>memStart</code></li>
+<li>set the workspace just after this memory chunk</li>
+<li>jump to <code>memStart</code></li>
+</ul>
+<div class="sourceCode" id="cb33"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb33-1" title="1"><span class="ot">bootSeq ::</span> <span class="dt">Eval</span> ()</a>
+<a class="sourceLine" id="cb33-2" title="2">bootSeq <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb33-3" title="3">    chan <span class="ot">&lt;-</span> asks <span class="fu">$</span> getIChan <span class="fu">$</span> iPin <span class="dv">0</span></a>
+<a class="sourceLine" id="cb33-4" title="4">    len <span class="ot">&lt;-</span> <span class="fu">head</span> <span class="fu">&lt;$&gt;</span> readFromIChan chan <span class="dv">1</span></a>
+<a class="sourceLine" id="cb33-5" title="5">    prog <span class="ot">&lt;-</span> readFromIChan chan <span class="fu">$</span> <span class="fu">fromIntegral</span> len</a>
+<a class="sourceLine" id="cb33-6" title="6">    mem8s memStart (<span class="fu">fromIntegral</span> <span class="fu">$</span> <span class="fu">length</span> prog) <span class="fu">.=</span> prog</a>
+<a class="sourceLine" id="cb33-7" title="7">    wptr <span class="fu">.=</span> memStart <span class="fu">+</span> <span class="fu">fromIntegral</span> len</a></code></pre></div>
+<p>There’s some flexibility on <code>memStart</code>, but this value works:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb34-1" title="1"><span class="ot">memStart ::</span> <span class="dt">Address</span></a>
+<a class="sourceLine" id="cb34-2" title="2">memStart <span class="fu">=</span> <span class="bn">0x80000100</span></a></code></pre></div>
+<p>Pin numbers, however, are mapped to fixed address:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb35-1" title="1"><span class="ot">iPin ::</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb35-2" title="2">iPin n <span class="fu">=</span> <span class="bn">0x80000010</span> <span class="fu">@@</span> n</a>
+<a class="sourceLine" id="cb35-3" title="3"></a>
+<a class="sourceLine" id="cb35-4" title="4"><span class="ot">oPin ::</span> <span class="dt">Int32</span> <span class="ot">-&gt;</span> <span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb35-5" title="5">oPin n <span class="fu">=</span> <span class="bn">0x80000000</span> <span class="fu">@@</span> n</a></code></pre></div>
+<p>We decide to initialize the memory with zeroes:</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb36-1" title="1"><span class="ot">initialMem ::</span> <span class="dt">Mem</span></a>
+<a class="sourceLine" id="cb36-2" title="2">initialMem <span class="fu">=</span></a>
+<a class="sourceLine" id="cb36-3" title="3">    M.fromList <span class="fu">$</span> <span class="fu">zip</span> [<span class="bn">0x80000000</span> <span class="fu">..</span> memEnd] <span class="fu">$</span> <span class="fu">repeat</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb36-4" title="4">        <span class="kw">where</span></a>
+<a class="sourceLine" id="cb36-5" title="5">            memSize <span class="fu">=</span> <span class="bn">0x4000</span></a>
+<a class="sourceLine" id="cb36-6" title="6">            memEnd <span class="fu">=</span> memStart <span class="fu">+</span> memSize <span class="fu">-</span> <span class="dv">1</span></a></code></pre></div>
+<p>Booting a transputer is then just a matter of reading from the correct channel and doing the rest of the evaluation loop.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb37-1" title="1"><span class="ot">transputer ::</span> <span class="dt">Maybe</span> <span class="dt">Analysis</span></a>
+<a class="sourceLine" id="cb37-2" title="2">           <span class="ot">-&gt;</span> [((<span class="dt">Int32</span>, <span class="dt">IChannel</span>), (<span class="dt">Int32</span>, <span class="dt">OChannel</span>))]</a>
+<a class="sourceLine" id="cb37-3" title="3">           <span class="ot">-&gt;</span> <span class="dt">IO</span> (<span class="dt">MVar</span> ())</a>
+<a class="sourceLine" id="cb37-4" title="4">transputer analysis cmap <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb37-5" title="5">    <span class="kw">let</span> (imap, omap) <span class="fu">=</span> <span class="fu">unzip</span> cmap</a>
+<a class="sourceLine" id="cb37-6" title="6">    fork <span class="fu">$</span> runEval initialMem imap omap <span class="fu">$</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb37-7" title="7">        bootSeq</a>
+<a class="sourceLine" id="cb37-8" title="8">        runAnalysis analysis</a>
+<a class="sourceLine" id="cb37-9" title="9">        evalLoop</a></code></pre></div>
+<h2 id="multithreading-boilerplate">Multithreading boilerplate</h2>
+<p>If you fork threads and don’t wait for them, nothing will happen since the main thread will just exit. The solution is to create a “control” <code>MVar</code> that will be signalled to by each thread:</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb38-1" title="1"><span class="ot">fork ::</span> <span class="dt">IO</span> () <span class="ot">-&gt;</span> <span class="dt">IO</span> (<span class="dt">MVar</span> ())</a>
+<a class="sourceLine" id="cb38-2" title="2">fork io <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb38-3" title="3">    mvar <span class="ot">&lt;-</span> newEmptyMVar</a>
+<a class="sourceLine" id="cb38-4" title="4">    _ <span class="ot">&lt;-</span> forkFinally io <span class="fu">$</span> \ _ <span class="ot">-&gt;</span> putMVar mvar ()</a>
+<a class="sourceLine" id="cb38-5" title="5">    <span class="fu">return</span> mvar</a></code></pre></div>
+<p>And to wait for all of them:</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb39-1" title="1"><span class="ot">runAll ::</span> [<span class="dt">IO</span> (<span class="dt">MVar</span> ())] <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</a>
+<a class="sourceLine" id="cb39-2" title="2">runAll ms <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb39-3" title="3">    threads <span class="ot">&lt;-</span> <span class="fu">sequence</span> ms</a>
+<a class="sourceLine" id="cb39-4" title="4">    <span class="fu">mapM_</span> takeMVar threads</a></code></pre></div>
+<h2 id="connecting-the-lines">Connecting the lines</h2>
+<p>For this problem we have 13 transputers.</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb40-1" title="1"><span class="kw">data</span> <span class="dt">TransputerName</span> <span class="fu">=</span> <span class="dt">T00</span> <span class="fu">|</span> <span class="dt">T01</span> <span class="fu">|</span> <span class="dt">T02</span> <span class="fu">|</span> <span class="dt">T03</span></a>
+<a class="sourceLine" id="cb40-2" title="2">                    <span class="fu">|</span> <span class="dt">T04</span> <span class="fu">|</span> <span class="dt">T05</span> <span class="fu">|</span> <span class="dt">T06</span> <span class="fu">|</span> <span class="dt">T07</span></a>
+<a class="sourceLine" id="cb40-3" title="3">                    <span class="fu">|</span> <span class="dt">T08</span> <span class="fu">|</span> <span class="dt">T09</span> <span class="fu">|</span> <span class="dt">T10</span> <span class="fu">|</span> <span class="dt">T11</span></a>
+<a class="sourceLine" id="cb40-4" title="4">                    <span class="fu">|</span> <span class="dt">T12</span></a>
+<a class="sourceLine" id="cb40-5" title="5">  <span class="kw">deriving</span> (<span class="dt">Enum</span>, <span class="dt">Eq</span>)</a></code></pre></div>
+<p>We devise a way to connect them together. The communication between two transputers is bidirectional, so we need two channels. Each of them is converted to an <code>OChannel</code> on one side and an <code>IChannel</code> on the other one.</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb41-1" title="1"><span class="ot">connect ::</span> <span class="dt">TransputerName</span> <span class="ot">-&gt;</span> <span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb41-2" title="2">        <span class="ot">-&gt;</span> <span class="dt">TransputerName</span> <span class="ot">-&gt;</span> <span class="dt">Int32</span></a>
+<a class="sourceLine" id="cb41-3" title="3">        <span class="ot">-&gt;</span> <span class="dt">IO</span> [(<span class="dt">TransputerName</span>, <span class="dt">Int32</span>, <span class="dt">OChannel</span>, <span class="dt">IChannel</span>)]</a>
+<a class="sourceLine" id="cb41-4" title="4">connect src srcPort dst dstPort <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb41-5" title="5">  x <span class="ot">&lt;-</span> newChan</a>
+<a class="sourceLine" id="cb41-6" title="6">  y <span class="ot">&lt;-</span> newChan</a>
+<a class="sourceLine" id="cb41-7" title="7">  <span class="fu">return</span> [ (src, srcPort, <span class="dt">OutChan</span> x, <span class="dt">InChan</span> y)</a>
+<a class="sourceLine" id="cb41-8" title="8">         , (dst, dstPort, <span class="dt">OutChan</span> y, <span class="dt">InChan</span> x)</a>
+<a class="sourceLine" id="cb41-9" title="9">         ]</a></code></pre></div>
+<p>Booting them is a matter of creating the correct communication channels (this pinout list comes from a schematic that was present in the challenge files).</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb42-1" title="1"><span class="ot">main ::</span> <span class="dt">IO</span> ()</a>
+<a class="sourceLine" id="cb42-2" title="2">main <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb42-3" title="3">    pins <span class="ot">&lt;-</span> <span class="fu">concat</span> <span class="fu">&lt;$&gt;</span> <span class="fu">sequence</span></a>
+<a class="sourceLine" id="cb42-4" title="4">        [ connect <span class="dt">T00</span> <span class="dv">1</span> <span class="dt">T01</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb42-5" title="5">        , connect <span class="dt">T00</span> <span class="dv">2</span> <span class="dt">T02</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb42-6" title="6">        , connect <span class="dt">T00</span> <span class="dv">3</span> <span class="dt">T03</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb42-7" title="7">        , connect <span class="dt">T01</span> <span class="dv">1</span> <span class="dt">T04</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb42-8" title="8">        , connect <span class="dt">T01</span> <span class="dv">2</span> <span class="dt">T05</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb42-9" title="9">        , connect <span class="dt">T01</span> <span class="dv">3</span> <span class="dt">T06</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb42-10" title="10">        , connect <span class="dt">T02</span> <span class="dv">1</span> <span class="dt">T07</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb42-11" title="11">        , connect <span class="dt">T02</span> <span class="dv">2</span> <span class="dt">T08</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb42-12" title="12">        , connect <span class="dt">T02</span> <span class="dv">3</span> <span class="dt">T09</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb42-13" title="13">        , connect <span class="dt">T03</span> <span class="dv">1</span> <span class="dt">T10</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb42-14" title="14">        , connect <span class="dt">T03</span> <span class="dv">2</span> <span class="dt">T11</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb42-15" title="15">        , connect <span class="dt">T03</span> <span class="dv">3</span> <span class="dt">T12</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb42-16" title="16">        , connect <span class="dt">T11</span> <span class="dv">1</span> <span class="dt">T12</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb42-17" title="17">        ]</a>
+<a class="sourceLine" id="cb42-18" title="18">    runAll <span class="fu">$</span> <span class="fu">map</span> (buildTransputer pins) [<span class="dt">T00</span> <span class="fu">..</span>]</a>
+<a class="sourceLine" id="cb42-19" title="19">        <span class="kw">where</span></a>
+<a class="sourceLine" id="cb42-20" title="20">            buildTransputer pins t <span class="fu">=</span></a>
+<a class="sourceLine" id="cb42-21" title="21">                transputer (isDebug t) <span class="fu">$</span> onlyFor t pins <span class="fu">++</span> extraPins t</a>
+<a class="sourceLine" id="cb42-22" title="22">            pin n ochan ichan <span class="fu">=</span> ((iPin n, ichan), (oPin n, ochan))</a>
+<a class="sourceLine" id="cb42-23" title="23">            onlyFor src l <span class="fu">=</span> [pin p oc ic <span class="fu">|</span> (name, p, oc, ic) <span class="ot">&lt;-</span> l, name <span class="fu">==</span> src]</a>
+<a class="sourceLine" id="cb42-24" title="24">            extraPins <span class="dt">T00</span> <span class="fu">=</span> [((iPin <span class="dv">0</span>, <span class="dt">InHandle</span> stdin), (oPin <span class="dv">0</span>, <span class="dt">OutHandle</span> stdout))]</a>
+<a class="sourceLine" id="cb42-25" title="25">            extraPins _ <span class="fu">=</span> []</a></code></pre></div>
+<h2 id="bonus-static-analysis-tools">Bonus: static analysis tools</h2>
+<p>The above <code>transputer</code> function is controlled by the following configuration:</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb43-1" title="1"><span class="kw">data</span> <span class="dt">Analysis</span> <span class="fu">=</span> <span class="dt">Graph</span> <span class="fu">|</span> <span class="dt">Disasm</span></a>
+<a class="sourceLine" id="cb43-2" title="2"></a>
+<a class="sourceLine" id="cb43-3" title="3"><span class="ot">isDebug ::</span> <span class="dt">TransputerName</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Analysis</span></a>
+<a class="sourceLine" id="cb43-4" title="4">isDebug _ <span class="fu">=</span> <span class="dt">Nothing</span></a></code></pre></div>
+<p>It means that for each transputer, we can choose to print a graph or a disassembly of the code that will be executed. To do that, we will first compute the set of all edges in the control flow graph.</p>
+<p>This analysis relies on a <code>nextInstr</code> function that statically computes the set of next instructions. These can be reached either because it’s the next one in the instruction flow (<code>DSeq</code>), because of jump (<code>DJmp</code>), or an unknown destination, for example after a <code>RET</code> (<code>DDyn</code>).</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb44-1" title="1"><span class="kw">data</span> <span class="dt">Dest</span> <span class="fu">=</span> <span class="dt">DSeq</span> <span class="dt">Address</span></a>
+<a class="sourceLine" id="cb44-2" title="2">          <span class="fu">|</span> <span class="dt">DJmp</span> <span class="dt">Address</span></a>
+<a class="sourceLine" id="cb44-3" title="3">          <span class="fu">|</span> <span class="dt">DDyn</span></a>
+<a class="sourceLine" id="cb44-4" title="4">    <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Ord</span>)</a>
+<a class="sourceLine" id="cb44-5" title="5"></a>
+<a class="sourceLine" id="cb44-6" title="6"><span class="ot">nextInstrs ::</span> <span class="dt">Instr</span> <span class="ot">-&gt;</span> [<span class="dt">Dest</span>]</a>
+<a class="sourceLine" id="cb44-7" title="7">nextInstrs (<span class="dt">Pri</span> <span class="dt">CJ</span> n) <span class="fu">=</span> [<span class="dt">DSeq</span> <span class="dv">0</span>, <span class="dt">DJmp</span> n]</a>
+<a class="sourceLine" id="cb44-8" title="8">nextInstrs (<span class="dt">Pri</span> <span class="dt">J</span> n) <span class="fu">=</span> [<span class="dt">DJmp</span> n]</a>
+<a class="sourceLine" id="cb44-9" title="9">nextInstrs (<span class="dt">Pri</span> <span class="dt">CALL</span> n) <span class="fu">=</span> [<span class="dt">DSeq</span> <span class="dv">0</span>, <span class="dt">DJmp</span> n]</a>
+<a class="sourceLine" id="cb44-10" title="10">nextInstrs (<span class="dt">Sec</span> <span class="dt">GCALL</span>) <span class="fu">=</span> [<span class="dt">DDyn</span>]</a>
+<a class="sourceLine" id="cb44-11" title="11">nextInstrs (<span class="dt">Sec</span> <span class="dt">RET</span>) <span class="fu">=</span> [<span class="dt">DDyn</span>]</a>
+<a class="sourceLine" id="cb44-12" title="12">nextInstrs _ <span class="fu">=</span> [<span class="dt">DSeq</span> <span class="dv">0</span>]</a></code></pre></div>
+<p>We can wrap this function in a monadic one that can turn these relative addresses into absolute ones (since it can know the addresses of functions).</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb45-1" title="1"><span class="kw">type</span> <span class="dt">EdgeSet</span> <span class="fu">=</span> <span class="dt">S.Set</span> (<span class="dt">Address</span>, <span class="dt">Instr</span>, <span class="dt">Dest</span>)</a>
+<a class="sourceLine" id="cb45-2" title="2"></a>
+<a class="sourceLine" id="cb45-3" title="3"><span class="ot">instrDests ::</span> <span class="dt">Address</span> <span class="ot">-&gt;</span> <span class="dt">Eval</span> <span class="dt">EdgeSet</span></a>
+<a class="sourceLine" id="cb45-4" title="4">instrDests start <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb45-5" title="5">    iptr <span class="fu">.=</span> start</a>
+<a class="sourceLine" id="cb45-6" title="6">    i <span class="ot">&lt;-</span> decodeInstr</a>
+<a class="sourceLine" id="cb45-7" title="7">    <span class="kw">let</span> deltaips <span class="fu">=</span> nextInstrs i</a>
+<a class="sourceLine" id="cb45-8" title="8">    new <span class="ot">&lt;-</span> use iptr</a>
+<a class="sourceLine" id="cb45-9" title="9">    <span class="fu">return</span> <span class="fu">$</span> S.fromList <span class="fu">$</span> <span class="fu">map</span> (\ d <span class="ot">-&gt;</span> (start, i, adjust new d)) deltaips</a>
+<a class="sourceLine" id="cb45-10" title="10">        <span class="kw">where</span></a>
+<a class="sourceLine" id="cb45-11" title="11">            adjust n (<span class="dt">DSeq</span> d) <span class="fu">=</span> <span class="dt">DSeq</span> <span class="fu">$</span> n <span class="fu">+</span> d</a>
+<a class="sourceLine" id="cb45-12" title="12">            adjust n (<span class="dt">DJmp</span> d) <span class="fu">=</span> <span class="dt">DJmp</span> <span class="fu">$</span> n <span class="fu">+</span> d</a>
+<a class="sourceLine" id="cb45-13" title="13">            adjust _ <span class="dt">DDyn</span> <span class="fu">=</span> <span class="dt">DDyn</span></a></code></pre></div>
+<p>Then, the algorithm consists in computing the fixpoint of the following iterating function:</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb46-1" title="1"><span class="ot">step ::</span> <span class="dt">EdgeSet</span> <span class="ot">-&gt;</span> <span class="dt">Eval</span> <span class="dt">EdgeSet</span></a>
+<a class="sourceLine" id="cb46-2" title="2">step s <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb46-3" title="3">    xs <span class="ot">&lt;-</span> <span class="fu">mapM</span> (basicBlockM <span class="fu">.</span> getDest) <span class="fu">$</span> S.toList s</a>
+<a class="sourceLine" id="cb46-4" title="4">    <span class="fu">return</span> <span class="fu">$</span> S.union s <span class="fu">$</span> S.unions xs</a>
+<a class="sourceLine" id="cb46-5" title="5">        <span class="kw">where</span></a>
+<a class="sourceLine" id="cb46-6" title="6">            getDest (_, _, <span class="dt">DSeq</span> a) <span class="fu">=</span> <span class="dt">Just</span> a</a>
+<a class="sourceLine" id="cb46-7" title="7">            getDest (_, _, <span class="dt">DJmp</span> a) <span class="fu">=</span> <span class="dt">Just</span> a</a>
+<a class="sourceLine" id="cb46-8" title="8">            getDest (_, _, <span class="dt">DDyn</span>) <span class="fu">=</span> <span class="dt">Nothing</span></a>
+<a class="sourceLine" id="cb46-9" title="9">            basicBlockM (<span class="dt">Just</span> a) <span class="fu">=</span> instrDests a</a>
+<a class="sourceLine" id="cb46-10" title="10">            basicBlockM <span class="dt">Nothing</span> <span class="fu">=</span> <span class="fu">return</span> S.empty</a></code></pre></div>
+<p>The fixpoint itself is computed using the following function, which takes a predicate on two <code>EdgeSet</code>s to stop the iteration.</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb47-1" title="1"><span class="ot">stepUntil ::</span> ((<span class="dt">EdgeSet</span>, <span class="dt">EdgeSet</span>) <span class="ot">-&gt;</span> <span class="dt">Bool</span>) <span class="ot">-&gt;</span> (<span class="dt">EdgeSet</span>, <span class="dt">EdgeSet</span>) <span class="ot">-&gt;</span> <span class="dt">Eval</span> <span class="dt">EdgeSet</span></a>
+<a class="sourceLine" id="cb47-2" title="2">stepUntil p (a, b) <span class="fu">|</span> p (a, b) <span class="fu">=</span> <span class="fu">return</span> b</a>
+<a class="sourceLine" id="cb47-3" title="3">stepUntil p (_, b) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb47-4" title="4">    c <span class="ot">&lt;-</span> step b</a>
+<a class="sourceLine" id="cb47-5" title="5">    stepUntil p (b, c)</a></code></pre></div>
+<p>We’ll stop when their size is equal.</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb48-1" title="1"><span class="ot">runAnalysis ::</span> <span class="dt">Maybe</span> <span class="dt">Analysis</span> <span class="ot">-&gt;</span> <span class="dt">Eval</span> ()</a>
+<a class="sourceLine" id="cb48-2" title="2">runAnalysis <span class="dt">Nothing</span> <span class="fu">=</span> <span class="fu">return</span> ()</a>
+<a class="sourceLine" id="cb48-3" title="3">runAnalysis (<span class="dt">Just</span> analysis) <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb48-4" title="4">    s0 <span class="ot">&lt;-</span> instrDests memStart</a>
+<a class="sourceLine" id="cb48-5" title="5">    <span class="kw">let</span> p (a, b) <span class="fu">=</span> S.size a <span class="fu">==</span> S.size b</a>
+<a class="sourceLine" id="cb48-6" title="6">    r <span class="ot">&lt;-</span> stepUntil p (S.empty, s0)</a>
+<a class="sourceLine" id="cb48-7" title="7">    liftIO <span class="fu">$</span> <span class="fu">putStrLn</span> <span class="fu">$</span> convert analysis r</a>
+<a class="sourceLine" id="cb48-8" title="8">    iptr <span class="fu">.=</span> memStart</a></code></pre></div>
+<p>Finally, here is how to convert the <code>EdgeSet</code>s in a human-readable form.</p>
+<div class="sourceCode" id="cb49"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb49-1" title="1"><span class="ot">convert ::</span> <span class="dt">Analysis</span> <span class="ot">-&gt;</span> <span class="dt">EdgeSet</span> <span class="ot">-&gt;</span> <span class="dt">String</span></a>
+<a class="sourceLine" id="cb49-2" title="2">convert <span class="dt">Graph</span> es <span class="fu">=</span></a>
+<a class="sourceLine" id="cb49-3" title="3">    <span class="st">&quot;digraph G{\n&quot;</span></a>
+<a class="sourceLine" id="cb49-4" title="4">    <span class="fu">++</span> <span class="st">&quot;node[shape=point]\n&quot;</span></a>
+<a class="sourceLine" id="cb49-5" title="5">    <span class="fu">++</span> <span class="fu">concatMap</span> edge (S.toList es)</a>
+<a class="sourceLine" id="cb49-6" title="6">    <span class="fu">++</span> <span class="st">&quot;}&quot;</span></a>
+<a class="sourceLine" id="cb49-7" title="7">        <span class="kw">where</span></a>
+<a class="sourceLine" id="cb49-8" title="8">            edge (x, i, y) <span class="fu">=</span> <span class="fu">show</span> x <span class="fu">++</span> <span class="st">&quot; -&gt; &quot;</span> <span class="fu">++</span> toNode x y <span class="fu">++</span> <span class="st">&quot;[label=\&quot;&quot;</span> <span class="fu">++</span> <span class="fu">show</span> i <span class="fu">++</span> <span class="st">&quot;\&quot;];\n&quot;</span></a>
+<a class="sourceLine" id="cb49-9" title="9">            toNode _ (<span class="dt">DSeq</span> a) <span class="fu">=</span> <span class="fu">show</span> a</a>
+<a class="sourceLine" id="cb49-10" title="10">            toNode _ (<span class="dt">DJmp</span> a) <span class="fu">=</span> <span class="fu">show</span> a</a>
+<a class="sourceLine" id="cb49-11" title="11">            toNode x <span class="dt">DDyn</span> <span class="fu">=</span> <span class="st">&quot;dyn&quot;</span> <span class="fu">++</span> <span class="fu">show</span> x</a>
+<a class="sourceLine" id="cb49-12" title="12">convert <span class="dt">Disasm</span> es <span class="fu">=</span> <span class="fu">concatMap</span> go <span class="fu">$</span> S.toList es</a>
+<a class="sourceLine" id="cb49-13" title="13">    <span class="kw">where</span></a>
+<a class="sourceLine" id="cb49-14" title="14">        go (x, i, <span class="dt">DSeq</span> _) <span class="fu">=</span></a>
+<a class="sourceLine" id="cb49-15" title="15">            printf <span class="st">&quot;%04x %s\n&quot;</span> x (<span class="fu">show</span> i)</a>
+<a class="sourceLine" id="cb49-16" title="16">        go (x, i, <span class="dt">DJmp</span> y) <span class="fu">=</span></a>
+<a class="sourceLine" id="cb49-17" title="17">            printf <span class="st">&quot;%04x %s  [* %04x]\n&quot;</span> x (<span class="fu">show</span> i) y</a>
+<a class="sourceLine" id="cb49-18" title="18">        go (x, i, <span class="dt">DDyn</span>) <span class="fu">=</span></a>
+<a class="sourceLine" id="cb49-19" title="19">            printf <span class="st">&quot;%04x %s  [* dyn]\n&quot;</span> x (<span class="fu">show</span> i)</a></code></pre></div>
+<p>For example here is an extract of the beginning of the first transputer. You can notice instructions with several destinations (conditional jumps) are displayed twice.</p>
+<pre><code>80000100 AJW -76
+80000102 LDC 0
+80000103 STL 1
+80000104 LDC 0
+80000105 STL 3
+80000106 MINT
+80000108 LDNLP 1024
+8000010b GAJW
+8000010d AJW -76
+8000010f LDC 201
+80000111 LDPI
+80000113 MINT
+80000115 LDC 8
+80000116 OUT
+80000117 LDLP 73
+80000119 MINT
+8000011b LDNLP 4
+8000011c LDC 12
+8000011d IN
+8000011e LDL 73
+80000120 CJ 21
+80000120 CJ 21  [* 80000137]
+80000122 LDC 205
+80000124 LDPI</code></pre>
+<p>For the graph output, I assume that you have already seen graphviz output:</p>
+<figure>
+<img src="2015-08-20-a-lens-based-st20-emulator/t03.png" alt="T03 with dot driver" /><figcaption>T03 with dot driver</figcaption>
+</figure>
+<p>The introduction image was done using the same output but an alternative layout engines.</p>
+<p>Hope you enjoyed this article!</p>
+
+
+
+          </div>
+        </div>
+        <div class="footer container">
+            <p>
+                I love feedback! Feel free to catch me on twitter
+                (<a href="https://twitter.com/etiennemillon">@etiennemillon</a>)
+                or drop me mail (me AT emillon DOT org).
+            </p>
+        </div>
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-51676253-1', 'emillon.org');
+          ga('send', 'pageview');
+
+        </script>
+    </body>
+</html>

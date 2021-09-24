@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Enter the void *</title>
+        <link>http://blog.emillon.org</link>
+        <description><![CDATA[Yet another random hacker]]></description>
+        <atom:link href="http://blog.emillon.org/feeds/zsh.xml" rel="self"
+                   type="application/rss+xml" />
+        <lastBuildDate>Tue, 17 Jan 2012 00:00:00 UT</lastBuildDate>
+        <item>
+    <title>ZSH suffix aliases</title>
+    <link>http://blog.emillon.org/posts/2012-01-17-zsh-suffix-aliases.html</link>
+    <description><![CDATA[<p>I recently changed my login shell to use <a href="http://www.zsh.org/">zsh</a> instead of the venerable <a href="http://www.gnu.org/software/bash/">bash</a>. I am still wondering why I didn’t make the change earlier. Zsh’s infamous slowness almost not perceptible, at least with the default configuration.</p>
+<p>One cool feature present in zsh is the notion of <em>suffix alias</em> (described in <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=zshbuiltins&amp;apropos=0&amp;sektion=0&amp;manpath=Debian+7.8+wheezy&amp;format=html&amp;locale=en">zshbuiltins(1)</a>). Quick example :</p>
+<pre><code>$ alias -s pdf=evince
+$ filename.pdf</code></pre>
+<p>… will open filename.pdf under evince, as if <code>evince filename.pdf</code> had been typed. Handy !</p>
+<p>But it is not restricted to files : the command is executed whenever the command line matches a suffix alias. So, for example you can define :</p>
+<pre><code>alias -s git=&#39;git clone&#39;</code></pre>
+<p>… so that everytime you paste a URL ending in <code>git</code>, say <code>git://git.debian.org/git/aptitude/aptitude.git</code>, it will be <code>git-clone</code>d.</p>]]></description>
+    <pubDate>Tue, 17 Jan 2012 00:00:00 UT</pubDate>
+    <guid>http://blog.emillon.org/posts/2012-01-17-zsh-suffix-aliases.html</guid>
+    <dc:creator>Etienne Millon</dc:creator>
+</item>
+
+    </channel>
+</rss>

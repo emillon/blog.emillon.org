@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Enter the void *</title>
+        <link>http://blog.emillon.org</link>
+        <description><![CDATA[Yet another random hacker]]></description>
+        <atom:link href="http://blog.emillon.org/feeds/meta.xml" rel="self"
+                   type="application/rss+xml" />
+        <lastBuildDate>Fri, 11 Nov 2011 00:00:00 UT</lastBuildDate>
+        <item>
+    <title>Hello, world !</title>
+    <link>http://blog.emillon.org/posts/2011-11-11-hello-world.html</link>
+    <description><![CDATA[<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1"><span class="ot">blog ::</span> <span class="dt">IO</span> ()</a>
+<a class="sourceLine" id="cb1-2" title="2">blog <span class="fu">=</span></a>
+<a class="sourceLine" id="cb1-3" title="3">  <span class="fu">putStrLn</span> <span class="st">&quot;Hello, world !&quot;</span></a></code></pre></div>
+<p>This is my first attempt at blogging, I still don’t know what to expect. I will probably write about the following topics :</p>
+<ul>
+<li>Programming, especially using <a href="http://caml.inria.fr/">functional</a> <a href="http://www.haskell.org/">languages</a>.</li>
+<li>Development of the <a href="http://www.debian.org/">Debian</a> operating system.</li>
+<li><a href="http://en.wikipedia.org/wiki/Static_program_analysis">Static analysis</a> of software.</li>
+<li>Computer security.</li>
+</ul>
+<p>Like some of <a href="http://blog.chmd.fr/going-static.html">my</a> <a href="http://nicdumz.fr/blog/2010/12/why-blogofile/">friends</a>, I decided to use a static blog generator. The first series of posts will be about setting this up with <a href="http://jaspervdj.be/hakyll/">hakyll</a>, git and S3. Stay tuned !</p>]]></description>
+    <pubDate>Fri, 11 Nov 2011 00:00:00 UT</pubDate>
+    <guid>http://blog.emillon.org/posts/2011-11-11-hello-world.html</guid>
+    <dc:creator>Etienne Millon</dc:creator>
+</item>
+<item>
+    <title>Hakyll 101</title>
+    <link>http://blog.emillon.org/posts/2011-11-21-hakyll-101.html</link>
+    <description><![CDATA[<p>So, the recent trend seems to be static blogging. Indeed, as a web application, a blog is mostly read-only. By generating static <code>.html</code> files, one can eliminate :</p>
+<ul>
+<li>CPU load : static content is what’s easiest to serve, especially with modern servers using <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=sendfile&amp;sektion=2&amp;apropos=0&amp;manpath=Debian%206.0%20squeeze">sendfile(2)</a>.</li>
+<li>security issues : without dynamic page generation, the attack surface is also vastly reduced. Authentication is moved from a PHP or Python script to the Unix way.</li>
+<li>deployment problems : I don’t know a free host that won’t serve static files. I use <a href="http://aws.amazon.com/s3/">S3</a> (and the free tier will often be enough !) but if I am not satisfied, it’s dead simple to migrate.</li>
+</ul>
+<p>Basically, it’s like moving from a dynamic language to a static one ☺. The only problem is if you want to add comments. The popular solution is <a href="https://disqus.com">Disqus</a> but it is unfortunately a non-free application. I’ll probably stick to it but I fear data lock-in.</p>
+<p>As it is fashionable, a <em>lot</em> of tools have appeared : <a href="https://github.com/ametaireau/pelican/">pelican</a>, <a href="http://blogofile.com/">blogofile</a>, <a href="http://ikiwiki.info/">ikiwiki</a>, <a href="http://jekyllrb.com/">jekyll</a>… Being a haskeller, I decided to give <a href="http://jaspervdj.be/hakyll/">hakyll</a> a try.</p>
+<p>Hakyll is a haskell library for writing and deploying static websites ; that’s about it. As in a dynamic application, you define routes and how to serve them :</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1"><span class="ot">makeCss ::</span> <span class="dt">Rules</span></a>
+<a class="sourceLine" id="cb1-2" title="2">makeCss <span class="fu">=</span></a>
+<a class="sourceLine" id="cb1-3" title="3">  void <span class="fu">$</span> match <span class="st">&quot;css/*&quot;</span> <span class="fu">$</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb1-4" title="4">      route   idRoute</a>
+<a class="sourceLine" id="cb1-5" title="5">      compile compressCssCompiler</a></code></pre></div>
+<p>Most rules consist of compiling <a href="http://daringfireball.net/projects/markdown/">markdown</a> to HTML (with the fantastic <a href="http://johnmacfarlane.net/pandoc/">pandoc</a> library) and copying stuff around.</p>
+<p>The resulting binary, when compiled, can be run to see previews, build files or even deploy the site.</p>
+<pre><code> ~/www/blog [master] % ./blog
+ABOUT
+
+This is a Hakyll site generator program. You should always
+run it from the project root directory.
+
+USAGE
+
+blog build           Generate the site
+blog clean           Clean up and remove cache
+blog help            Show this message
+blog preview [port]  Run a server and autocompile
+blog rebuild         Clean up and build again
+blog server [port]   Run a local test server
+blog deploy          Upload/deploy your site</code></pre>
+<p>So far I’ve found it very easy to use. That’s it for this first mini-tour. Stay tuned !</p>]]></description>
+    <pubDate>Mon, 21 Nov 2011 00:00:00 UT</pubDate>
+    <guid>http://blog.emillon.org/posts/2011-11-21-hakyll-101.html</guid>
+    <dc:creator>Etienne Millon</dc:creator>
+</item>
+
+    </channel>
+</rss>
