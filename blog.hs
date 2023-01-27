@@ -10,8 +10,9 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.Identity
 import Control.Monad.Writer
-import Data.List.Utils
 import Data.Monoid
+import Data.String (fromString)
+import Data.Text (replace, Text)
 import System.FilePath
 
 import Hakyll
@@ -213,7 +214,7 @@ getAssetDirectory :: Compiler FilePath
 getAssetDirectory =
     takeBaseName . toFilePath <$> getUnderlying
 
-replaceThisTarget :: String -> Target -> Target
+replaceThisTarget :: Text -> Target -> Target
 replaceThisTarget s (url, title) = (newUrl, title)
     where
         newUrl = replace "THIS" s url
@@ -221,7 +222,7 @@ replaceThisTarget s (url, title) = (newUrl, title)
 -- replace "THIS" in urls by the current article.
 replaceThis :: Pandoc -> Compiler Pandoc
 replaceThis pdc = do
-    dir <- getAssetDirectory
+    dir <- fromString <$> getAssetDirectory
     return $ walk (replaceThisTarget dir) pdc
 
 walkFromWalkM :: (forall m . (Monad m, Functor m) => (a -> m a) -> b -> m b)

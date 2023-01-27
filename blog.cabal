@@ -19,4 +19,5 @@ executable blog
                     pandoc-types,
                     process,
                     temporary,
+                    text,
                     unix
