@@ -31,15 +31,39 @@
 
 <p>by <em>Etienne Millon</em> on <strong>No date</strong></p>
 
-<p>Tagged as: <a href="../tags/ocaml.html">ocaml</a>.</p>
+<p>Tagged as: <a title="All pages tagged 'ocaml'." href="../tags/ocaml.html">ocaml</a>.</p>
 
-<p>It seems that “functional programming” is the next big thing. We all hear about it, how it will make your programs better and safer, etc. But what is it really?</p>
-<p>The usual definition is that it is a style of programming where you reason in terms of functions and how to compose them to solve problems. In the context of lazy functional programming (Haskell), some even go as far as saying that “everything is a function”. Indeed, declarations such as <code>y = x^2</code> are not evaluated until <code>y</code> is needed, so it is a function… kind of.</p>
-<p>Functions are important, but programs are also made of data. It may even be the most important part. We are bad at reasoning about code, so we prefer rewriting programs to be data-driven. There’s a Linus Torvalds quote that goes:</p>
+<p>It seems that “functional programming” is the next big thing.
+We all hear about it, how it will make your programs better and safer, etc.
+But what is it really?</p>
+<p>The usual definition is that it is a style of programming where you reason
+in terms of functions and how to compose them to solve problems.
+In the context of lazy functional programming (Haskell),
+some even go as far as saying that “everything is a function”.
+Indeed, declarations such as
+<code>y = x^2</code>
+are not evaluated until
+<code>y</code>
+is needed, so it is a function…
+kind of.</p>
+<p>Functions are important, but programs are also made of data.
+It may even be the most important part.
+We are bad at reasoning about code,
+so we prefer rewriting programs to be data-driven.
+There’s a Linus Torvalds quote that goes:</p>
 <blockquote>
-<p>Bad programmers worry about the code. Good programmers worry about data structures and their relationships.</p>
+<p>Bad programmers worry about the code.
+Good programmers worry about data structures and their relationships.</p>
 </blockquote>
-<p>This is where functional programming shines. It blends the distinction between code and data because everything is data. Indeed, a lot of stuff is “first-class”: you can pass it around, put it in data structures, etc. In other words, it is plain data. Functions are first-class data thanks to closures, which make it possible to capture visible variables (without them, it is necessary to pass those variables as extra arguments). Even control flow is data.</p>
+<p>This is where functional programming shines.
+It blends the distinction between code and data because everything is data.
+Indeed, a lot of stuff is “first-class”:
+you can pass it around, put it in data structures, etc.
+In other words, it is plain data.
+Functions are first-class data thanks to closures,
+which make it possible to capture visible variables
+(without them, it is necessary to pass those variables as extra arguments).
+Even control flow is data.</p>
 <p>Functional programming is less about functions than about data.</p>
 
 

@@ -31,43 +31,73 @@
 
 <p>by <em>Etienne Millon</em> on <strong>November 28, 2011</strong></p>
 
-<p>Tagged as: <a href="../tags/linux.html">linux</a>.</p>
+<p>Tagged as: <a title="All pages tagged 'linux'." href="../tags/linux.html">linux</a>.</p>
 
 <h2 id="ebcdic-ascii-the-power-of-legacy">EBCDIC, ASCII &amp; the power of legacy</h2>
 <p>… and no, that’s not a movie title.</p>
-<p>As you know, all your computer knows about is numbers, yet when you type on a keyboard, a character appears on your screen. This is thanks to character encodings.</p>
-<p>There are several norms that defines how characters (ie, glyphs) are encoded into numbers. Besides dinosaurs such as <a href="https://en.wikipedia.org/wiki/EBCDIC">EBCDIC</a>, the “classic” way of encoding is <a href="https://en.wikipedia.org/wiki/ASCII">ASCII</a> – that is what most modern<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> operating systems use internally.</p>
-<p>The problem with ASCII is that it maps every character to a single byte with <a href="https://en.wikipedia.org/wiki/Most_significant_bit">MSB</a> reset, meaning that you can have a maximum of 128 glyphs. It’s “good enough” for English (hey, the A stands for American) but terrible for international characters. This is even worse considering that 32 of them are control characters, ie mostly legacy. Did you ever need to interpret <code>DC2</code>, <code>SI</code> or <code>GS</code> in a program ?</p>
-<p>The eighth bit being “reserved” can be used to support “extended characters”. Several vendors (including Microsoft) used the concept of “code pages” to use extra glyphs in the 128-255 range. For example, Latin-1 was used in western europe to display accentuated characters.</p>
-<p>If all your data comes from one part of the world, it works fine, but with the following limitations if you need to handle international data :</p>
+<p>As you know, all your computer knows about is numbers, yet when you type on a
+keyboard, a character appears on your screen. This is thanks to character
+encodings.</p>
+<p>There are several norms that defines how characters (ie, glyphs) are encoded
+into numbers. Besides dinosaurs such as <a href="https://en.wikipedia.org/wiki/EBCDIC">EBCDIC</a>, the “classic” way of encoding
+is <a href="https://en.wikipedia.org/wiki/ASCII">ASCII</a> – that is what most modern<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> operating systems use internally.</p>
+<p>The problem with ASCII is that it maps every character to a single byte with
+<a href="https://en.wikipedia.org/wiki/Most_significant_bit">MSB</a> reset, meaning that you can have a maximum of 128 glyphs. It’s “good
+enough” for English (hey, the A stands for American) but terrible for
+international characters. This is even worse considering that 32 of them are
+control characters, ie mostly legacy. Did you ever need to interpret <code>DC2</code>, <code>SI</code>
+or <code>GS</code> in a program ?</p>
+<p>The eighth bit being “reserved” can be used to support “extended characters”.
+Several vendors (including Microsoft) used the concept of “code pages” to use
+extra glyphs in the 128-255 range. For example, Latin-1 was used in western
+europe to display accentuated characters.</p>
+<p>If all your data comes from one part of the world, it works fine, but with the
+following limitations if you need to handle international data :</p>
 <ul>
-<li>it becomes necessary to have metadata specifying which codepage has to be used.</li>
+<li>it becomes necessary to have metadata specifying which codepage has to be
+used.</li>
 <li>you have to choose exactly one codepage per document.</li>
 </ul>
-<p>In other words, a more extensible system is needed. Hopefully, this system exists and is called…</p>
+<p>In other words, a more extensible system is needed. Hopefully, this system
+exists and is called…</p>
 <h2 id="unicode">Unicode</h2>
 <p>Unicode separates two notions :</p>
 <ul>
-<li>what is a character. Unicode include a large collection of glyph names. For example, version 6.0 includes 109449 characters.</li>
-<li>how a character is encoded as bytes. More precisely, this is the role of encodings such as <a href="https://en.wikipedia.org/wiki/UTF-8">UTF-8</a>. Usually, they are compatible with ASCII (the byte representation coincides on characters 0-127).</li>
+<li>what is a character. Unicode include a large collection of glyph names.
+For example, version 6.0 includes 109449 characters.</li>
+<li>how a character is encoded as bytes. More precisely, this is the role of
+encodings such as <a href="https://en.wikipedia.org/wiki/UTF-8">UTF-8</a>. Usually, they are compatible with ASCII (the byte
+representation coincides on characters 0-127).</li>
 </ul>
-<p>What’s nice is that it’s easy to enter Unicode under X11. The last two sections explain how you can configure your system to type (for example) √, β and ✈ !</p>
+<p>What’s nice is that it’s easy to enter Unicode under X11. The last two sections
+explain how you can configure your system to type (for example) √, β and ✈ !</p>
 <h2 id="configure-a-compose-key">Configure a compose key</h2>
-<p>A “compose” key, or <code>Multi_key</code> under X11, will begin a character compose sequence. For example, when I type <code>&lt;Multi_key&gt; &lt;s&gt; &lt;q&gt;</code>, a square root (U+221A √) is entered.</p>
-<p>To configure a compose key, you can use <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=xmodmap&amp;sektion=1">xmodmap(1)</a>. Put the following into <code>~/.Xmodmap</code> to make your right control key act as a <code>Multi_key</code> :</p>
+<p>A “compose” key, or <code>Multi_key</code> under X11, will begin a character compose
+sequence. For example, when I type <code>&lt;Multi_key&gt; &lt;s&gt; &lt;q&gt;</code>, a square root
+(U+221A √) is entered.</p>
+<p>To configure a compose key, you can use <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=xmodmap&amp;sektion=1">xmodmap(1)</a>. Put the following into
+<code>~/.Xmodmap</code> to make your right control key act as a <code>Multi_key</code> :</p>
 <pre><code>keysym Control_R = Multi_key</code></pre>
-<p>Unfortunately, this file is not loaded automatically, so you have to run <code>xmodmap ~/.Xmodmap</code> when opening a X session (this can be done automatically if you put in in your <code>~/.xsession</code>, for example).</p>
+<p>Unfortunately, this file is not loaded automatically, so you have to run
+<code>xmodmap ~/.Xmodmap</code> when opening a X session (this can be done automatically if
+you put in in your <code>~/.xsession</code>, for example).</p>
 <h2 id="define-a-.xcompose-mapping">Define a .XCompose mapping</h2>
-<p>The second part is to define mappings between key sequences and unicode codepoints. This is the role of the <code>~/.XCompose</code> file.</p>
+<p>The second part is to define mappings between key sequences and unicode
+codepoints. This is the role of the <code>~/.XCompose</code> file.</p>
 <p>As described in <a href="http://manpages.ubuntu.com/manpages/precise/en/man5/XCompose.5.html">xcompose(5)</a>, a line looks like :</p>
 <pre><code>&lt;Multi_key&gt; &lt;ampersand&gt; &lt;p&gt; &lt;l&gt; &lt;a&gt; &lt;n&gt; &lt;e&gt;     : &quot;✈&quot;   U2708     # AIRPLANE</code></pre>
-<p>ie, a key sequence, a colon, a string and a character name. The comment does not hurt, as usual.</p>
-<p>To start your own list of bindings, I suggest <a href="https://github.com/kragen/xcompose">kragen’s repository</a>, which includes an excellent set. And if you need to find a specific unicode character, the <a href="http://kassiopeia.juls.savba.sk/~garabik/software/unicode/">unicode</a> script is very useful !</p>
+<p>ie, a key sequence, a colon, a string and a character name. The comment does not
+hurt, as usual.</p>
+<p>To start your own list of bindings, I suggest <a href="https://github.com/kragen/xcompose">kragen’s
+repository</a>, which includes an excellent
+set. And if you need to find a specific unicode character, the
+<a href="http://kassiopeia.juls.savba.sk/~garabik/software/unicode/">unicode</a> script is
+very useful !</p>
 <p><strong>TL;DR:</strong> Spread the word, ♥ Unicode ☺</p>
-<section class="footnotes">
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
-<li id="fn1"><p>Yes, that excludes AS/400.<a href="#fnref1" class="footnote-back">↩</a></p></li>
+<li id="fn1"><p>Yes, that excludes AS/400.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 

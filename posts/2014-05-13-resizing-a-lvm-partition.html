@@ -31,24 +31,48 @@
 
 <p>by <em>Etienne Millon</em> on <strong>May 13, 2014</strong></p>
 
-<p>Tagged as: <a href="../tags/linux.html">linux</a>, <a href="../tags/lvm.html">lvm</a>.</p>
+<p>Tagged as: <a title="All pages tagged 'linux'." href="../tags/linux.html">linux</a>, <a title="All pages tagged 'lvm'." href="../tags/lvm.html">lvm</a>.</p>
 
-<p>I like to have <code>/home</code> on a separate partition. But sometimes it can backfire. If the root partition is full, you don’t have a lot of solutions. In particular, I found that debian-installer’s “automatic partitioning” sometimes creates very small root partitions. If you want to install big packages (ghc, eclipse, libreoffice, …), a 16GiB root partition is not enough.</p>
-<p>In the past, filesystems were sitting on directly on top of partitions. It means that it was very difficult to change their size.</p>
-<p>Modern systems (post-1998) can use <a href="http://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)">LVM</a>, which is a layer between filesystems and partitions. One of its advantages is that you can resize logical volumes (a LV is the virtual device node where the filesystem sits) after they have been created.</p>
-<p>To resize the <code>/</code> and <code>/home</code> filesystems, it is necessary to change the change the size of both the filesystems and the LVs. But it is not possible to do it in any order: at any time, the filesystem must be smaller than its LV. So, the correct order of operations is:</p>
+<p>I like to have <code>/home</code> on a separate partition. But sometimes it can backfire.
+If the root partition is full, you don’t have a lot of solutions. In particular,
+I found that debian-installer’s “automatic partitioning” sometimes creates very
+small root partitions. If you want to install big packages (ghc, eclipse,
+libreoffice, …), a 16GiB root partition is not enough.</p>
+<p>In the past, filesystems were sitting on directly on top of partitions. It means
+that it was very difficult to change their size.</p>
+<p>Modern systems (post-1998) can use <a href="http://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)">LVM</a>, which is a layer between filesystems
+and partitions. One of its advantages is that you can resize logical volumes (a
+LV is the virtual device node where the filesystem sits) after they have been
+created.</p>
+<p>To resize the <code>/</code> and <code>/home</code> filesystems, it is necessary to change the change
+the size of both the filesystems and the LVs. But it is not possible to do it in
+any order: at any time, the filesystem must be smaller than its LV. So, the
+correct order of operations is:</p>
 <ul>
 <li>shrink home filesystem</li>
 <li>shrink home LV</li>
 <li>expand root LV</li>
 <li>expand root filesystem</li>
 </ul>
-<p>Wait a second before you start reaching for your favorite live CD: all these operations can be done online. Actually, the two first ones need <code>/home</code> to be unmounted, so it has to be done in single user mode. Online expansion of the root file system is fairly new (it’s from Linux 3.3, 2012) but it works like a charm.</p>
-<p>Manipulating partition and volume sizes are always a bit tricky. Sometimes you have to give sizes in blocks, sometimes in bytes. Sometimes it’s multiples of 1000 and sometimes it’s multiples of 1024. I would not feel comfortable after typing 4 commands with 4 sizes. Fortunately, LVM tools are wonderful and can “talk” to the underlying filesystem (using <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=fsadm&amp;apropos=0&amp;sektion=0&amp;manpath=Debian+8+jessie&amp;format=html&amp;locale=en">fsadm</a>). And LVM knows how much space is free, so it can expand a partition to fill completely the disk (or more precisely the volume group).</p>
-<p>In a nutshell, this complex operation can be done in two commands (in single user mode):</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" title="1"><span class="ex">lvresize</span> -r -L 800G /dev/mapper/machine-home</a>
-<a class="sourceLine" id="cb1-2" title="2"><span class="ex">lvresize</span> -r -l <span class="st">'+100%FREE'</span> /dev/mapper/machine-root</a></code></pre></div>
-<p>The <code>-r</code> switch enables <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=fsadm&amp;apropos=0&amp;sektion=0&amp;manpath=Debian+8+jessie&amp;format=html&amp;locale=en">fsadm</a>. <code>-L</code> indicates the new size in terms of bytes, and <code>-l</code> in terms of LVM units (<code>+100%FREE</code> means: increase by the whole free space, ie fill the volume group).</p>
+<p>Wait a second before you start reaching for your favorite live CD: all these
+operations can be done online. Actually, the two first ones need <code>/home</code> to be
+unmounted, so it has to be done in single user mode. Online expansion of the
+root file system is fairly new (it’s from Linux 3.3, 2012) but it works like a
+charm.</p>
+<p>Manipulating partition and volume sizes are always a bit tricky. Sometimes you
+have to give sizes in blocks, sometimes in bytes. Sometimes it’s multiples of
+1000 and sometimes it’s multiples of 1024. I would not feel comfortable after
+typing 4 commands with 4 sizes. Fortunately, LVM tools are wonderful and can
+“talk” to the underlying filesystem (using <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=fsadm&amp;apropos=0&amp;sektion=0&amp;manpath=Debian+8+jessie&amp;format=html&amp;locale=en">fsadm</a>). And LVM knows how much
+space is free, so it can expand a partition to fill completely the disk (or more
+precisely the volume group).</p>
+<p>In a nutshell, this complex operation can be done in two commands (in single
+user mode):</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">lvresize</span> <span class="at">-r</span> <span class="at">-L</span> 800G /dev/mapper/machine-home</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">lvresize</span> <span class="at">-r</span> <span class="at">-l</span> <span class="st">'+100%FREE'</span> /dev/mapper/machine-root</span></code></pre></div>
+<p>The <code>-r</code> switch enables <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=fsadm&amp;apropos=0&amp;sektion=0&amp;manpath=Debian+8+jessie&amp;format=html&amp;locale=en">fsadm</a>. <code>-L</code> indicates the new size in terms of bytes,
+and <code>-l</code> in terms of LVM units (<code>+100%FREE</code> means: increase by the whole free
+space, ie fill the volume group).</p>
 <p>That was almost too easy!</p>
 
 

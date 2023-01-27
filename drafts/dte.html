@@ -33,74 +33,101 @@
 
 <p>Tagged as: .</p>
 
-<p>I started using console emulator in the 90s. ROMs were small, and emulators were free, so it was a easy way to play games. This had an additional benefit: some people on the internet released fan translations of games that were never released outside of Japan. At that time, I was also interested in playing (in French) games that were not released in Europe. That’s how I could play games like Seiken Densetsu 3 or Chrono Trigger.</p>
-<p>This whole “I will translate a game made years ago for a console” business fascinated me. How do these people do? I dived into this world and I learnt a lot about this process.</p>
-<p>Most people know that computers only manipulate numbers. So, in order to manipulate characters such as ‘H’ or ‘!’ it is somehow necessary to have a way to transform characters to numbers. This is called an encoding. Normal programs use ASCII, where ‘H’ is 72 and ‘!’ is 33. That is just a convention, there is no particular meaning to these numbers. They have a couple nice properties, for example that ‘I’ comes just after ‘H’, as in the alphabet, but that’s not strictly needed (for example in EBCDIC ‘i’ is 137 and ‘j’ is 145).</p>
-<p>Most console games of this period didn’t use ASCII. They used an ad-hoc encoding. The reason of this is that they fonts take a lot of memory. So if your game does not use the character ‘%’, it makes no sense to include its picture, or glyph, in the cartridge. A “good” character encoding would just index the graphic memory, and it makes no sense to include a hole in it. So characters are shifted.</p>
-<p>So, how to find this encoding? It is possible to look for existing strings using the fact that the same character will be translated to the same number. For example, one character says “it is expensive” in the game. This means that in the ROM file there should be a substring of the form “ABCADCEFGEHDAIE”, where the capital letters are unknown, but always the same. Viewed from this angle, this problem is like an elaborate crossword problem.</p>
+<p>I started using console emulator in the 90s. ROMs were small, and emulators were
+free, so it was a easy way to play games. This had an additional benefit: some
+people on the internet released fan translations of games that were never
+released outside of Japan. At that time, I was also interested in playing (in
+French) games that were not released in Europe. That’s how I could play games
+like Seiken Densetsu 3 or Chrono Trigger.</p>
+<p>This whole “I will translate a game made years ago for a console” business
+fascinated me. How do these people do? I dived into this world and I learnt a
+lot about this process.</p>
+<p>Most people know that computers only manipulate numbers. So, in order to
+manipulate characters such as ‘H’ or ‘!’ it is somehow necessary to have a way
+to transform characters to numbers. This is called an encoding. Normal programs
+use ASCII, where ‘H’ is 72 and ‘!’ is 33. That is just a convention, there is no
+particular meaning to these numbers. They have a couple nice properties, for
+example that ‘I’ comes just after ‘H’, as in the alphabet, but that’s not
+strictly needed (for example in EBCDIC ‘i’ is 137 and ‘j’ is 145).</p>
+<p>Most console games of this period didn’t use ASCII. They used an ad-hoc
+encoding. The reason of this is that they fonts take a lot of memory. So if your
+game does not use the character ‘%’, it makes no sense to include its picture,
+or glyph, in the cartridge. A “good” character encoding would just index the
+graphic memory, and it makes no sense to include a hole in it. So characters are
+shifted.</p>
+<p>So, how to find this encoding? It is possible to look for existing strings using
+the fact that the same character will be translated to the same number. For
+example, one character says “it is expensive” in the game. This means that in
+the ROM file there should be a substring of the form “ABCADCEFGEHDAIE”, where
+the capital letters are unknown, but always the same. Viewed from this angle,
+this problem is like an elaborate crossword problem.</p>
 <pre><code>it is expensive
 ABCADCEFGEHDAIE</code></pre>
-<p>This string is a good candidate, because it is quite long (15 characters) but contains relatively few different characters (9). If a candidate string is too small, there will be a lot of matches. If all the characters are different, there will be a lot of matches too because several substitutions are possible at different places in the file.</p>
+<p>This string is a good candidate, because it is quite long (15 characters) but
+contains relatively few different characters (9). If a candidate string is too
+small, there will be a lot of matches. If all the characters are different,
+there will be a lot of matches too because several substitutions are possible at
+different places in the file.</p>
 <p>Let’s write a function that looks for these kind of patterns.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">def</span> sublists(l, n):</a>
-<a class="sourceLine" id="cb2-2" title="2">    <span class="co">&quot;&quot;&quot;</span></a>
-<a class="sourceLine" id="cb2-3" title="3"><span class="co">    Get sublists of length n, with the index they start at.</span></a>
-<a class="sourceLine" id="cb2-4" title="4"></a>
-<a class="sourceLine" id="cb2-5" title="5"><span class="co">    &gt;&gt;&gt; [(i, list(g)) for (i, g) in sublists(range(5), 3)]</span></a>
-<a class="sourceLine" id="cb2-6" title="6"><span class="co">    [(0, [0, 1, 2]), (1, [1, 2, 3]), (2, [2, 3, 4])]</span></a>
-<a class="sourceLine" id="cb2-7" title="7"><span class="co">    &quot;&quot;&quot;</span></a>
-<a class="sourceLine" id="cb2-8" title="8">    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(l) <span class="op">-</span> n <span class="op">+</span> <span class="dv">1</span>):</a>
-<a class="sourceLine" id="cb2-9" title="9">        <span class="cf">yield</span> (i, l[i:i <span class="op">+</span> n])</a>
-<a class="sourceLine" id="cb2-10" title="10"></a>
-<a class="sourceLine" id="cb2-11" title="11"></a>
-<a class="sourceLine" id="cb2-12" title="12"><span class="kw">def</span> unique(d):</a>
-<a class="sourceLine" id="cb2-13" title="13">    <span class="co">&quot;&quot;&quot;</span></a>
-<a class="sourceLine" id="cb2-14" title="14"><span class="co">    Check if a dictionary is invertible.</span></a>
-<a class="sourceLine" id="cb2-15" title="15"></a>
-<a class="sourceLine" id="cb2-16" title="16"><span class="co">    &gt;&gt;&gt; unique({})</span></a>
-<a class="sourceLine" id="cb2-17" title="17"><span class="co">    True</span></a>
-<a class="sourceLine" id="cb2-18" title="18"></a>
-<a class="sourceLine" id="cb2-19" title="19"><span class="co">    &gt;&gt;&gt; unique({'a': 'b', 'c': 'b'})</span></a>
-<a class="sourceLine" id="cb2-20" title="20"><span class="co">    False</span></a>
-<a class="sourceLine" id="cb2-21" title="21"></a>
-<a class="sourceLine" id="cb2-22" title="22"><span class="co">    &gt;&gt;&gt; unique({'a': 'b', 'c': 'd'})</span></a>
-<a class="sourceLine" id="cb2-23" title="23"><span class="co">    True</span></a>
-<a class="sourceLine" id="cb2-24" title="24"><span class="co">    &quot;&quot;&quot;</span></a>
-<a class="sourceLine" id="cb2-25" title="25">    vs <span class="op">=</span> <span class="bu">set</span>(d.values())</a>
-<a class="sourceLine" id="cb2-26" title="26">    <span class="cf">return</span> <span class="bu">len</span>(d) <span class="op">==</span> <span class="bu">len</span>(vs)</a>
-<a class="sourceLine" id="cb2-27" title="27"></a>
-<a class="sourceLine" id="cb2-28" title="28"></a>
-<a class="sourceLine" id="cb2-29" title="29"><span class="kw">def</span> find_all(pattern, f):</a>
-<a class="sourceLine" id="cb2-30" title="30">    <span class="co">&quot;&quot;&quot;</span></a>
-<a class="sourceLine" id="cb2-31" title="31"><span class="co">    &gt;&gt;&gt; find_all('abab', b'</span><span class="ch">\x01\x02\x01\x02\x03\x04\x05\x04\x05</span><span class="co">')</span></a>
-<a class="sourceLine" id="cb2-32" title="32"><span class="co">    [(0, {1: 'a', 2: 'b'}), (5, {4: 'a', 5: 'b'})]</span></a>
-<a class="sourceLine" id="cb2-33" title="33"><span class="co">    &quot;&quot;&quot;</span></a>
-<a class="sourceLine" id="cb2-34" title="34">    n <span class="op">=</span> <span class="bu">len</span>(pattern)</a>
-<a class="sourceLine" id="cb2-35" title="35">    candidates <span class="op">=</span> [(i, match(pattern, l)) <span class="cf">for</span> (i, l) <span class="kw">in</span> sublists(f, n)]</a>
-<a class="sourceLine" id="cb2-36" title="36">    <span class="cf">return</span> [(i, c) <span class="cf">for</span> (i, c) <span class="kw">in</span> candidates <span class="cf">if</span> c <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>]</a>
-<a class="sourceLine" id="cb2-37" title="37"></a>
-<a class="sourceLine" id="cb2-38" title="38"></a>
-<a class="sourceLine" id="cb2-39" title="39"><span class="kw">def</span> match(pattern, l):</a>
-<a class="sourceLine" id="cb2-40" title="40">    <span class="co">&quot;&quot;&quot;</span></a>
-<a class="sourceLine" id="cb2-41" title="41"><span class="co">    &gt;&gt;&gt; match('abcd', b'</span><span class="ch">\x01\x02\x03\x04</span><span class="co">')</span></a>
-<a class="sourceLine" id="cb2-42" title="42"><span class="co">    {1: 'a', 2: 'b', 3: 'c', 4: 'd'}</span></a>
-<a class="sourceLine" id="cb2-43" title="43"></a>
-<a class="sourceLine" id="cb2-44" title="44"><span class="co">    &gt;&gt;&gt; match('ttet', b'</span><span class="ch">\x01\x03\x02\x01</span><span class="co">')</span></a>
-<a class="sourceLine" id="cb2-45" title="45"></a>
-<a class="sourceLine" id="cb2-46" title="46"><span class="co">    &gt;&gt;&gt; match('test', b'</span><span class="ch">\x01\x03\x02\x01</span><span class="co">')</span></a>
-<a class="sourceLine" id="cb2-47" title="47"><span class="co">    {1: 't', 2: 's', 3: 'e'}</span></a>
-<a class="sourceLine" id="cb2-48" title="48"><span class="co">    &quot;&quot;&quot;</span></a>
-<a class="sourceLine" id="cb2-49" title="49">    d <span class="op">=</span> {}</a>
-<a class="sourceLine" id="cb2-50" title="50">    <span class="cf">for</span> key, c <span class="kw">in</span> <span class="bu">zip</span>(pattern, l):</a>
-<a class="sourceLine" id="cb2-51" title="51">        in_dict <span class="op">=</span> d.get(c)</a>
-<a class="sourceLine" id="cb2-52" title="52">        <span class="cf">if</span> in_dict <span class="kw">is</span> <span class="va">None</span>:</a>
-<a class="sourceLine" id="cb2-53" title="53">            d[c] <span class="op">=</span> key</a>
-<a class="sourceLine" id="cb2-54" title="54">        <span class="cf">elif</span> in_dict <span class="op">!=</span> key:</a>
-<a class="sourceLine" id="cb2-55" title="55">            <span class="cf">return</span> <span class="va">None</span></a>
-<a class="sourceLine" id="cb2-56" title="56">    <span class="cf">if</span> unique(d):</a>
-<a class="sourceLine" id="cb2-57" title="57">        <span class="cf">return</span> d</a>
-<a class="sourceLine" id="cb2-58" title="58">    <span class="cf">else</span>:</a>
-<a class="sourceLine" id="cb2-59" title="59">        <span class="cf">return</span> <span class="va">None</span></a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sublists(l, n):</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Get sublists of length n, with the index they start at.</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">    &gt;&gt;&gt; [(i, list(g)) for (i, g) in sublists(range(5), 3)]</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">    [(0, [0, 1, 2]), (1, [1, 2, 3]), (2, [2, 3, 4])]</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(l) <span class="op">-</span> n <span class="op">+</span> <span class="dv">1</span>):</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">yield</span> (i, l[i:i <span class="op">+</span> n])</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> unique(d):</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">    Check if a dictionary is invertible.</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">    &gt;&gt;&gt; unique({})</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">    True</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">    &gt;&gt;&gt; unique({'a': 'b', 'c': 'b'})</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co">    False</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="co">    &gt;&gt;&gt; unique({'a': 'b', 'c': 'd'})</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co">    True</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    vs <span class="op">=</span> <span class="bu">set</span>(d.values())</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">len</span>(d) <span class="op">==</span> <span class="bu">len</span>(vs)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> find_all(pattern, f):</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="co">    &gt;&gt;&gt; find_all('abab', b'</span><span class="ch">\x01\x02\x01\x02\x03\x04\x05\x04\x05</span><span class="co">')</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="co">    [(0, {1: 'a', 2: 'b'}), (5, {4: 'a', 5: 'b'})]</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(pattern)</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    candidates <span class="op">=</span> [(i, match(pattern, l)) <span class="cf">for</span> (i, l) <span class="kw">in</span> sublists(f, n)]</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [(i, c) <span class="cf">for</span> (i, c) <span class="kw">in</span> candidates <span class="cf">if</span> c <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>]</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> match(pattern, l):</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="co">    &gt;&gt;&gt; match('abcd', b'</span><span class="ch">\x01\x02\x03\x04</span><span class="co">')</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="co">    {1: 'a', 2: 'b', 3: 'c', 4: 'd'}</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="co">    &gt;&gt;&gt; match('ttet', b'</span><span class="ch">\x01\x03\x02\x01</span><span class="co">')</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="co">    &gt;&gt;&gt; match('test', b'</span><span class="ch">\x01\x03\x02\x01</span><span class="co">')</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="co">    {1: 't', 2: 's', 3: 'e'}</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> {}</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> key, c <span class="kw">in</span> <span class="bu">zip</span>(pattern, l):</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>        in_dict <span class="op">=</span> d.get(c)</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> in_dict <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>            d[c] <span class="op">=</span> key</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> in_dict <span class="op">!=</span> key:</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> unique(d):</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> d</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span></code></pre></div>
 <p>Every time we encounter a character, three things can happen:</p>
 <ul>
 <li>it’s a new character: add it to the dictionary being built</li>
@@ -109,13 +136,19 @@ ABCADCEFGEHDAIE</code></pre>
 </ul>
 <p>This algorithm is not optimal for several reasons:</p>
 <ul>
-<li>first, we generate a list of sublists and iterate on it. This makes the function O(|pattern|.|file|), ie quadratic. Using a variant of Boyer-Moore search, it is possible to reduce this complexity.</li>
-<li>then, we have to check whether the mapping is unique. Instead of a dictionary, we actually would need a bidirectional map, that would by construction always be bijective<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>.</li>
+<li>first, we generate a list of sublists and iterate on it. This makes the
+function O(|pattern|.|file|), ie quadratic. Using a variant of Boyer-Moore
+search, it is possible to reduce this complexity.</li>
+<li>then, we have to check whether the mapping is unique. Instead of a
+dictionary, we actually would need a bidirectional map, that would by
+construction always be bijective<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>.</li>
 </ul>
 <p>Here is the output of the <code>find_all</code> function on the Pilotwings ROM:</p>
 <pre><code>(110989, {98: 's', 99: 't', 68: 'e', 101: 'v', 103: 'x', 72: 'i', 79: 'p', 77:
 'n', 239: ' '})</code></pre>
-<p>That is to say, ‘e’ is encoded as 68, etc. Let’s write another function that applies this encoding in reverse (yep, decoding) to the ROM, and writes a dot when the letter is unknown. Here is the output near our target string:</p>
+<p>That is to say, ‘e’ is encoded as 68, etc. Let’s write another function that
+applies this encoding in reverse (yep, decoding) to the ROM, and writes a dot
+when the letter is unknown. Here is the output near our target string:</p>
 <pre><code>...e ..  .ppe...n.e... neve.         expe.te. ... t. .. s. .e.......            
  ... s..... n.t  ..ve ..ne t.e.e...t see.e. t.    .e ..st . .itt.e.i..i...t....n
 se.ve ..e..  ..n.t ... .n..  it is expensive..... ...ppe. t.. ..st. ....ine   s.
@@ -128,11 +161,16 @@ e .pin t.e .i.. n.t ....in. .n t.e  ....n.......in. is ...e st.i.t .n t.e   .e.t
   0x19780 and 0x1cf00.
 - It seems that the letters are encoded in a sequential fashion, as in
   ASCII.</code></pre>
-<p>So, let’s modify the encoding to add all the letters between ‘i’ (72) and ‘p’ (79). This works well:</p>
+<p>So, let’s modify the encoding to add all the letters between ‘i’ (72) and ‘p’
+(79). This works well:</p>
 <pre><code>19a80 pe..e.tt.e skills ne.ess... .o..o.  to  e..n   .e.ti.i..tion....
 1a400 .in....omplete lesson in .n.e. ....   .o. .. .oints...o... . .in</code></pre>
-<p>However, it can not be continued: the gaps between ‘e’ and ‘i’, or ‘p’ and ‘s’ are too big. Usually this means that in the font, the letters are not in sequence, but rather organized as a matrix.</p>
-<p>The next step is to guess several other letters by completing words. For example, “sk..ivin.” is probably “skydiving”. Then, using a similar technique, we can also find capital letters and arrive at this table:</p>
+<p>However, it can not be continued: the gaps between ‘e’ and ‘i’, or ‘p’ and ‘s’
+are too big. Usually this means that in the font, the letters are not in
+sequence, but rather organized as a matrix.</p>
+<p>The next step is to guess several other letters by completing words. For
+example, “sk..ivin.” is probably “skydiving”. Then, using a similar technique,
+we can also find capital letters and arrive at this table:</p>
 <pre><code>    x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 xA xB xC xD xE xF
 0x   A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P
 1x   Q  R  S  T  U  V  W  X  Y  Z
@@ -150,14 +188,18 @@ Cx
 Dx
 Ex                                               &lt;spc&gt;
 Fx</code></pre>
-<p>It is enough to extract all the text from the game. Interestingly enough, we can also open the ROM (I used Tile Layer Pro, which is unfortunately for Windows) and find the same layout:</p>
+<p>It is enough to extract all the text from the game. Interestingly enough, we can
+also open the ROM (I used Tile Layer Pro, which is unfortunately for Windows)
+and find the same layout:</p>
 <figure>
-<img src="dte/palette.png" alt="TLPPalette" /><figcaption>TLPPalette</figcaption>
+<img src="dte/palette.png" alt="TLPPalette" />
+<figcaption aria-hidden="true">TLPPalette</figcaption>
 </figure>
-<section class="footnotes">
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
-<li id="fn1"><p>This data structure is actually quite deceiving, as it’s merely one map for each direction.<a href="#fnref1" class="footnote-back">↩</a></p></li>
+<li id="fn1"><p>This data structure is actually quite deceiving, as it’s
+merely one map for each direction.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 

@@ -31,24 +31,38 @@
 
 <p>by <em>Etienne Millon</em> on <strong>November 21, 2011</strong></p>
 
-<p>Tagged as: <a href="../tags/meta.html">meta</a>, <a href="../tags/haskell.html">haskell</a>.</p>
+<p>Tagged as: <a title="All pages tagged 'meta'." href="../tags/meta.html">meta</a>, <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>.</p>
 
-<p>So, the recent trend seems to be static blogging. Indeed, as a web application, a blog is mostly read-only. By generating static <code>.html</code> files, one can eliminate :</p>
+<p>So, the recent trend seems to be static blogging. Indeed, as a web application,
+a blog is mostly read-only. By generating static <code>.html</code> files, one can
+eliminate :</p>
 <ul>
-<li>CPU load : static content is what’s easiest to serve, especially with modern servers using <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=sendfile&amp;sektion=2&amp;apropos=0&amp;manpath=Debian%206.0%20squeeze">sendfile(2)</a>.</li>
-<li>security issues : without dynamic page generation, the attack surface is also vastly reduced. Authentication is moved from a PHP or Python script to the Unix way.</li>
-<li>deployment problems : I don’t know a free host that won’t serve static files. I use <a href="http://aws.amazon.com/s3/">S3</a> (and the free tier will often be enough !) but if I am not satisfied, it’s dead simple to migrate.</li>
+<li>CPU load : static content is what’s easiest to serve, especially with modern
+servers using <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=sendfile&amp;sektion=2&amp;apropos=0&amp;manpath=Debian%206.0%20squeeze">sendfile(2)</a>.</li>
+<li>security issues : without dynamic page generation, the attack surface is
+also vastly reduced. Authentication is moved from a PHP or Python script to
+the Unix way.</li>
+<li>deployment problems : I don’t know a free host that won’t serve static
+files. I use <a href="http://aws.amazon.com/s3/">S3</a> (and the free tier will often be enough !) but if I am not
+satisfied, it’s dead simple to migrate.</li>
 </ul>
-<p>Basically, it’s like moving from a dynamic language to a static one ☺. The only problem is if you want to add comments. The popular solution is <a href="https://disqus.com">Disqus</a> but it is unfortunately a non-free application. I’ll probably stick to it but I fear data lock-in.</p>
-<p>As it is fashionable, a <em>lot</em> of tools have appeared : <a href="https://github.com/ametaireau/pelican/">pelican</a>, <a href="http://blogofile.com/">blogofile</a>, <a href="http://ikiwiki.info/">ikiwiki</a>, <a href="http://jekyllrb.com/">jekyll</a>… Being a haskeller, I decided to give <a href="http://jaspervdj.be/hakyll/">hakyll</a> a try.</p>
-<p>Hakyll is a haskell library for writing and deploying static websites ; that’s about it. As in a dynamic application, you define routes and how to serve them :</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1"><span class="ot">makeCss ::</span> <span class="dt">Rules</span></a>
-<a class="sourceLine" id="cb1-2" title="2">makeCss <span class="fu">=</span></a>
-<a class="sourceLine" id="cb1-3" title="3">  void <span class="fu">$</span> match <span class="st">&quot;css/*&quot;</span> <span class="fu">$</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb1-4" title="4">      route   idRoute</a>
-<a class="sourceLine" id="cb1-5" title="5">      compile compressCssCompiler</a></code></pre></div>
-<p>Most rules consist of compiling <a href="http://daringfireball.net/projects/markdown/">markdown</a> to HTML (with the fantastic <a href="http://johnmacfarlane.net/pandoc/">pandoc</a> library) and copying stuff around.</p>
-<p>The resulting binary, when compiled, can be run to see previews, build files or even deploy the site.</p>
+<p>Basically, it’s like moving from a dynamic language to a static one ☺. The only
+problem is if you want to add comments. The popular solution is <a href="https://disqus.com">Disqus</a> but it
+is unfortunately a non-free application. I’ll probably stick to it but I fear
+data lock-in.</p>
+<p>As it is fashionable, a <em>lot</em> of tools have appeared : <a href="https://github.com/ametaireau/pelican/">pelican</a>, <a href="http://blogofile.com/">blogofile</a>,
+<a href="http://ikiwiki.info/">ikiwiki</a>, <a href="http://jekyllrb.com/">jekyll</a>… Being a haskeller, I decided to give <a href="http://jaspervdj.be/hakyll/">hakyll</a> a try.</p>
+<p>Hakyll is a haskell library for writing and deploying static websites ; that’s about
+it. As in a dynamic application, you define routes and how to serve them :</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">makeCss ::</span> <span class="dt">Rules</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>makeCss <span class="ot">=</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  void <span class="op">$</span> match <span class="st">&quot;css/*&quot;</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>      route   idRoute</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>      compile compressCssCompiler</span></code></pre></div>
+<p>Most rules consist of compiling <a href="http://daringfireball.net/projects/markdown/">markdown</a> to HTML (with the fantastic <a href="http://johnmacfarlane.net/pandoc/">pandoc</a>
+library) and copying stuff around.</p>
+<p>The resulting binary, when compiled, can be run to see previews, build files or
+even deploy the site.</p>
 <pre><code> ~/www/blog [master] % ./blog
 ABOUT
 
@@ -64,7 +78,8 @@ blog preview [port]  Run a server and autocompile
 blog rebuild         Clean up and build again
 blog server [port]   Run a local test server
 blog deploy          Upload/deploy your site</code></pre>
-<p>So far I’ve found it very easy to use. That’s it for this first mini-tour. Stay tuned !</p>
+<p>So far I’ve found it very easy to use. That’s it for this first mini-tour. Stay
+tuned !</p>
 
 
 

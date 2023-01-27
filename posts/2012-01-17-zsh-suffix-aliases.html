@@ -31,16 +31,22 @@
 
 <p>by <em>Etienne Millon</em> on <strong>January 17, 2012</strong></p>
 
-<p>Tagged as: <a href="../tags/linux.html">linux</a>, <a href="../tags/zsh.html">zsh</a>.</p>
+<p>Tagged as: <a title="All pages tagged 'linux'." href="../tags/linux.html">linux</a>, <a title="All pages tagged 'zsh'." href="../tags/zsh.html">zsh</a>.</p>
 
-<p>I recently changed my login shell to use <a href="http://www.zsh.org/">zsh</a> instead of the venerable <a href="http://www.gnu.org/software/bash/">bash</a>. I am still wondering why I didn’t make the change earlier. Zsh’s infamous slowness almost not perceptible, at least with the default configuration.</p>
-<p>One cool feature present in zsh is the notion of <em>suffix alias</em> (described in <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=zshbuiltins&amp;apropos=0&amp;sektion=0&amp;manpath=Debian+7.8+wheezy&amp;format=html&amp;locale=en">zshbuiltins(1)</a>). Quick example :</p>
+<p>I recently changed my login shell to use <a href="http://www.zsh.org/">zsh</a> instead of the venerable <a href="http://www.gnu.org/software/bash/">bash</a>.
+I am still wondering why I didn’t make the change earlier. Zsh’s infamous
+slowness almost not perceptible, at least with the default configuration.</p>
+<p>One cool feature present in zsh is the notion of <em>suffix alias</em> (described in
+<a href="http://manpages.debian.org/cgi-bin/man.cgi?query=zshbuiltins&amp;apropos=0&amp;sektion=0&amp;manpath=Debian+7.8+wheezy&amp;format=html&amp;locale=en">zshbuiltins(1)</a>). Quick example :</p>
 <pre><code>$ alias -s pdf=evince
 $ filename.pdf</code></pre>
-<p>… will open filename.pdf under evince, as if <code>evince filename.pdf</code> had been typed. Handy !</p>
-<p>But it is not restricted to files : the command is executed whenever the command line matches a suffix alias. So, for example you can define :</p>
+<p>… will open filename.pdf under evince, as if <code>evince filename.pdf</code> had been
+typed. Handy !</p>
+<p>But it is not restricted to files : the command is executed whenever the command
+line matches a suffix alias. So, for example you can define :</p>
 <pre><code>alias -s git='git clone'</code></pre>
-<p>… so that everytime you paste a URL ending in <code>git</code>, say <code>git://git.debian.org/git/aptitude/aptitude.git</code>, it will be <code>git-clone</code>d.</p>
+<p>… so that everytime you paste a URL ending in <code>git</code>, say
+<code>git://git.debian.org/git/aptitude/aptitude.git</code>, it will be <code>git-clone</code>d.</p>
 
 
 

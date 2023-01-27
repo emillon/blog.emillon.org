@@ -34,16 +34,21 @@
 <p>Tagged as: .</p>
 
 <h2 id="managing-dotfiles">Managing dotfiles</h2>
-<p>As a unix user and programmer, almost all the configuration on my system happens in text files. Text files are great because you can easily read and edit them with your favorite text editor, you can comment them, and you can share them.</p>
-<p>So, pretty much like code ? The next logical step would be to put them in a VCS. However, it turns out that people don’t do it. I guess that the main reasons are:</p>
+<p>As a unix user and programmer, almost all the configuration on my system happens
+in text files. Text files are great because you can easily read and edit them
+with your favorite text editor, you can comment them, and you can share them.</p>
+<p>So, pretty much like code ? The next logical step would be to put them in a VCS.
+However, it turns out that people don’t do it. I guess that the main reasons are:</p>
 <ul>
 <li>it’s too specific to me / my machine.</li>
 <li>it’s a mess.</li>
 <li>putting <code>$HOME</code> under a VCS is too dangerous.</li>
 </ul>
-<p>Well, it turns out that they are good reasons :-) Some solutions have emerged, though.</p>
+<p>Well, it turns out that they are good reasons :-) Some solutions have emerged,
+though.</p>
 <h3 id="home-under-a-vcs">$HOME under a VCS</h3>
-<p>That’s right. A <code>~/.git/</code> directory to manage all your files. This… works but has major pitfalls :</p>
+<p>That’s right. A <code>~/.git/</code> directory to manage all your files. This… works but
+has major pitfalls :</p>
 <ul>
 <li>you have to ignore everything by default.</li>
 <li>everything sits in the same directory.</li>
@@ -53,27 +58,27 @@
 <p>A <code>~/conf/</code> git repository with your real, versionned dotfiles, plus</p>
 <h3 id="n-repositories-and-symlinks">n repositories and symlinks</h3>
 <h2 id="enter-vcsh">Enter vcsh</h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode perl"><code class="sourceCode perl"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">#!/usr/bin/env perl</span></a>
-<a class="sourceLine" id="cb1-2" title="2"><span class="fu">use</span> <span class="kw">strict</span>;</a>
-<a class="sourceLine" id="cb1-3" title="3"><span class="fu">use</span> <span class="kw">warnings</span>;</a>
-<a class="sourceLine" id="cb1-4" title="4"></a>
-<a class="sourceLine" id="cb1-5" title="5"><span class="kw">my</span> <span class="dt">$path</span>;</a>
-<a class="sourceLine" id="cb1-6" title="6"><span class="kw">my</span> <span class="dt">$url</span>;</a>
-<a class="sourceLine" id="cb1-7" title="7"></a>
-<a class="sourceLine" id="cb1-8" title="8"><span class="kw">while</span> (&lt;&gt;) {</a>
-<a class="sourceLine" id="cb1-9" title="9">  <span class="kw">if</span> (<span class="kw">/</span><span class="ch">^</span><span class="ot">\[submodule</span><span class="kw">/</span>) {</a>
-<a class="sourceLine" id="cb1-10" title="10">    <span class="kw">if</span> (<span class="fu">defined</span> <span class="dt">$path</span> <span class="kw">and</span> <span class="fu">defined</span> <span class="dt">$url</span>) {</a>
-<a class="sourceLine" id="cb1-11" title="11">      <span class="fu">print</span> <span class="kw">&quot;</span><span class="st">[\$HOME/</span><span class="dt">$path</span><span class="st">]</span><span class="ch">\n</span><span class="kw">&quot;</span>;</a>
-<a class="sourceLine" id="cb1-12" title="12">      <span class="fu">print</span> <span class="kw">&quot;</span><span class="st">checkout = git clone </span><span class="dt">$url</span><span class="ch">\n</span><span class="kw">&quot;</span>;</a>
-<a class="sourceLine" id="cb1-13" title="13">    }</a>
-<a class="sourceLine" id="cb1-14" title="14">  } <span class="kw">elsif</span> (<span class="kw">/</span><span class="ot">path = </span><span class="ch">(</span><span class="ot">.</span><span class="ch">*)$</span><span class="kw">/</span>) {</a>
-<a class="sourceLine" id="cb1-15" title="15">    <span class="dt">$path</span> = <span class="dt">$1</span>;</a>
-<a class="sourceLine" id="cb1-16" title="16">  } <span class="kw">elsif</span> (<span class="kw">/</span><span class="ot">url = </span><span class="ch">(</span><span class="ot">.</span><span class="ch">*)$</span><span class="kw">/</span>) {</a>
-<a class="sourceLine" id="cb1-17" title="17">    <span class="dt">$url</span> = <span class="dt">$1</span>;</a>
-<a class="sourceLine" id="cb1-18" title="18">  } <span class="kw">else</span> {</a>
-<a class="sourceLine" id="cb1-19" title="19">    <span class="fu">die</span> <span class="kw">&quot;</span><span class="st">Parse error</span><span class="kw">&quot;</span>;</a>
-<a class="sourceLine" id="cb1-20" title="20">  }</a>
-<a class="sourceLine" id="cb1-21" title="21">}</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode perl"><code class="sourceCode perl"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">#!/usr/bin/env perl</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">use</span> <span class="kw">strict</span>;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">use</span> <span class="kw">warnings</span>;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">my</span> <span class="dt">$path</span>;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">my</span> <span class="dt">$url</span>;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">while</span> (&lt;&gt;) {</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">if</span> (<span class="ot">/</span><span class="ch">^</span><span class="ot">\[submodule/</span>) {</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">if</span> (<span class="fu">defined</span> <span class="dt">$path</span> <span class="ot">and</span> <span class="fu">defined</span> <span class="dt">$url</span>) {</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">print</span> <span class="ot">&quot;</span><span class="st">[\$HOME/</span><span class="dt">$path</span><span class="st">]</span><span class="ch">\n</span><span class="ot">&quot;</span>;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">print</span> <span class="ot">&quot;</span><span class="st">checkout = git clone </span><span class="dt">$url</span><span class="ch">\n</span><span class="ot">&quot;</span>;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  } <span class="kw">elsif</span> (<span class="ot">/path = </span><span class="ch">(</span><span class="ot">.</span><span class="ch">*)$</span><span class="ot">/</span>) {</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">$path</span> = <span class="wa">$1</span>;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  } <span class="kw">elsif</span> (<span class="ot">/url = </span><span class="ch">(</span><span class="ot">.</span><span class="ch">*)$</span><span class="ot">/</span>) {</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">$url</span> = <span class="wa">$1</span>;</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  } <span class="kw">else</span> {</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">die</span> <span class="ot">&quot;</span><span class="st">Parse error</span><span class="ot">&quot;</span>;</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <h2 id="vcsh-the-good">vcsh : The good</h2>
 <h2 id="vcsh-the-bad">vcsh : The bad</h2>
 <h2 id="vcsh-the-ugly">vcsh : The ugly</h2>

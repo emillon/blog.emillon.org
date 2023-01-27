@@ -11,43 +11,58 @@
         <item>
     <title>In Python, default values are evaluated at import time</title>
     <link>http://blog.emillon.org/posts/2016-01-12-in-python-default-values-are-evaluated-at-import-time.html</link>
-    <description><![CDATA[<p>This is a minimal example reproducing <a href="https://github.com/Alir3z4/html2text/pull/84">a bug I found in html2text</a>. Suppose we have configuration module, a library that uses the configuration, and a main function.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb1-1" title="1"><span class="co"># config.py</span></a>
-<a class="sourceLine" id="cb1-2" title="2">default <span class="op">=</span> <span class="va">False</span></a>
-<a class="sourceLine" id="cb1-3" title="3"></a>
-<a class="sourceLine" id="cb1-4" title="4"><span class="co"># lib.py</span></a>
-<a class="sourceLine" id="cb1-5" title="5"><span class="im">import</span> config</a>
-<a class="sourceLine" id="cb1-6" title="6"></a>
-<a class="sourceLine" id="cb1-7" title="7"><span class="kw">def</span> f(x<span class="op">=</span>config.default):</a>
-<a class="sourceLine" id="cb1-8" title="8">    <span class="bu">print</span> x</a>
-<a class="sourceLine" id="cb1-9" title="9"></a>
-<a class="sourceLine" id="cb1-10" title="10"><span class="co"># main.py</span></a>
-<a class="sourceLine" id="cb1-11" title="11"><span class="im">import</span> config</a>
-<a class="sourceLine" id="cb1-12" title="12"><span class="im">import</span> lib</a>
-<a class="sourceLine" id="cb1-13" title="13"></a>
-<a class="sourceLine" id="cb1-14" title="14">config.default <span class="op">=</span> <span class="va">True</span></a>
-<a class="sourceLine" id="cb1-15" title="15">lib.f()</a></code></pre></div>
-<p>The main function sets the configuration, then calls <code>f</code>. One would expect that the program prints <code>True</code>… but it actually prints <code>False</code>.</p>
-<p>This behavior can be surprising, but it is perfectly logical once you know the rule:</p>
+    <description><![CDATA[<p>This is a minimal example reproducing <a href="https://github.com/Alir3z4/html2text/pull/84">a bug I found in
+html2text</a>. Suppose we have
+configuration module, a library that uses the configuration, and a main
+function.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># config.py</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>default <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># lib.py</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> config</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f(x<span class="op">=</span>config.default):</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span> x</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># main.py</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> config</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> lib</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>config.default <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>lib.f()</span></code></pre></div>
+<p>The main function sets the configuration, then calls <code>f</code>.
+One would expect that the program prints <code>True</code>…
+but it actually prints <code>False</code>.</p>
+<p>This behavior can be surprising, but it is perfectly logical once you know the
+rule:</p>
 <p><strong>In Python, default values are evaluated at import time.</strong></p>
-<p>This is all there is to know about this problem. Here is what happens at runtime in the above example:</p>
+<p>This is all there is to know about this problem.
+Here is what happens at runtime in the above example:</p>
 <ul>
-<li>The main program first imports <code>config</code>. The definition of <code>default</code> is evaluated and its value is <code>False</code>.</li>
-<li><code>lib</code> is imported, and the definition of <code>lib.f</code> is evaluated. The value of this function includes the default value for <code>x</code>. So, the definition of this default value, <code>config.default</code>, is evaluated and it is <code>False</code>.</li>
-<li>When the value <code>True</code> is assigned to <code>config.default</code>, it is too late: the value <code>False</code> is already part of the function’s value.</li>
+<li>The main program first imports <code>config</code>.
+The definition of <code>default</code> is evaluated and its value is <code>False</code>.</li>
+<li><code>lib</code> is imported, and the definition of <code>lib.f</code> is evaluated.
+The value of this function includes the default value for <code>x</code>.
+So, the definition of this default value, <code>config.default</code>, is evaluated and
+it is <code>False</code>.</li>
+<li>When the value <code>True</code> is assigned to <code>config.default</code>, it is too late:
+the value <code>False</code> is already part of the function’s value.</li>
 </ul>
-<p>That last part is not only a metaphor, the default value is actually part of the function object:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb2-1" title="1"><span class="op">&gt;&gt;&gt;</span> <span class="kw">def</span> f(x<span class="op">=</span><span class="dv">3</span>):</a>
-<a class="sourceLine" id="cb2-2" title="2">...     <span class="bu">print</span> x</a>
-<a class="sourceLine" id="cb2-3" title="3">...</a>
-<a class="sourceLine" id="cb2-4" title="4"><span class="op">&gt;&gt;&gt;</span> f.func_defaults</a>
-<a class="sourceLine" id="cb2-5" title="5">(<span class="dv">3</span>,)</a></code></pre></div>
-<p>In order to avoid this caveat, the usual solution is to use <code>None</code> for default values:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">def</span> f(x<span class="op">=</span><span class="va">None</span>):</a>
-<a class="sourceLine" id="cb3-2" title="2">    <span class="cf">if</span> x <span class="kw">is</span> <span class="va">None</span>:</a>
-<a class="sourceLine" id="cb3-3" title="3">        x <span class="op">=</span> config.default</a>
-<a class="sourceLine" id="cb3-4" title="4">    <span class="bu">print</span> x</a></code></pre></div>
-<p>That way, the evaluation of <code>config.default</code> will happen at runtime, which is what we want here. The above program will indeed print <code>True</code>.</p>]]></description>
+<p>That last part is not only a metaphor, the default value is actually part of the
+function object:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> <span class="kw">def</span> f(x<span class="op">=</span><span class="dv">3</span>):</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>...     <span class="bu">print</span> x</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>...</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> f.func_defaults</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>(<span class="dv">3</span>,)</span></code></pre></div>
+<p>In order to avoid this caveat, the usual solution is to use <code>None</code> for default
+values:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f(x<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> x <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> config.default</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span> x</span></code></pre></div>
+<p>That way, the evaluation of <code>config.default</code> will happen at runtime, which is
+what we want here. The above program will indeed print <code>True</code>.</p>]]></description>
     <pubDate>Tue, 12 Jan 2016 00:00:00 UT</pubDate>
     <guid>http://blog.emillon.org/posts/2016-01-12-in-python-default-values-are-evaluated-at-import-time.html</guid>
     <dc:creator>Etienne Millon</dc:creator>

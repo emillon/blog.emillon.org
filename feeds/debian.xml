@@ -11,34 +11,106 @@
         <item>
     <title>My part of work in Debian Jessie</title>
     <link>http://blog.emillon.org/posts/2014-11-21-my-part-of-work-in-debian-jessie.html</link>
-    <description><![CDATA[<p>Right now, Debian Jessie is frozen, and in a fairly good shape. The amount of RC bugs is low, which means that the release should be “quite” near (“when it is ready”).</p>
-<p>It is a good time to make a summary of my contributions during this release cycle.</p>
+    <description><![CDATA[<p>Right now, Debian Jessie is frozen, and in a fairly good shape. The amount of RC
+bugs is low, which means that the release should be “quite” near (“when it is
+ready”).</p>
+<p>It is a good time to make a summary of my contributions during this release
+cycle.</p>
 <h2 id="new-packages-in-debian">New packages in Debian</h2>
 <p>For Jessie I have added no less than 6 new packages to the archive.</p>
-<p><a href="http://subliminal.readthedocs.org/">subliminal</a> is a tool to automatically download subtitles for movie files. Packaging it required to also package a few of its dependencies that were not available in Debian: <a href="http://babelfish.readthedocs.org/">babelfish</a>, <a href="http://enzyme.readthedocs.org/">enzyme</a>, <a href="http://guessit.readthedocs.org/">guessit</a>, and <a href="https://github.com/byroot/pysrt">pysrt</a>.</p>
-<p><a href="https://github.com/sahib/glyr">glyr</a> is a library to query lyrics sites. I packaged it because the new version of gmpc requires it, but at the moment it is just a leaf package.</p>
+<p><a href="http://subliminal.readthedocs.org/">subliminal</a> is a tool to automatically download subtitles for movie files.
+Packaging it required to also package a few of its dependencies that were not
+available in Debian: <a href="http://babelfish.readthedocs.org/">babelfish</a>, <a href="http://enzyme.readthedocs.org/">enzyme</a>, <a href="http://guessit.readthedocs.org/">guessit</a>, and <a href="https://github.com/byroot/pysrt">pysrt</a>.</p>
+<p><a href="https://github.com/sahib/glyr">glyr</a> is a library to query lyrics sites. I packaged it because the new
+version of gmpc requires it, but at the moment it is just a leaf package.</p>
 <h2 id="new-packages-im-taking-care-of">New packages I’m taking care of</h2>
-<p>I have the pleasure of being the new maintainer for <a href="https://pythonhosted.org/feedparser/">feedparser</a>, a Python library for parsing RSS and Atom feeds. It is my most popular package: according to popcon, 40% of users have it installed! During this released, I ported back the work made on Ubuntu, and worked on providing a Python 3 version of this package.</p>
+<p>I have the pleasure of being the new maintainer for <a href="https://pythonhosted.org/feedparser/">feedparser</a>, a Python
+library for parsing RSS and Atom feeds. It is my most popular package: according
+to popcon, 40% of users have it installed! During this released, I ported back
+the work made on Ubuntu, and worked on providing a Python 3 version of this
+package.</p>
 <h2 id="updates-on-my-packages">Updates on my packages</h2>
-<p><a href="http://gmpc.wikia.com/wiki/Gnome_Music_Player_Client">gmpc</a> and <a href="http://gmpc.wikia.com/wiki/Plugins">gmpc-plugins</a> did not change a lot. Upstream is working on a big new version but it is not released yet. During this Debian cycle, I mostly did janitorial work: I disabled outdated provider plugins, enable multi-arch support, and ported to a recent version of Vala.</p>
-<p><a href="https://github.com/wking/rss2email">rss2email</a> got a new upstream maintainer. This is really great since the code needed some love. The whole program got rewritten in Python 3, and this mandated a major version bump, creating the rss2email 3.x branch.</p>
-<p>One of the side-effects of this rewrite is that the configuration file format changed. Actually the 2.x version used a plain python file for configuration, which was <code>eval()</code>uated within the program’s context. Now it is based on ConfigParser. The on-disk state file, which serializes what feeds you are subscribed to, and what is the last time you refreshed them, changed its format too from a pickle file to a JSON file.</p>
-<p>This incompatibility is necessary and welcome, but is tough to manage within the context of a software distribution. If a user upgrades his packages, he should find his programs working as before. So, I wrote a <code>r2e-migrate</code> <a href="https://github.com/emillon/rss2email-debian/blob/master/debian/r2e-migrate">script</a> that converts a 2.x state file to a 3.x state file. Designing a clean upgrade path was very interesting. Indeed, it is not possible to do this during the package installation: since the config and state files are in every user’s $HOME, it is necessary to wait for each user to do his migration. The solution I arrived at is the following: when rss2email 3.x starts, and has no state file, it checks if a rss2email 2.x exists. Then it prompts the user to run <code>r2e-migrate</code>. A few iterations were necessary before it worked as I wanted, so I am happy to have used the experimental suite for this. Once everything was working I uploaded the package to unstable and it seems to be working well. I am very happy with how this went, and I could close a lot of bugs in this package, also thanks to the new responsive upstream.</p>
-<p><a href="http://sourceforge.net/projects/vba/">visualboyadvance</a> only got cosmetic changes: a patch for fixing the build with the new GCC flags, enabling hardening etc. I somehow missed the notification email for an important bug (#740292) with a patch that I merged but unfortunately it is too late to include it in Jessie. I would like to give the package more love for the next release, maybe including the newer vba-m fork.</p>
-<p><a href="http://www.zsnes.com/">zsnes</a> is an interesting package to maintain because it’s written in x86 assembly and has been dormant upstream for a few years now. During this release cycle there were no real breakthroughs, but a lot of little niceties. For example, we now have a debug package, and build packages for kfreebsd and the hurd. Enabling hardening options also made us discover several memory manipulation errors.</p>
-<p>I would like to include a more recent upstream snapshot, but the whole situation seems to be a little complicated as there seem to be several forks lying around.</p>
+<p><a href="http://gmpc.wikia.com/wiki/Gnome_Music_Player_Client">gmpc</a> and <a href="http://gmpc.wikia.com/wiki/Plugins">gmpc-plugins</a> did not change a lot. Upstream is working on a big new
+version but it is not released yet. During this Debian cycle, I mostly did
+janitorial work: I disabled outdated provider plugins, enable multi-arch
+support, and ported to a recent version of Vala.</p>
+<p><a href="https://github.com/wking/rss2email">rss2email</a> got a new upstream maintainer. This is really great since the code
+needed some love. The whole program got rewritten in Python 3, and this mandated
+a major version bump, creating the rss2email 3.x branch.</p>
+<p>One of the side-effects of this rewrite is that the configuration file format
+changed. Actually the 2.x version used a plain python file for configuration,
+which was <code>eval()</code>uated within the program’s context. Now it is based on
+ConfigParser. The on-disk state file, which serializes what feeds you are
+subscribed to, and what is the last time you refreshed them, changed its format
+too from a pickle file to a JSON file.</p>
+<p>This incompatibility is necessary and welcome, but is tough to manage within the
+context of a software distribution. If a user upgrades his packages, he should
+find his programs working as before. So, I wrote a <code>r2e-migrate</code>
+<a href="https://github.com/emillon/rss2email-debian/blob/master/debian/r2e-migrate">script</a> that converts a 2.x state file to a 3.x state file.
+Designing a clean upgrade path was very interesting. Indeed, it is not possible
+to do this during the package installation: since the config and state files are
+in every user’s $HOME, it is necessary to wait for each user to do his
+migration. The solution I arrived at is the following: when rss2email 3.x
+starts, and has no state file, it checks if a rss2email 2.x exists. Then it
+prompts the user to run <code>r2e-migrate</code>. A few iterations were necessary before it
+worked as I wanted, so I am happy to have used the experimental suite for this.
+Once everything was working I uploaded the package to unstable and it seems to
+be working well. I am very happy with how this went, and I could close a lot of
+bugs in this package, also thanks to the new responsive upstream.</p>
+<p><a href="http://sourceforge.net/projects/vba/">visualboyadvance</a> only got cosmetic changes: a patch for fixing the build with
+the new GCC flags, enabling hardening etc. I somehow missed the notification
+email for an important bug (#740292) with a patch that I merged but
+unfortunately it is too late to include it in Jessie. I would like to give the
+package more love for the next release, maybe including the newer vba-m fork.</p>
+<p><a href="http://www.zsnes.com/">zsnes</a> is an interesting package to maintain because it’s written in x86
+assembly and has been dormant upstream for a few years now. During this release
+cycle there were no real breakthroughs, but a lot of little niceties. For
+example, we now have a debug package, and build packages for kfreebsd and the
+hurd. Enabling hardening options also made us discover several memory
+manipulation errors.</p>
+<p>I would like to include a more recent upstream snapshot, but the whole situation
+seems to be a little complicated as there seem to be several forks lying around.</p>
 <h2 id="package-given-for-adoption">Package given for adoption</h2>
-<p>In 2012 I started to take care of the coin* packages. I adopted <a href="http://www.coin-or.org/projects/Cbc.xml">coinor-cbc</a> and began to plan a transition plan for all the related packages, but because of a lack of time and interest I did not go all the way.</p>
-<p>Fortunately Miles Lubin proposed to adopt these packages and is doing a great work on them. Thanks Miles!</p>
+<p>In 2012 I started to take care of the coin* packages. I adopted <a href="http://www.coin-or.org/projects/Cbc.xml">coinor-cbc</a> and
+began to plan a transition plan for all the related packages, but because of a
+lack of time and interest I did not go all the way.</p>
+<p>Fortunately Miles Lubin proposed to adopt these packages and is doing a great
+work on them. Thanks Miles!</p>
 <h2 id="incomplete-work">Incomplete work</h2>
 <p>I wanted to package several programs that did not make it to the archive.</p>
-<p><a href="https://sites.google.com/site/broguegame/">brogue</a> is a rogue-like in the most traditional fashion: grid-based and turn by turn. Most of the packaging work I did was on an unpackaged dependency, <a href="http://roguecentral.org/doryen/libtcod/">libtcod</a>. It needed a bit of work so that it can be used installed in <code>/usr</code> and not from an unpacked source tree.</p>
-<p><a href="https://code.google.com/p/opentyrian/">opentyrian</a> is a free rewrite of the classic shoot-em-up Tyrian. As usual for this kind of projects, it only covers the software part. You still need a copy of the original game to play. In that case it is easier since the game can be downloaded from the author’s website. But since it is not free, Debian can not host these files. So it is necessary to download it at install time using a tool named <code>game-data-packager</code>. I worked with Alexandre Detiste on a patch to support this (<a href="https://bugs.debian.org/739486">#739486</a>), but unfortunately the project seems dormant and it is blocking for the inclusion of opentyrian in Debian.</p>
-<p><a href="http://www.stepmania.com/">stepmania</a> is an open source clone of the “Dance Dance Revolution” game. It is a very popular piece of software, and an Intend To Package bug has been open for it since 2003. But it used to include non-free (and actually, copyright-infringing) pieces of artwork from the original game, which used to make it unsuitable for inclusion. However the newer versions are more compliant and I am still working on this. There are two problems remaining: first, there is a lot of code and artwork for which the copyright and licensing information is unclear (though it does seem that the infringing material has been removed). And second, it embeds a lot of libraries; it’s necessary to patch it so that it can use the system copies. I sincerely hope that it will be part of Stretch since I could not deliver it for Jessie.</p>
+<p><a href="https://sites.google.com/site/broguegame/">brogue</a> is a rogue-like in the most traditional fashion: grid-based and turn by
+turn. Most of the packaging work I did was on an unpackaged dependency,
+<a href="http://roguecentral.org/doryen/libtcod/">libtcod</a>. It needed a bit of work so that it can be used installed in <code>/usr</code>
+and not from an unpacked source tree.</p>
+<p><a href="https://code.google.com/p/opentyrian/">opentyrian</a> is a free rewrite of the classic shoot-em-up Tyrian. As usual for
+this kind of projects, it only covers the software part. You still need a copy
+of the original game to play. In that case it is easier since the game can be
+downloaded from the author’s website. But since it is not free, Debian can not
+host these files. So it is necessary to download it at install time using a tool
+named <code>game-data-packager</code>. I worked with Alexandre Detiste on a patch to
+support this (<a href="https://bugs.debian.org/739486">#739486</a>), but unfortunately the project seems dormant and it is
+blocking for the inclusion of opentyrian in Debian.</p>
+<p><a href="http://www.stepmania.com/">stepmania</a> is an open source clone of the “Dance Dance Revolution” game. It is
+a very popular piece of software, and an Intend To Package bug has been open for
+it since 2003. But it used to include non-free (and actually,
+copyright-infringing) pieces of artwork from the original game, which used to
+make it unsuitable for inclusion. However the newer versions are more compliant
+and I am still working on this. There are two problems remaining: first, there
+is a lot of code and artwork for which the copyright and licensing information
+is unclear (though it does seem that the infringing material has been removed).
+And second, it embeds a lot of libraries; it’s necessary to patch it so that it
+can use the system copies. I sincerely hope that it will be part of Stretch
+since I could not deliver it for Jessie.</p>
 <h2 id="debian-maintainer">Debian Maintainer</h2>
-<p>So far, every time I need to push a package to the Debian archive, I need to ask someone with upload permissions to review my work and upload it. It ensures that the archive stays legal and with a great quality, but it is definitely a non negligible amount of friction every time I need to upload a package.</p>
-<p>A couple weeks ago I decided to apply as a Debian Maintainer. Once this will be done, I will be able to upload my packages without this sponsoring step. Exciting!</p>
-<p>Let’s all hope that the freeze will be over soon and we will enjoy once again a great release.</p>]]></description>
+<p>So far, every time I need to push a package to the Debian archive, I need to ask
+someone with upload permissions to review my work and upload it. It ensures that
+the archive stays legal and with a great quality, but it is definitely a
+non negligible amount of friction every time I need to upload a package.</p>
+<p>A couple weeks ago I decided to apply as a Debian Maintainer. Once this will be
+done, I will be able to upload my packages without this sponsoring step.
+Exciting!</p>
+<p>Let’s all hope that the freeze will be over soon and we will enjoy once again a
+great release.</p>]]></description>
     <pubDate>Fri, 21 Nov 2014 00:00:00 UT</pubDate>
     <guid>http://blog.emillon.org/posts/2014-11-21-my-part-of-work-in-debian-jessie.html</guid>
     <dc:creator>Etienne Millon</dc:creator>

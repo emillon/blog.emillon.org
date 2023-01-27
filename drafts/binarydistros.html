@@ -33,13 +33,27 @@
 
 <p>Tagged as: .</p>
 
-<p>As programmers, we’re used to hear the same debates over &amp; again: vim vs emacs, static vs dynamic typing, interpreted vs compiled, XML vs JSON, binary vs source, etc. The list goes on.</p>
-<p>I’m usually not interested in these “religious wars”. Actually, if both alternatives exist and have survived, it means that they are a local maximum evolution and that both have pros and cons. That is to say, you can pick the one you prefer, or the one that is the most appropriate for the job ; while respecting the existence of an alternative. Same foes for, e.g., music: there is no point in trying to convince a metal fan that electronic music is better.</p>
+<p>As programmers, we’re used to hear the same debates over &amp; again: vim vs emacs,
+static vs dynamic typing, interpreted vs compiled, XML vs JSON, binary vs
+source, etc. The list goes on.</p>
+<p>I’m usually not interested in these “religious wars”. Actually, if both
+alternatives exist and have survived, it means that they are a local maximum
+evolution and that both have pros and cons. That is to say, you can pick the one
+you prefer, or the one that is the most appropriate for the job ; while
+respecting the existence of an alternative. Same foes for, e.g., music: there is
+no point in trying to convince a metal fan that electronic music is better.</p>
 <blockquote>
 <p>De gustibus et coloribus non est disputandum.</p>
 </blockquote>
-<p>Among these debates, one is particularly interesting to me: source vs binary distributions. The former ones provide sources that will be compiled on the user’s machine; the latter ones provide a set of precompiled binary files that are downloaded from the network.</p>
-<p>As I said, there are pros and cons for both of these systems: in a nutshell, source distros are more flexible and binary distros are more convenient. For example, if a package can be compiled with a set of options, they can be chosen <em>à la carte</em> in a source distro. In binary distributions on the other hand, it is up to the packager to provide a set of reasonable choices.</p>
+<p>Among these debates, one is particularly interesting to me: source vs binary
+distributions. The former ones provide sources that will be compiled on the
+user’s machine; the latter ones provide a set of precompiled binary files that
+are downloaded from the network.</p>
+<p>As I said, there are pros and cons for both of these systems: in a nutshell,
+source distros are more flexible and binary distros are more convenient. For
+example, if a package can be compiled with a set of options, they can be chosen
+<em>à la carte</em> in a source distro. In binary distributions on the other hand, it
+is up to the packager to provide a set of reasonable choices.</p>
 <p>For example, on Debian, several versions of Vim are available:</p>
 <ul>
 <li>vim-athena</li>
@@ -48,12 +62,31 @@
 <li>vim-nox</li>
 <li>vim-tiny</li>
 </ul>
-<p>They are as many packages that you can install. All of these packages contain <code>/usr/bin/vim</code>.</p>
+<p>They are as many packages that you can install. All of these packages contain
+<code>/usr/bin/vim</code>.</p>
 <hr />
-<p>This morning I was upgrading my Debian system. Well, trying to. When running the usual <code>aptitude upgrade</code> command, the package manager asked me for my confirmation to remove <code>weechat-plugins</code>. Package removal can be a normal step of a system upgrade (for example, if a new version of package does not depend anymore on a package). However, I definitely want to keep <code>weechat-plugins</code>, as I use it daily as my instant messenging program.</p>
-<p>This happens from time to time; that’s the price to pay for running Debian testing. Usually it means that a transition is ongoing: library A introduces a breaking change, so it is necessary to recompile all the packages that depend on libA1 so that they instead depend on libA2. Then libA2 will be automatically installed and libA1 can be removed. Most of the time, testing users do not see this because all the dependencies will migrate at the same time. However, it is possible that something goes wrong and that parts are not available in testing.</p>
-<p>In that case, it prevents the upgrade. Deleting the offending packages (as suggested by <code>aptitude</code>) is not the only solution. It is also possible to wait a few days until the transition is completed. Another solution is to pull packages from unstable to honor the version constraints.</p>
-<p>When you do this, you have to fight with <code>aptitude</code>. Sometimes a lot. It consists in examining the solutions it proposes and rejecting the ones that remove needed packages. You can also help it by upgrading some packages to their version in unstable (<code>aptitude install pkg/unstable</code>) in a previous preliminary step. This is a definitely a dark art.</p>
+<p>This morning I was upgrading my Debian system. Well, trying to. When running the
+usual <code>aptitude upgrade</code> command, the package manager asked me for my
+confirmation to remove <code>weechat-plugins</code>. Package removal can be a normal step
+of a system upgrade (for example, if a new version of package does not depend
+anymore on a package). However, I definitely want to keep <code>weechat-plugins</code>, as
+I use it daily as my instant messenging program.</p>
+<p>This happens from time to time; that’s the price to pay for running Debian
+testing. Usually it means that a transition is ongoing: library A introduces a
+breaking change, so it is necessary to recompile all the packages that depend on
+libA1 so that they instead depend on libA2. Then libA2 will be automatically
+installed and libA1 can be removed. Most of the time, testing users do not see
+this because all the dependencies will migrate at the same time. However, it is
+possible that something goes wrong and that parts are not available in testing.</p>
+<p>In that case, it prevents the upgrade. Deleting the offending packages (as
+suggested by <code>aptitude</code>) is not the only solution. It is also possible to wait a
+few days until the transition is completed. Another solution is to pull packages
+from unstable to honor the version constraints.</p>
+<p>When you do this, you have to fight with <code>aptitude</code>. Sometimes a lot. It
+consists in examining the solutions it proposes and rejecting the ones that
+remove needed packages. You can also help it by upgrading some packages to their
+version in unstable (<code>aptitude install pkg/unstable</code>) in a previous preliminary
+step. This is a definitely a dark art.</p>
 
 
 

@@ -31,32 +31,38 @@
 
 <p>by <em>Etienne Millon</em> on <strong>No date</strong></p>
 
-<p>Tagged as: <a href="../tags/haskell.html">haskell</a>, <a href="../tags/ocaml.html">ocaml</a>.</p>
+<p>Tagged as: <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'ocaml'." href="../tags/ocaml.html">ocaml</a>.</p>
 
 <p>s/Haskell/GHC/.</p>
 <p>There will be a co-post.</p>
 <h2 id="concrete-syntax">Concrete Syntax</h2>
 <p>Haskell’s concrete syntax rocks.</p>
 <h3 id="where">where</h3>
-<p>For example, the classic implementation of list reversal uses “inverse concatenation” as an auxiliary function.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1">rev l <span class="fu">=</span></a>
-<a class="sourceLine" id="cb1-2" title="2">  catRev l []</a>
-<a class="sourceLine" id="cb1-3" title="3">    <span class="kw">where</span></a>
-<a class="sourceLine" id="cb1-4" title="4">      catRev [] y <span class="fu">=</span> y</a>
-<a class="sourceLine" id="cb1-5" title="5">      catRev (x<span class="fu">:</span>xs) y <span class="fu">=</span> catRev xs (x<span class="fu">:</span>y)</a></code></pre></div>
+<p>For example, the classic implementation of list reversal uses “inverse
+concatenation” as an auxiliary function.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>rev l <span class="ot">=</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  catRev l []</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">where</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>      catRev [] y <span class="ot">=</span> y</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>      catRev (x<span class="op">:</span>xs) y <span class="ot">=</span> catRev xs (x<span class="op">:</span>y)</span></code></pre></div>
 <h3 id="infix-operators">infix operators</h3>
-<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" title="1">a <span class="ot">`op`</span> b</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>a <span class="ot">`op`</span> b</span></code></pre></div>
 <h3 id="do-notation">do-notation</h3>
-<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb3-1" title="1">liftM2 f mx my <span class="fu">=</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb3-2" title="2">  x <span class="ot">&lt;-</span> mx</a>
-<a class="sourceLine" id="cb3-3" title="3">  y <span class="ot">&lt;-</span> my</a>
-<a class="sourceLine" id="cb3-4" title="4">  <span class="fu">return</span> <span class="fu">$</span> f x y</a></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" title="1">liftM2 f mx my <span class="fu">=</span></a>
-<a class="sourceLine" id="cb4-2" title="2">  mx <span class="fu">&gt;&gt;=</span> \ x <span class="ot">-&gt;</span> </a>
-<a class="sourceLine" id="cb4-3" title="3">  my <span class="fu">&gt;&gt;=</span> \ y <span class="ot">-&gt;</span> </a>
-<a class="sourceLine" id="cb4-4" title="4">  <span class="fu">return</span> <span class="fu">$</span> f x y</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>liftM2 f mx my <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> mx</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  y <span class="ot">&lt;-</span> my</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> <span class="op">$</span> f x y</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>liftM2 f mx my <span class="ot">=</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  mx <span class="op">&gt;&gt;=</span> \ x <span class="ot">-&gt;</span> </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  my <span class="op">&gt;&gt;=</span> \ y <span class="ot">-&gt;</span> </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> <span class="op">$</span> f x y</span></code></pre></div>
 <h2 id="library">Library</h2>
-<p>OCaml’s standard library takes a minimal approach : only what’s necessary to bootstrap the compiler is included. So, as a programmer, one often has to write library functions. Several “standard library replacements” have emerged, most notably <a href="http://code.google.com/p/ocaml-extlib/">Extlib</a>, <a href="http://batteries.forge.ocamlcore.org/">Batteries Included</a> and <a href="https://ocaml.janestreet.com/ocaml-core/latest/doc/">Janestreet’s Core</a>. But despite their quality, they are not part of the official distribution.</p>
+<p>OCaml’s standard library takes a minimal approach : only what’s necessary to
+bootstrap the compiler is included. So, as a programmer, one often has to write
+library functions. Several “standard library replacements” have emerged, most
+notably <a href="http://code.google.com/p/ocaml-extlib/">Extlib</a>, <a href="http://batteries.forge.ocamlcore.org/">Batteries Included</a> and
+<a href="https://ocaml.janestreet.com/ocaml-core/latest/doc/">Janestreet’s Core</a>. But despite their quality, they are not
+part of the official distribution.</p>
 <p>map, (.), ($)</p>
 <h2 id="tools">Tools</h2>
 <h2 id="first-class-io">First-class IO</h2>

@@ -33,15 +33,22 @@
 
 <p>Tagged as: .</p>
 
-<p>A few weeks ago, <a href="http://ohlife.com">OhLife</a> shut down. It is a shame, as I really loved the service. Every day, it sent you an email asking how you day was. You reply with a few words, or a few sentences, and it uploaded it into a (private) archive. But the really awesome feature is that the daily mail used to include a past random entry. So, you can realize that time passes…</p>
-<p>Anyway, the service shut down and I could export my data before. I use <a href="http://orgmode.org/">org mode</a> to organize several other things (TODOs! agenda! playlists!), so I will try to use it for this from now on. Hosting snippets of my life in an external service was scary anyway :).</p>
+<p>A few weeks ago, <a href="http://ohlife.com">OhLife</a> shut down. It is a shame, as I really loved the
+service. Every day, it sent you an email asking how you day was. You reply with
+a few words, or a few sentences, and it uploaded it into a (private) archive.
+But the really awesome feature is that the daily mail used to include a past
+random entry. So, you can realize that time passes…</p>
+<p>Anyway, the service shut down and I could export my data before. I use <a href="http://orgmode.org/">org
+mode</a> to organize several other things (TODOs! agenda! playlists!), so I will
+try to use it for this from now on. Hosting snippets of my life in an external
+service was scary anyway :).</p>
 <p>So, let’s write a conversion script. This is a good occasion to use <a href="http://www.haskell.org/haskellwiki/Parsec">Parsec</a>.</p>
 <h2 id="parsing">Parsing</h2>
 <p>(Insert explanation that this is a litterate haskell file)</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">import</span> <span class="dt">Control.Applicative</span> ((&lt;*), (*&gt;), (&lt;*&gt;), (&lt;$&gt;))</a>
-<a class="sourceLine" id="cb1-2" title="2"><span class="kw">import</span> <span class="dt">Control.Monad</span></a>
-<a class="sourceLine" id="cb1-3" title="3"><span class="kw">import</span> <span class="dt">Control.Monad.RWS</span></a>
-<a class="sourceLine" id="cb1-4" title="4"><span class="kw">import</span> <span class="dt">Text.ParserCombinators.Parsec</span></a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Applicative</span> ((&lt;*), (*&gt;), (&lt;*&gt;), (&lt;$&gt;))</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.RWS</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Text.ParserCombinators.Parsec</span></span></code></pre></div>
 <p>To parse things, you usually have several options:</p>
 <ul>
 <li>do it by hand. Split on separators, count character offsets, etc.</li>
@@ -49,10 +56,18 @@
 <li>use a LR parser generator such as <code>yacc</code> or <code>happy</code>.</li>
 <li>use parser combinators.</li>
 </ul>
-<p>Parser generators have several drawbacks. First, they require to use a separate tool to generate code. Also, they tend to be quite slow. Finally, they are somewhat arcane to debug: sometimes you change an innocuous rule and get 30 shift/reduce conflicts. Good luck with that.</p>
-<p>On the contrary, parser combinators are nice because they are written within the same implementation language as the rest of your code. They’re just functions. Suppose that a language has string litterals and integer litterals, and that both are constants. To define the rule for constants, you’ll just declare</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" title="1">constant <span class="fu">=</span> string_lit <span class="fu">&lt;|&gt;</span> integer_lit</a></code></pre></div>
-<p>It’s very declarative. <code>(&lt;|&gt;)</code> takes two parsers and returns a new parser which can parse either. This property makes your code kind of look like the text you’re trying to parse.</p>
+<p>Parser generators have several drawbacks. First, they require to use a separate
+tool to generate code. Also, they tend to be quite slow. Finally, they are
+somewhat arcane to debug: sometimes you change an innocuous rule and get 30
+shift/reduce conflicts. Good luck with that.</p>
+<p>On the contrary, parser combinators are nice because they are written within the
+same implementation language as the rest of your code. They’re just functions.
+Suppose that a language has string litterals and integer litterals, and that
+both are constants. To define the rule for constants, you’ll just declare</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>constant <span class="ot">=</span> string_lit <span class="op">&lt;|&gt;</span> integer_lit</span></code></pre></div>
+<p>It’s very declarative. <code>(&lt;|&gt;)</code> takes two parsers and returns a new parser which
+can parse either. This property makes your code kind of look like the text
+you’re trying to parse.</p>
 <p>For example, in the case of the OhLife export, the texts looks like:</p>
 <pre><code>YYYY-MM-DD
 
@@ -62,73 +77,87 @@ YYYY-MM-DD
 
 Entry</code></pre>
 <p>And the (actual) code to parse it is:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" title="1"><span class="ot">entry ::</span> <span class="dt">Parser</span> <span class="dt">Entry</span></a>
-<a class="sourceLine" id="cb4-2" title="2">entry <span class="fu">=</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb4-3" title="3">  d <span class="ot">&lt;-</span> date</a>
-<a class="sourceLine" id="cb4-4" title="4">  eol</a>
-<a class="sourceLine" id="cb4-5" title="5">  eol</a>
-<a class="sourceLine" id="cb4-6" title="6">  l <span class="ot">&lt;-</span> body</a>
-<a class="sourceLine" id="cb4-7" title="7">  <span class="fu">return</span> <span class="fu">$</span> <span class="dt">Entry</span> d l</a></code></pre></div>
-<p>And to parse several of them, we use the following code. We can remove the <code>eof</code> and the parser will parse till an error occur, but is is better to detect errors.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb5-1" title="1"><span class="ot">entries ::</span> <span class="dt">Parser</span> [<span class="dt">Entry</span>]</a>
-<a class="sourceLine" id="cb5-2" title="2">entries <span class="fu">=</span></a>
-<a class="sourceLine" id="cb5-3" title="3">    many1 entry <span class="fu">&lt;*</span> eof</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">entry ::</span> <span class="dt">Parser</span> <span class="dt">Entry</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>entry <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> date</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  eol</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  eol</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  l <span class="ot">&lt;-</span> body</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> <span class="op">$</span> <span class="dt">Entry</span> d l</span></code></pre></div>
+<p>And to parse several of them, we use the following code. We can remove the <code>eof</code>
+and the parser will parse till an error occur, but is is better to detect
+errors.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">entries ::</span> <span class="dt">Parser</span> [<span class="dt">Entry</span>]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>entries <span class="ot">=</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    many1 entry <span class="op">&lt;*</span> eof</span></code></pre></div>
 <p>Of course we need to define the <code>Entry</code> data type.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb6-1" title="1"><span class="kw">data</span> <span class="dt">Entry</span> <span class="fu">=</span></a>
-<a class="sourceLine" id="cb6-2" title="2">    <span class="dt">Entry</span> {<span class="ot"> entryDate ::</span> <span class="dt">Date</span></a>
-<a class="sourceLine" id="cb6-3" title="3">          ,<span class="ot"> entryBody ::</span> <span class="dt">String</span></a>
-<a class="sourceLine" id="cb6-4" title="4">          }</a>
-<a class="sourceLine" id="cb6-5" title="5">        <span class="kw">deriving</span> (<span class="dt">Show</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Entry</span> <span class="ot">=</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Entry</span> {<span class="ot"> entryDate ::</span> <span class="dt">Date</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>          ,<span class="ot"> entryBody ::</span> <span class="dt">String</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>          }</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        <span class="kw">deriving</span> (<span class="dt">Show</span>)</span></code></pre></div>
 <p>Parsing a date is quite easy but needs a bit of explaining.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb7-1" title="1"><span class="kw">data</span> <span class="dt">Date</span> <span class="fu">=</span></a>
-<a class="sourceLine" id="cb7-2" title="2">    <span class="dt">Date</span> {<span class="ot"> dateYear ::</span> <span class="dt">String</span></a>
-<a class="sourceLine" id="cb7-3" title="3">         ,<span class="ot"> dateMonth ::</span> <span class="dt">String</span></a>
-<a class="sourceLine" id="cb7-4" title="4">         ,<span class="ot"> dateDay ::</span> <span class="dt">String</span></a>
-<a class="sourceLine" id="cb7-5" title="5">         }</a>
-<a class="sourceLine" id="cb7-6" title="6">        <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Show</span>)</a>
-<a class="sourceLine" id="cb7-7" title="7"></a>
-<a class="sourceLine" id="cb7-8" title="8"><span class="ot">number ::</span> <span class="dt">Parser</span> <span class="dt">String</span></a>
-<a class="sourceLine" id="cb7-9" title="9">number <span class="fu">=</span> many1 digit</a>
-<a class="sourceLine" id="cb7-10" title="10"></a>
-<a class="sourceLine" id="cb7-11" title="11"><span class="ot">date ::</span> <span class="dt">Parser</span> <span class="dt">Date</span></a>
-<a class="sourceLine" id="cb7-12" title="12">date <span class="fu">=</span></a>
-<a class="sourceLine" id="cb7-13" title="13">    <span class="dt">Date</span> <span class="fu">&lt;$&gt;</span> (number <span class="fu">&lt;*</span> char <span class="ch">'-'</span>)</a>
-<a class="sourceLine" id="cb7-14" title="14">         <span class="fu">&lt;*&gt;</span> (number <span class="fu">&lt;*</span> char <span class="ch">'-'</span>)</a>
-<a class="sourceLine" id="cb7-15" title="15">         <span class="fu">&lt;*&gt;</span> (number)</a></code></pre></div>
-<p>Remember what I said about arcane? Well, applicative style is also a bit strange. The main characteristic is the use of <code>&lt;$&gt;</code> and <code>&lt;*&gt;</code>: if you want to parse a <code>a</code>, a <code>b</code>, and a <code>c</code> and pass the results to a function <code>f</code>, you can express this with <code>f &lt;$&gt; a &lt;*&gt; b &lt;*&gt; c</code>. This is equivalent to the following monadic code (it’s a generalization of <code>liftM</code>):</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb8-1" title="1"><span class="kw">do</span></a>
-<a class="sourceLine" id="cb8-2" title="2">    ra <span class="ot">&lt;-</span> a</a>
-<a class="sourceLine" id="cb8-3" title="3">    rb <span class="ot">&lt;-</span> b</a>
-<a class="sourceLine" id="cb8-4" title="4">    rc <span class="ot">&lt;-</span> c</a>
-<a class="sourceLine" id="cb8-5" title="5">    <span class="fu">return</span> <span class="fu">$</span> f a b c</a></code></pre></div>
-<p>The other trick is the use of <code>&lt;*</code>. It parses both of its arguments, but returns only the left one. So, it is a way to parse the dash without returning it.</p>
-<p>End of line is tricky here because the data is dos-formatted. Plain <code>newline</code> does not work, we have to detect <code>'\r'</code>.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb9-1" title="1"><span class="ot">eol ::</span> <span class="dt">Parser</span> ()</a>
-<a class="sourceLine" id="cb9-2" title="2">eol <span class="fu">=</span> void <span class="fu">$</span> string <span class="st">&quot;\r\n&quot;</span></a></code></pre></div>
-<p>Some parsers don’t return anything. For example, the <code>emptyLine</code> just consumes an empty line and only returns a unit value.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Date</span> <span class="ot">=</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Date</span> {<span class="ot"> dateYear ::</span> <span class="dt">String</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>         ,<span class="ot"> dateMonth ::</span> <span class="dt">String</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>         ,<span class="ot"> dateDay ::</span> <span class="dt">String</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>         }</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Show</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="ot">number ::</span> <span class="dt">Parser</span> <span class="dt">String</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>number <span class="ot">=</span> many1 digit</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="ot">date ::</span> <span class="dt">Parser</span> <span class="dt">Date</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>date <span class="ot">=</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Date</span> <span class="op">&lt;$&gt;</span> (number <span class="op">&lt;*</span> char <span class="ch">'-'</span>)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>         <span class="op">&lt;*&gt;</span> (number <span class="op">&lt;*</span> char <span class="ch">'-'</span>)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>         <span class="op">&lt;*&gt;</span> (number)</span></code></pre></div>
+<p>Remember what I said about arcane? Well, applicative style is also a bit
+strange. The main characteristic is the use of <code>&lt;$&gt;</code> and <code>&lt;*&gt;</code>: if you want to
+parse a <code>a</code>, a <code>b</code>, and a <code>c</code> and pass the results to a function <code>f</code>, you can
+express this with <code>f &lt;$&gt; a &lt;*&gt; b &lt;*&gt; c</code>. This is equivalent to the following
+monadic code (it’s a generalization of <code>liftM</code>):</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">do</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    ra <span class="ot">&lt;-</span> a</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    rb <span class="ot">&lt;-</span> b</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    rc <span class="ot">&lt;-</span> c</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span> <span class="op">$</span> f a b c</span></code></pre></div>
+<p>The other trick is the use of <code>&lt;*</code>. It parses both of its arguments, but returns
+only the left one. So, it is a way to parse the dash without returning it.</p>
+<p>End of line is tricky here because the data is dos-formatted. Plain <code>newline</code>
+does not work, we have to detect <code>'\r'</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">eol ::</span> <span class="dt">Parser</span> ()</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>eol <span class="ot">=</span> void <span class="op">$</span> string <span class="st">&quot;\r\n&quot;</span></span></code></pre></div>
+<p>Some parsers don’t return anything. For example, the <code>emptyLine</code> just consumes
+an empty line and only returns a unit value.</p>
 <p>Parsing the body is just a matter of reading lines and joining them.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb10-1" title="1"><span class="ot">body ::</span> <span class="dt">Parser</span> <span class="dt">String</span></a>
-<a class="sourceLine" id="cb10-2" title="2">body <span class="fu">=</span></a>
-<a class="sourceLine" id="cb10-3" title="3">    <span class="fu">unlines</span> <span class="fu">&lt;$&gt;</span> many1 line</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ot">body ::</span> <span class="dt">Parser</span> <span class="dt">String</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>body <span class="ot">=</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unlines</span> <span class="op">&lt;$&gt;</span> many1 line</span></code></pre></div>
 <p>And a <code>line</code> is a sequence of characters that are not a new line.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb11-1" title="1"><span class="ot">line ::</span> <span class="dt">Parser</span> <span class="dt">String</span></a>
-<a class="sourceLine" id="cb11-2" title="2">line <span class="fu">=</span></a>
-<a class="sourceLine" id="cb11-3" title="3">    notFollowedBy date <span class="fu">*&gt;</span> (many <span class="fu">$</span> noneOf <span class="st">&quot;\r\n&quot;</span>) <span class="fu">&lt;*</span> eol</a></code></pre></div>
-<p>There are several tricks here. First, <code>*&gt;</code> and <code>&lt;*</code> make it possible to ignore the results of <code>notFollowedBy</code> and <code>eol</code>. And TODO notFollowedBy</p>
-<p>We can try this using a define a function that will run the parser on <code>stdin</code> and print the result.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb12-1" title="1"><span class="ot">parseStdinOrFail ::</span> <span class="dt">IO</span> [<span class="dt">Entry</span>]</a>
-<a class="sourceLine" id="cb12-2" title="2">parseStdinOrFail <span class="fu">=</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb12-3" title="3">    c <span class="ot">&lt;-</span> <span class="fu">getContents</span></a>
-<a class="sourceLine" id="cb12-4" title="4">    <span class="kw">case</span> parse entries <span class="st">&quot;(stdin)&quot;</span> c <span class="kw">of</span></a>
-<a class="sourceLine" id="cb12-5" title="5">        <span class="dt">Left</span> e <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="fu">$</span> <span class="st">&quot;Error parsing input: &quot;</span> <span class="fu">++</span> <span class="fu">show</span> e</a>
-<a class="sourceLine" id="cb12-6" title="6">        <span class="dt">Right</span> r <span class="ot">-&gt;</span> <span class="fu">return</span> r</a>
-<a class="sourceLine" id="cb12-7" title="7"></a>
-<a class="sourceLine" id="cb12-8" title="8"><span class="ot">parseAndPrintStdin ::</span> <span class="dt">IO</span> ()</a>
-<a class="sourceLine" id="cb12-9" title="9">parseAndPrintStdin <span class="fu">=</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb12-10" title="10">    es <span class="ot">&lt;-</span> parseStdinOrFail</a>
-<a class="sourceLine" id="cb12-11" title="11">    <span class="fu">mapM_</span> <span class="fu">print</span> es</a></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ot">line ::</span> <span class="dt">Parser</span> <span class="dt">String</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>line <span class="ot">=</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    notFollowedBy date <span class="op">*&gt;</span> (many <span class="op">$</span> noneOf <span class="st">&quot;\r\n&quot;</span>) <span class="op">&lt;*</span> eol</span></code></pre></div>
+<p>There are several tricks here. First, <code>*&gt;</code> and <code>&lt;*</code> make it possible to ignore
+the results of <code>notFollowedBy</code> and <code>eol</code>. And
+TODO notFollowedBy</p>
+<p>We can try this using a define a function that will run the parser on <code>stdin</code> and
+print the result.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ot">parseStdinOrFail ::</span> <span class="dt">IO</span> [<span class="dt">Entry</span>]</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>parseStdinOrFail <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    c <span class="ot">&lt;-</span> <span class="fu">getContents</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> parse entries <span class="st">&quot;(stdin)&quot;</span> c <span class="kw">of</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Left</span> e <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="op">$</span> <span class="st">&quot;Error parsing input: &quot;</span> <span class="op">++</span> <span class="fu">show</span> e</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span> r <span class="ot">-&gt;</span> <span class="fu">return</span> r</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="ot">parseAndPrintStdin ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>parseAndPrintStdin <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    es <span class="ot">&lt;-</span> parseStdinOrFail</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mapM_</span> <span class="fu">print</span> es</span></code></pre></div>
 <h2 id="printing">Printing</h2>
-<p>Here comes the second part: emitting a <code>.org</code> file that contains this data. For the rest of my journal, I will be adding entries to a date tree. This is a org-mode structure that looks like the following:</p>
+<p>Here comes the second part: emitting a <code>.org</code> file that contains this data.
+For the rest of my journal, I will be adding entries to a date tree. This is a
+org-mode structure that looks like the following:</p>
 <pre><code>* 2014
 ** 2014-10
 *** 2014-10-19
@@ -137,46 +166,54 @@ XXXX
 *** 2014-10-20
 **** Entry
 YYYY</code></pre>
-<p>The tricky part will of course be to emit the headers at the correct position. Several approaches are possible: filling an intermediate data structure is of course an option, but as the list is already sorted it’s possible to just keep track of the current month and year.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb14-1" title="1"><span class="ot">emitEntries ::</span> [<span class="dt">Entry</span>] <span class="ot">-&gt;</span> <span class="dt">M</span> ()</a>
-<a class="sourceLine" id="cb14-2" title="2">emitEntries <span class="fu">=</span></a>
-<a class="sourceLine" id="cb14-3" title="3">    <span class="fu">mapM_</span> emitEntry</a></code></pre></div>
-<p>Here <code>M</code> is a monad we’ll be using to keep track of the different effects. We need the followning capabilities:</p>
+<p>The tricky part will of course be to emit the headers at the correct position.
+Several approaches are possible: filling an intermediate data structure is of
+course an option, but as the list is already sorted it’s possible to just keep
+track of the current month and year.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ot">emitEntries ::</span> [<span class="dt">Entry</span>] <span class="ot">-&gt;</span> <span class="dt">M</span> ()</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>emitEntries <span class="ot">=</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mapM_</span> emitEntry</span></code></pre></div>
+<p>Here <code>M</code> is a monad we’ll be using to keep track of the different effects. We
+need the followning capabilities:</p>
 <ul>
 <li>remember the last month and year that have been emitted</li>
 <li>write lines</li>
 </ul>
-<p>So, a variant of RWS (Read, Write, State) will work. We don’t need the Read part, so it can be <code>()</code>; the Write part is a list of Strings; and the State part is a record containing a year and a month.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb15-1" title="1"><span class="kw">type</span> <span class="dt">M</span> a <span class="fu">=</span> <span class="dt">RWS</span> () [<span class="dt">String</span>] <span class="dt">EmitState</span> a</a>
-<a class="sourceLine" id="cb15-2" title="2"></a>
-<a class="sourceLine" id="cb15-3" title="3"><span class="kw">data</span> <span class="dt">EmitState</span> <span class="fu">=</span></a>
-<a class="sourceLine" id="cb15-4" title="4">    <span class="dt">EmitState</span> {<span class="ot"> esYear ::</span> <span class="dt">String</span></a>
-<a class="sourceLine" id="cb15-5" title="5">              ,<span class="ot"> esMonth ::</span> <span class="dt">String</span></a>
-<a class="sourceLine" id="cb15-6" title="6">              }</a></code></pre></div>
+<p>So, a variant of RWS (Read, Write, State) will work. We don’t need the Read
+part, so it can be <code>()</code>; the Write part is a list of Strings; and the State part
+is a record containing a year and a month.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">M</span> a <span class="ot">=</span> <span class="dt">RWS</span> () [<span class="dt">String</span>] <span class="dt">EmitState</span> a</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">EmitState</span> <span class="ot">=</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">EmitState</span> {<span class="ot"> esYear ::</span> <span class="dt">String</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>              ,<span class="ot"> esMonth ::</span> <span class="dt">String</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>              }</span></code></pre></div>
 <p>Using this we can write the code to emit an entry:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb16-1" title="1"><span class="ot">emitEntry ::</span> <span class="dt">Entry</span> <span class="ot">-&gt;</span> <span class="dt">M</span> ()</a>
-<a class="sourceLine" id="cb16-2" title="2">emitEntry e <span class="fu">=</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb16-3" title="3">    <span class="dt">EmitState</span> lastYear lastMonth <span class="ot">&lt;-</span> get</a>
-<a class="sourceLine" id="cb16-4" title="4">    <span class="kw">let</span> <span class="dt">Date</span> year month day <span class="fu">=</span> entryDate e</a>
-<a class="sourceLine" id="cb16-5" title="5">    when (year <span class="fu">&gt;</span> lastYear) <span class="fu">$</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb16-6" title="6">        tell [<span class="st">&quot;* &quot;</span> <span class="fu">++</span> year]</a>
-<a class="sourceLine" id="cb16-7" title="7">        modify <span class="fu">$</span> \ s <span class="ot">-&gt;</span> s { esYear <span class="fu">=</span> year }</a>
-<a class="sourceLine" id="cb16-8" title="8">    when ((year, month) <span class="fu">&gt;</span> (lastYear, lastMonth)) <span class="fu">$</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb16-9" title="9">        tell [<span class="st">&quot;** &quot;</span> <span class="fu">++</span> year <span class="fu">++</span> <span class="st">&quot;-&quot;</span> <span class="fu">++</span> month]</a>
-<a class="sourceLine" id="cb16-10" title="10">        modify <span class="fu">$</span> \ s <span class="ot">-&gt;</span> s { esYear <span class="fu">=</span> year }</a>
-<a class="sourceLine" id="cb16-11" title="11">        modify <span class="fu">$</span> \ s <span class="ot">-&gt;</span> s { esMonth <span class="fu">=</span> month }</a>
-<a class="sourceLine" id="cb16-12" title="12">    tell [ <span class="st">&quot;*** &quot;</span> <span class="fu">++</span> year <span class="fu">++</span> <span class="st">&quot;-&quot;</span> <span class="fu">++</span> month <span class="fu">++</span> <span class="st">&quot;-&quot;</span> <span class="fu">++</span> day</a>
-<a class="sourceLine" id="cb16-13" title="13">         , <span class="st">&quot;**** Entry&quot;</span></a>
-<a class="sourceLine" id="cb16-14" title="14">         , entryBody e</a>
-<a class="sourceLine" id="cb16-15" title="15">         ]</a></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ot">emitEntry ::</span> <span class="dt">Entry</span> <span class="ot">-&gt;</span> <span class="dt">M</span> ()</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>emitEntry e <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">EmitState</span> lastYear lastMonth <span class="ot">&lt;-</span> get</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> <span class="dt">Date</span> year month day <span class="ot">=</span> entryDate e</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    when (year <span class="op">&gt;</span> lastYear) <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>        tell [<span class="st">&quot;* &quot;</span> <span class="op">++</span> year]</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>        modify <span class="op">$</span> \ s <span class="ot">-&gt;</span> s { esYear <span class="ot">=</span> year }</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    when ((year, month) <span class="op">&gt;</span> (lastYear, lastMonth)) <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>        tell [<span class="st">&quot;** &quot;</span> <span class="op">++</span> year <span class="op">++</span> <span class="st">&quot;-&quot;</span> <span class="op">++</span> month]</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>        modify <span class="op">$</span> \ s <span class="ot">-&gt;</span> s { esYear <span class="ot">=</span> year }</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>        modify <span class="op">$</span> \ s <span class="ot">-&gt;</span> s { esMonth <span class="ot">=</span> month }</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    tell [ <span class="st">&quot;*** &quot;</span> <span class="op">++</span> year <span class="op">++</span> <span class="st">&quot;-&quot;</span> <span class="op">++</span> month <span class="op">++</span> <span class="st">&quot;-&quot;</span> <span class="op">++</span> day</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>         , <span class="st">&quot;**** Entry&quot;</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>         , entryBody e</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>         ]</span></code></pre></div>
 <h2 id="gluing-it-together">Gluing it together</h2>
-<p>And finally our main function. To set the initial state, we use the fact that the empty string is “less” than other strings, so the first test will always write a year entry (same for the month entry).</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb17-1" title="1"><span class="ot">main ::</span> <span class="dt">IO</span> ()</a>
-<a class="sourceLine" id="cb17-2" title="2">main <span class="fu">=</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb17-3" title="3">    es <span class="ot">&lt;-</span> parseStdinOrFail</a>
-<a class="sourceLine" id="cb17-4" title="4">    <span class="kw">let</span> initState <span class="fu">=</span> <span class="dt">EmitState</span> <span class="st">&quot;&quot;</span> <span class="st">&quot;&quot;</span></a>
-<a class="sourceLine" id="cb17-5" title="5">        ((), _, w) <span class="fu">=</span> runRWS (emitEntries es) () initState</a>
-<a class="sourceLine" id="cb17-6" title="6">    <span class="fu">mapM_</span> <span class="fu">putStrLn</span> w</a></code></pre></div>
+<p>And finally our main function. To set the initial state, we use the fact that
+the empty string is “less” than other strings, so the first test will always
+write a year entry (same for the month entry).</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell literate"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    es <span class="ot">&lt;-</span> parseStdinOrFail</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> initState <span class="ot">=</span> <span class="dt">EmitState</span> <span class="st">&quot;&quot;</span> <span class="st">&quot;&quot;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>        ((), _, w) <span class="ot">=</span> runRWS (emitEntries es) () initState</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mapM_</span> <span class="fu">putStrLn</span> w</span></code></pre></div>
 
 
 
