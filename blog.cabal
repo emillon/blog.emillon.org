@@ -1,7 +1,7 @@
 name:                blog
 version:             0.1.0.0
 homepage:            http://blog.emillon.org
-license:             AllRightsReserved
+license:             BSD3
 author:              Etienne Millon
 maintainer:          me@emillon.org
 build-type:          Simple

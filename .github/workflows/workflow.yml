@@ -12,9 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: cachix/install-nix-action@v18
-      - run: nix run --impure .# -- build
-        env:
-          NIXPKGS_ALLOW_UNFREE: 1
+      - run: nix run .# -- build
 
   build:
 
