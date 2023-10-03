@@ -6,6 +6,16 @@ name: 'CI'
 on: [push, pull_request]
 
 jobs:
+  nix:
+    name: Build (nix)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: cachix/install-nix-action@v18
+      - run: nix run --impure .# -- build
+        env:
+          NIXPKGS_ALLOW_UNFREE: 1
+
   build:
 
     name: Build
