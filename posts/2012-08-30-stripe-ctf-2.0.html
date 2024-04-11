@@ -47,12 +47,12 @@ password.</p>
 <p>Here we have the following PHP script :</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>html<span class="op">&gt;</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;</span>head<span class="op">&gt;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>title<span class="op">&gt;</span><span class="cn">G</span>uessing <span class="cn">G</span>ame<span class="op">&lt;/</span>title<span class="op">&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>title<span class="op">&gt;</span>Guessing Game<span class="op">&lt;/</span>title<span class="op">&gt;</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;/</span>head<span class="op">&gt;</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;</span>body<span class="op">&gt;</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>h1<span class="op">&gt;</span><span class="cn">W</span>elcome to the <span class="cn">G</span>uessing <span class="cn">G</span>ame<span class="op">!&lt;/</span>h1<span class="op">&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>h1<span class="op">&gt;</span>Welcome to the Guessing Game<span class="op">!&lt;/</span>h1<span class="op">&gt;</span></span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>p<span class="op">&gt;</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>      <span class="cn">G</span>uess the secret combination below<span class="ot">,</span> <span class="op">and</span> <span class="cf">if</span> you get it right<span class="ot">,</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>      Guess the secret combination below<span class="ot">,</span> <span class="op">and</span> <span class="cf">if</span> you get it right<span class="ot">,</span></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>      you<span class="st">'ll get the password to the next level!</span></span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="st">    &lt;/p&gt;</span></span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="st">    &lt;?php</span></span>
@@ -64,10 +64,10 @@ password.</p>
 <span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="st">          echo &quot;&lt;p&gt;How did you know the secret combination was&quot; .</span></span>
 <span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="st">               &quot; $combination!?&lt;/p&gt;&quot;;</span></span>
 <span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="st">          $next = file_get_contents('</span>level02<span class="op">-</span>password<span class="op">.</span>txt<span class="st">');</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="st">          echo &quot;&lt;p&gt;You'</span>ve earned the password to the access <span class="cn">L</span>evel <span class="dv">2</span><span class="ot">:</span><span class="st">&quot; .</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="st">          echo &quot;&lt;p&gt;You'</span>ve earned the password to the access Level <span class="dv">2</span><span class="ot">:</span><span class="st">&quot; .</span></span>
 <span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="st">               &quot;</span> <span class="va">$next</span><span class="op">&lt;/</span>p<span class="op">&gt;</span><span class="st">&quot;;</span></span>
 <span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="st">        } else {</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="st">          echo &quot;</span><span class="op">&lt;</span>p<span class="op">&gt;</span><span class="cn">I</span>ncorrect<span class="op">!</span> <span class="cn">T</span>he secret combination is not <span class="va">$attempt</span><span class="op">&lt;/</span>p<span class="op">&gt;</span><span class="st">&quot;;</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="st">          echo &quot;</span><span class="op">&lt;</span>p<span class="op">&gt;</span>Incorrect<span class="op">!</span> The secret combination is not <span class="va">$attempt</span><span class="op">&lt;/</span>p<span class="op">&gt;</span><span class="st">&quot;;</span></span>
 <span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="st">        }</span></span>
 <span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="st">      }</span></span>
 <span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="st">    ?&gt;</span></span>

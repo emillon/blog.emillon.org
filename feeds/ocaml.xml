@@ -162,19 +162,19 @@ blocks at runtime. Let’s write a dumper for <code>range</code> value and watch
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    a :: rng (a+<span class="dv">1</span>) b</span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> view_block o =</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">if</span> (Obj.is_block o) <span class="kw">then</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">if</span> (<span class="dt">Obj</span>.is_block o) <span class="kw">then</span></span>
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">begin</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> tag = Obj.tag o <span class="kw">in</span></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> sz = Obj.size o <span class="kw">in</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> tag = <span class="dt">Obj</span>.tag o <span class="kw">in</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> sz = <span class="dt">Obj</span>.size o <span class="kw">in</span></span>
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> f n =</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> f = Obj.field o n <span class="kw">in</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>        <span class="kw">assert</span> (Obj.is_int f);</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>        Obj.obj f</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> f = <span class="dt">Obj</span>.field o n <span class="kw">in</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>        <span class="kw">assert</span> (<span class="dt">Obj</span>.is_int f);</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Obj</span>.obj f</span>
 <span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>      <span class="kw">in</span></span>
 <span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>      tag :: <span class="dt">List</span>.map f (rng <span class="dv">0</span> (sz<span class="dv">-1</span>))</span>
 <span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">end</span></span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">else</span> <span class="kw">if</span> Obj.is_int o <span class="kw">then</span></span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    [Obj.obj o]</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">else</span> <span class="kw">if</span> <span class="dt">Obj</span>.is_int o <span class="kw">then</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    [<span class="dt">Obj</span>.obj o]</span>
 <span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">else</span></span>
 <span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">assert</span> <span class="kw">false</span></span>
 <span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
@@ -183,7 +183,7 @@ blocks at runtime. Let’s write a dumper for <code>range</code> value and watch
 <span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    <span class="dt">String</span>.concat <span class="st">&quot;;&quot;</span> (<span class="dt">List</span>.map <span class="dt">string_of_int</span> l)</span>
 <span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">in</span></span>
 <span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> explore_range r =</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    <span class="dt">print_endline</span> (p_list (view_block (Obj.repr r)))</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    <span class="dt">print_endline</span> (p_list (view_block (<span class="dt">Obj</span>.repr r)))</span>
 <span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>  <span class="kw">in</span></span>
 <span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  <span class="dt">List</span>.iter explore_range</span>
 <span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    [ Empty</span>
@@ -452,10 +452,10 @@ technique to feed random programs to OCamlFormat and found many formatting bugs.
 to an Abstract Syntax Tree (AST) and then applies formatting rules to the AST.</p>
 <p>It can be tricky to correctly format the output. For example, say we want to
 format <code>(a+b)*c</code>. The corresponding AST will look like <code>Apply("*", Apply ("+", Var "a", Var "b"), Var "c")</code>. A naive formatter would look like this:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> format = <span class="kw">function</span></span>
+<div class="sourceCode" id="cb1"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> <span class="dt">format</span> = <span class="kw">function</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  | Var s -&gt; s</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  | Apply (op, e1, e2) -&gt;</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Printf</span>.sprintf <span class="st">&quot;%s %s %s&quot;</span> (format e1) op (format e2)</span></code></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Printf</span>.sprintf <span class="st">&quot;%s %s %s&quot;</span> (<span class="dt">format</span> e1) op (<span class="dt">format</span> e2)</span></code></pre></div>
 <p>But this is not correct, as it will print <code>(a+b)*c</code> as <code>a+b*c</code>, which is a
 different program. In this particular case, the common solution would be to
 track the relative precedence of the expressions and to emit only necessary

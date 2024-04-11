@@ -42,10 +42,10 @@ technique to feed random programs to OCamlFormat and found many formatting bugs.
 to an Abstract Syntax Tree (AST) and then applies formatting rules to the AST.</p>
 <p>It can be tricky to correctly format the output. For example, say we want to
 format <code>(a+b)*c</code>. The corresponding AST will look like <code>Apply("*", Apply ("+", Var "a", Var "b"), Var "c")</code>. A naive formatter would look like this:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> format = <span class="kw">function</span></span>
+<div class="sourceCode" id="cb1"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> <span class="dt">format</span> = <span class="kw">function</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  | Var s -&gt; s</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  | Apply (op, e1, e2) -&gt;</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Printf</span>.sprintf <span class="st">&quot;%s %s %s&quot;</span> (format e1) op (format e2)</span></code></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Printf</span>.sprintf <span class="st">&quot;%s %s %s&quot;</span> (<span class="dt">format</span> e1) op (<span class="dt">format</span> e2)</span></code></pre></div>
 <p>But this is not correct, as it will print <code>(a+b)*c</code> as <code>a+b*c</code>, which is a
 different program. In this particular case, the common solution would be to
 track the relative precedence of the expressions and to emit only necessary
