@@ -10,19 +10,7 @@
         haskellPackages = pkgs.haskellPackages;
         packageName = "blog";
       in {
-        packages.${packageName} =
+        packages.default =
           haskellPackages.callCabal2nix packageName self rec { };
-        packages.default = self.packages.${system}.${packageName};
-        defaultPackage = self.packages.${system}.default;
-        devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            haskellPackages.haskell-language-server
-            ghcid
-            cabal-install
-          ];
-          inputsFrom =
-            map (__getAttr "env") (__attrValues self.packages.${system});
-        };
-        devShell = self.devShells.${system}.default;
       });
 }
