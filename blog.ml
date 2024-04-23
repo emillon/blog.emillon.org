@@ -1,4 +1,5 @@
-open StdLabels
+open Base
+open Stdio
 
 module Cmdliner_let_syntax = struct
   let ( let+ ) x f =
@@ -12,49 +13,47 @@ module Cmdliner_let_syntax = struct
     const pair $ x $ y
 end
 
+let ( // ) = Stdlib.Filename.concat
+
 type ops = {
   mkdir : string -> unit;
   create_file : path:string -> contents:string -> unit;
 }
 
 let real_ops ~root =
-  let real_mkdir path = Sys.mkdir path 0o755 in
+  let real_mkdir path = Stdlib.Sys.mkdir path 0o755 in
   let mkdir path =
-    let full_path =
-      match path with "." -> root | _ -> Filename.concat root path
-    in
+    let full_path = match path with "." -> root | _ -> root // path in
     real_mkdir full_path
   in
   let create_file ~path ~contents =
-    Out_channel.with_open_bin (Filename.concat root path) (fun oc ->
-        Out_channel.output_string oc contents)
+    Out_channel.write_all (root // path) ~data:contents
   in
   { mkdir; create_file }
 
 let dry_run =
-  let mkdir path = Printf.printf "mkdir %S\n" path in
+  let mkdir path = printf "mkdir %S\n" path in
   let create_file ~path ~contents =
-    let hash = Digest.string contents |> Digest.to_hex in
-    Printf.printf "create_file %S (hash: %s)\n" path hash
+    let hash = Stdlib.Digest.string contents |> Stdlib.Digest.to_hex in
+    printf "create_file %S (hash: %s)\n" path hash
   in
   { mkdir; create_file }
 
-let read_file path = In_channel.with_open_bin path In_channel.input_all
-
-type post = { basename : string; tags : string list; title : string }
+type post = { basename : string; tags : Set.M(String).t; title : string }
 
 let load_post path =
-  let contents = read_file path in
+  let contents = In_channel.read_all path in
   let yaml = Yaml.of_string_exn contents in
-  let basename = Filename.basename path in
+  let basename = Stdlib.Filename.basename path in
   let tags =
     Yaml.Util.find_exn "tags" yaml
-    |> Option.get |> Yaml.Util.to_string_exn
-    |> String.split_on_char ~sep:','
-    |> List.map ~f:String.trim
+    |> Option.value_exn |> Yaml.Util.to_string_exn |> String.split ~on:','
+    |> List.map ~f:String.strip
+    |> Set.of_list (module String)
   in
   let title =
-    Yaml.Util.find_exn "title" yaml |> Option.get |> Yaml.Util.to_string_exn
+    Yaml.Util.find_exn "title" yaml
+    |> Option.value_exn |> Yaml.Util.to_string_exn
   in
   { basename; tags; title }
 
@@ -67,20 +66,20 @@ type feed_config = {
 }
 
 let readdir path =
-  Sys.readdir path |> Array.to_list
-  |> List.sort ~cmp:String.compare
-  |> List.map ~f:(fun base -> Filename.concat path base)
+  Stdlib.Sys.readdir path |> Array.to_list
+  |> List.sort ~compare:String.compare
+  |> List.map ~f:(fun base -> path // base)
 
 let load_all_posts path =
   readdir path
-  |> List.filter ~f:(fun s -> Filename.check_suffix s ".mdwn")
+  |> List.filter ~f:(fun s -> Stdlib.Filename.check_suffix s ".mdwn")
   |> List.map ~f:load_post
 
 let post_permalink _post = "permalink"
 let post_rss_description _post = "description"
 
 let post_pubdate post =
-  Scanf.sscanf post.basename "%d-%d-%d" (fun y m d -> (y, m, d))
+  Stdlib.Scanf.sscanf post.basename "%d-%d-%d" (fun y m d -> (y, m, d))
 
 let weekday_to_string = function
   | `Mon -> "Mon"
@@ -107,12 +106,12 @@ let month_name = function
   | n -> Printf.ksprintf invalid_arg "month_name: %d" n
 
 let compare_date a b =
-  let pa = Ptime.of_date a |> Option.get in
-  let pb = Ptime.of_date b |> Option.get in
+  let pa = Ptime.of_date a |> Option.value_exn in
+  let pb = Ptime.of_date b |> Option.value_exn in
   Ptime.compare pa pb
 
 let date_to_rss_string date =
-  let ptime = Ptime.of_date date |> Option.get in
+  let ptime = Ptime.of_date date |> Option.value_exn in
   let y, m, d = date in
   let weekday = Ptime.weekday ptime in
   Printf.sprintf "%s, %d %s %d 00:00:00 UT"
@@ -136,11 +135,13 @@ let rss_feed posts config =
   let rss_uri =
     Uri.with_path config.root
       (let path = Uri.path config.root in
-       Filename.concat path "rss.xml")
+       path // "rss.xml")
   in
   let items = List.map posts ~f:(post_to_rss_item ~config) in
   let oldest_date =
-    List.map posts ~f:post_pubdate |> List.sort ~cmp:compare_date |> List.hd
+    List.map posts ~f:post_pubdate
+    |> List.min_elt ~compare:compare_date
+    |> Option.value_exn
   in
   let channel =
     node "channel"
@@ -170,7 +171,7 @@ let rss_feed posts config =
         ]
       [ channel ]
   in
-  Format.asprintf "%a" (pp ()) root
+  Stdlib.Format.asprintf "%a" (pp ()) root
 
 let feed_config =
   {
@@ -184,16 +185,11 @@ let feed_config =
 let rec copy_files ops input_path =
   readdir input_path
   |> List.iter ~f:(fun path ->
-         let out_path =
-           let prefix = "static/" in
-           assert (String.starts_with path ~prefix);
-           let len_prefix = String.length prefix in
-           let len_path = String.length path in
-           String.sub ~pos:len_prefix ~len:(len_path - len_prefix) path
-         in
+         let out_path = String.chop_prefix_exn ~prefix:"static/" path in
          let s = Unix.stat path in
          match s.st_kind with
-         | S_REG -> ops.create_file ~path:out_path ~contents:(read_file path)
+         | S_REG ->
+             ops.create_file ~path:out_path ~contents:(In_channel.read_all path)
          | S_DIR ->
              ops.mkdir out_path;
              copy_files ops path
@@ -201,22 +197,20 @@ let rec copy_files ops input_path =
 
 let run ~input ~output =
   let ops = match output with None -> dry_run | Some root -> real_ops ~root in
-  let posts = load_all_posts (Filename.concat input "posts") in
+  let posts = load_all_posts (input // "posts") in
   let all_tags =
-    posts
-    |> List.concat_map ~f:(fun p -> p.tags)
-    |> List.sort_uniq ~cmp:String.compare
+    List.map posts ~f:(fun p -> p.tags) |> Set.union_list (module String)
   in
   let rss_feed = rss_feed posts feed_config in
   ops.mkdir ".";
   ops.mkdir "posts";
   List.iter posts ~f:(fun post ->
-      let path = Filename.concat "posts" post.basename in
+      let path = "posts" // post.basename in
       let contents = "\n" in
       ops.create_file ~path ~contents);
   ops.mkdir "tags";
-  List.iter all_tags ~f:(fun tag ->
-      let path = Filename.concat "tags" tag in
+  Set.iter all_tags ~f:(fun tag ->
+      let path = "tags" // tag in
       let contents = "\n" in
       ops.create_file ~path ~contents);
   ops.create_file ~path:"rss.xml" ~contents:rss_feed;
