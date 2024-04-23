@@ -31,10 +31,32 @@ let dry_run =
   in
   { mkdir; create_file }
 
-let run ~input:_ ~output =
+let read_file path = In_channel.with_open_bin path In_channel.input_all
+
+type post = { yaml : Yaml.value; basename : string }
+
+let load_post path =
+  let contents = read_file path in
+  let yaml = Yaml.of_string_exn contents in
+  let basename = Filename.basename path in
+  { yaml; basename }
+
+let load_all_posts path =
+  Sys.readdir path |> Array.to_list |> List.sort String.compare
+  |> List.map (fun base -> Filename.concat path base)
+  |> List.map load_post
+
+let run ~input ~output =
   let ops = match output with None -> dry_run | Some root -> real_ops ~root in
+  let posts = load_all_posts (Filename.concat input "posts") in
   ops.mkdir ".";
-  ops.create_file ~path:"test" ~contents:"hello\n"
+  ops.mkdir "posts";
+  List.iter
+    (fun post ->
+      let path = Filename.concat "posts" post.basename in
+      let contents = "\n" in
+      ops.create_file ~path ~contents)
+    posts
 
 let info = Cmdliner.Cmd.info "blog"
 
