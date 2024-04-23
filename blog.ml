@@ -66,11 +66,15 @@ type feed_config = {
   root : Uri.t;
 }
 
-let load_all_posts path =
+let readdir path =
   Sys.readdir path |> Array.to_list
-  |> List.filter ~f:(fun s -> Filename.check_suffix s ".mdwn")
   |> List.sort ~cmp:String.compare
-  |> List.map ~f:(fun base -> load_post (Filename.concat path base))
+  |> List.map ~f:(fun base -> Filename.concat path base)
+
+let load_all_posts path =
+  readdir path
+  |> List.filter ~f:(fun s -> Filename.check_suffix s ".mdwn")
+  |> List.map ~f:load_post
 
 let post_permalink _post = "permalink"
 let post_rss_description _post = "description"
@@ -177,6 +181,24 @@ let feed_config =
     root = Uri.of_string "http://blog.emillon.org";
   }
 
+let rec copy_files ops input_path =
+  readdir input_path
+  |> List.iter ~f:(fun path ->
+         let out_path =
+           let prefix = "static/" in
+           assert (String.starts_with path ~prefix);
+           let len_prefix = String.length prefix in
+           let len_path = String.length path in
+           String.sub ~pos:len_prefix ~len:(len_path - len_prefix) path
+         in
+         let s = Unix.stat path in
+         match s.st_kind with
+         | S_REG -> ops.create_file ~path:out_path ~contents:(read_file path)
+         | S_DIR ->
+             ops.mkdir out_path;
+             copy_files ops path
+         | _ -> assert false)
+
 let run ~input ~output =
   let ops = match output with None -> dry_run | Some root -> real_ops ~root in
   let posts = load_all_posts (Filename.concat input "posts") in
@@ -197,7 +219,8 @@ let run ~input ~output =
       let path = Filename.concat "tags" tag in
       let contents = "\n" in
       ops.create_file ~path ~contents);
-  ops.create_file ~path:"rss.xml" ~contents:rss_feed
+  ops.create_file ~path:"rss.xml" ~contents:rss_feed;
+  copy_files ops "static"
 
 let info = Cmdliner.Cmd.info "blog"
 

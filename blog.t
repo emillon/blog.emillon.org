@@ -40,3 +40,19 @@
   create_file "tags/types" (hash: 68b329da9893e34099c7d8ad5cb9c940)
   create_file "tags/zsh" (hash: 68b329da9893e34099c7d8ad5cb9c940)
   create_file "rss.xml" (hash: 439fdcf7393e6f6387171f22865ec87f)
+  mkdir "css"
+  create_file "css/bootstrap.css" (hash: 3ab3438f85ad9f9e27e1af1facf0a9c4)
+  create_file "css/extra.css" (hash: 1ea6515fa9ed95f9893c1f647f0fd908)
+  create_file "css/syntax.css" (hash: 8c038d38ff32a4095a5c9e1a7927b847)
+  create_file "favicon.ico" (hash: db868881fbf7afd9510d89a941084d6e)
+  mkdir "fonts"
+  create_file "fonts/glyphicons-halflings-regular.eot" (hash: 7ad17c6085dee9a33787bac28fb23d46)
+  create_file "fonts/glyphicons-halflings-regular.svg" (hash: ff423a4251cf2986555523dfe315c42b)
+  create_file "fonts/glyphicons-halflings-regular.ttf" (hash: e49d52e74b7689a0727def99da31f3eb)
+  create_file "fonts/glyphicons-halflings-regular.woff" (hash: 68ed1dac06bf0409c18ae7bc62889170)
+  mkdir "img"
+  create_file "img/debian.png" (hash: 08a7cef4b90c21686fd059750de551fc)
+  create_file "img/github.png" (hash: 79312afca3f8b6f443abae7d54b86545)
+  create_file "img/grey_wash_wall.png" (hash: 88ab8ad95a8055d0f3dc4f7dfa075ba0)
+  create_file "img/linkedin.png" (hash: eb49b3ffc4eae3b98c54e65972118f94)
+  create_file "robots.txt" (hash: b6216d61c03e6ce0c9aea6ca7808f7ca)
