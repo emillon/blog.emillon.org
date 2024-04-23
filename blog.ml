@@ -74,7 +74,46 @@ let load_all_posts path =
 
 let post_permalink _post = "permalink"
 let post_rss_description _post = "description"
-let post_pubdate _post = "description"
+
+let post_pubdate post =
+  Scanf.sscanf post.basename "%d-%d-%d" (fun y m d -> (y, m, d))
+
+let weekday_to_string = function
+  | `Mon -> "Mon"
+  | `Tue -> "Tue"
+  | `Wed -> "Wed"
+  | `Thu -> "Thu"
+  | `Fri -> "Fri"
+  | `Sat -> "Sat"
+  | `Sun -> "Sun"
+
+let month_name = function
+  | 1 -> "Jan"
+  | 2 -> "Feb"
+  | 3 -> "Mar"
+  | 4 -> "Apr"
+  | 5 -> "May"
+  | 6 -> "Jun"
+  | 7 -> "Jul"
+  | 8 -> "Aug"
+  | 9 -> "Sep"
+  | 10 -> "Oct"
+  | 11 -> "Nov"
+  | 12 -> "Dec"
+  | n -> Printf.ksprintf invalid_arg "month_name: %d" n
+
+let compare_date a b =
+  let pa = Ptime.of_date a |> Option.get in
+  let pb = Ptime.of_date b |> Option.get in
+  Ptime.compare pa pb
+
+let date_to_rss_string date =
+  let ptime = Ptime.of_date date |> Option.get in
+  let y, m, d = date in
+  let weekday = Ptime.weekday ptime in
+  Printf.sprintf "%s, %d %s %d 00:00:00 UT"
+    (weekday_to_string weekday)
+    d (month_name m) y
 
 let post_to_rss_item (post : post) ~config =
   let open Tyxml.Xml in
@@ -83,7 +122,7 @@ let post_to_rss_item (post : post) ~config =
       node "title" [ pcdata post.title ];
       node "link" [ pcdata (post_permalink post) ];
       node "description" [ cdata (post_rss_description post) ];
-      node "pubDate" [ pcdata (post_pubdate post) ];
+      node "pubDate" [ pcdata (date_to_rss_string (post_pubdate post)) ];
       node "guid" [ pcdata (post_permalink post) ];
       node "dc:creator" [ pcdata config.author_name ];
     ]
@@ -96,6 +135,9 @@ let rss_feed posts config =
        Filename.concat path "rss.xml")
   in
   let items = List.map posts ~f:(post_to_rss_item ~config) in
+  let oldest_date =
+    List.map posts ~f:post_pubdate |> List.sort ~cmp:compare_date |> List.hd
+  in
   let channel =
     node "channel"
       ([
@@ -110,7 +152,7 @@ let rss_feed posts config =
                string_attrib "type" "application/rss+xml";
              ]
            [];
-         node "lastBuildDate" [ pcdata "Fri, 11 Nov 2011 00:00:00 UT" ];
+         node "lastBuildDate" [ pcdata (date_to_rss_string oldest_date) ];
        ]
       @ items)
   in
@@ -124,7 +166,7 @@ let rss_feed posts config =
         ]
       [ channel ]
   in
-  Format.asprintf "%a" (Tyxml.Xml.pp ()) root
+  Format.asprintf "%a" (pp ()) root
 
 let feed_config =
   {

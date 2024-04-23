@@ -13,7 +13,7 @@
           root = ./.;
           include = [ "posts" "static" "templates" ];
         };
-        newDeps = with pkgs.ocamlPackages; [ cmdliner tyxml uri yaml ] ;
+        newDeps = with pkgs.ocamlPackages; [ cmdliner ptime tyxml uri yaml ] ;
         blogEngineNew = pkgs.ocamlPackages.buildDunePackage {
           version = "n/a";
           src = ./.;
