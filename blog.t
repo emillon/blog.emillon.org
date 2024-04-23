@@ -38,3 +38,4 @@
   create_file "tags/tex" (hash: 68b329da9893e34099c7d8ad5cb9c940)
   create_file "tags/types" (hash: 68b329da9893e34099c7d8ad5cb9c940)
   create_file "tags/zsh" (hash: 68b329da9893e34099c7d8ad5cb9c940)
+  create_file "rss.xml" (hash: b76c7d784fea9e4cafdea5f245c72086)

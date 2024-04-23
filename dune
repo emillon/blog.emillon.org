@@ -1,6 +1,6 @@
 (executable
  (public_name blog)
- (libraries cmdliner yaml))
+ (libraries cmdliner tyxml yaml))
 
 (cram
  (deps blog.exe (glob_files posts/*.mdwn)))

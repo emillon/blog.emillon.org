@@ -13,7 +13,7 @@
           root = ./.;
           include = [ "posts" "static" "templates" ];
         };
-        newDeps = with pkgs.ocamlPackages; [ cmdliner yaml ] ;
+        newDeps = with pkgs.ocamlPackages; [ cmdliner tyxml yaml ] ;
         blogEngineNew = pkgs.ocamlPackages.buildDunePackage {
           version = "n/a";
           src = ./.;
@@ -32,7 +32,7 @@
           name = "blog-contents-new";
           nativeBuildInputs = [ blogEngineNew ];
           src = contentSrc;
-          buildPhase = "blog -o output";
+          buildPhase = "blog -i . -o output";
           installPhase = "cp -r output/. $out/";
         };
         devShells.new = pkgs.mkShell {
