@@ -41,12 +41,7 @@ let dry_run =
 
 let read_file path = In_channel.with_open_bin path In_channel.input_all
 
-type post = {
-  yaml : Yaml.value;
-  basename : string;
-  tags : string list;
-  title : string;
-}
+type post = { basename : string; tags : string list; title : string }
 
 let load_post path =
   let contents = read_file path in
@@ -61,7 +56,15 @@ let load_post path =
   let title =
     Yaml.Util.find_exn "title" yaml |> Option.get |> Yaml.Util.to_string_exn
   in
-  { yaml; basename; tags; title }
+  { basename; tags; title }
+
+type feed_config = {
+  title : string;
+  description : string;
+  author_name : string;
+  author_email : string;
+  root : Uri.t;
+}
 
 let load_all_posts path =
   Sys.readdir path |> Array.to_list
@@ -73,7 +76,7 @@ let post_permalink _post = "permalink"
 let post_rss_description _post = "description"
 let post_pubdate _post = "description"
 
-let post_to_rss_item post =
+let post_to_rss_item (post : post) ~config =
   let open Tyxml.Xml in
   node "item"
     [
@@ -82,22 +85,27 @@ let post_to_rss_item post =
       node "description" [ cdata (post_rss_description post) ];
       node "pubDate" [ pcdata (post_pubdate post) ];
       node "guid" [ pcdata (post_permalink post) ];
-      node "dc:creator" [ pcdata "Etienne Millon" ];
+      node "dc:creator" [ pcdata config.author_name ];
     ]
 
-let rss_feed posts =
+let rss_feed posts config =
   let open Tyxml.Xml in
-  let items = List.map posts ~f:post_to_rss_item in
+  let rss_uri =
+    Uri.with_path config.root
+      (let path = Uri.path config.root in
+       Filename.concat path "rss.xml")
+  in
+  let items = List.map posts ~f:(post_to_rss_item ~config) in
   let channel =
     node "channel"
       ([
-         node "title" [ pcdata "Enter the void *" ];
-         node "link" [ pcdata "http://blog.emillon.org" ];
-         node "description" [ cdata "Yet another random hacker" ];
+         node "title" [ pcdata config.title ];
+         node "link" [ pcdata (Uri.to_string config.root) ];
+         node "description" [ cdata config.description ];
          node "atom:link"
            ~a:
              [
-               string_attrib "href" "http://blog.emillon.org/rss.xml";
+               string_attrib "href" (Uri.to_string rss_uri);
                string_attrib "rel" "self";
                string_attrib "type" "application/rss+xml";
              ]
@@ -118,6 +126,15 @@ let rss_feed posts =
   in
   Format.asprintf "%a" (Tyxml.Xml.pp ()) root
 
+let feed_config =
+  {
+    title = "Enter the void *";
+    description = "Yet another random hacker";
+    author_name = "Etienne Millon";
+    author_email = "me@emillon.org";
+    root = Uri.of_string "http://blog.emillon.org";
+  }
+
 let run ~input ~output =
   let ops = match output with None -> dry_run | Some root -> real_ops ~root in
   let posts = load_all_posts (Filename.concat input "posts") in
@@ -126,7 +143,7 @@ let run ~input ~output =
     |> List.concat_map ~f:(fun p -> p.tags)
     |> List.sort_uniq ~cmp:String.compare
   in
-  let rss_feed = rss_feed posts in
+  let rss_feed = rss_feed posts feed_config in
   ops.mkdir ".";
   ops.mkdir "posts";
   List.iter posts ~f:(fun post ->
