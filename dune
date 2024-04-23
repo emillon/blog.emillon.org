@@ -1,3 +1,6 @@
 (executable
  (public_name blog)
  (libraries cmdliner))
+
+(cram
+ (deps blog.exe))
