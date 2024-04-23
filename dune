@@ -2,5 +2,7 @@
  (public_name blog)
  (libraries base cmdliner ptime stdio tyxml uri unix yaml))
 
+(ocamllex template)
+
 (cram
- (deps blog.exe (source_tree posts) (source_tree static)))
+ (deps blog.exe (source_tree posts) (source_tree static) (source_tree templates)))

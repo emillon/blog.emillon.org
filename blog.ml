@@ -39,7 +39,12 @@ let dry_run =
   in
   { mkdir; create_file }
 
-type post = { basename : string; tags : Set.M(String).t; title : string }
+type post = {
+  basename : string;
+  tags : Set.M(String).t;
+  title : string;
+  author : string;
+}
 
 let load_post path =
   let contents = In_channel.read_all path in
@@ -55,7 +60,11 @@ let load_post path =
     Yaml.Util.find_exn "title" yaml
     |> Option.value_exn |> Yaml.Util.to_string_exn
   in
-  { basename; tags; title }
+  let author =
+    Yaml.Util.find_exn "author" yaml
+    |> Option.value_exn |> Yaml.Util.to_string_exn
+  in
+  { basename; tags; title; author }
 
 type feed_config = {
   title : string;
@@ -195,6 +204,12 @@ let rec copy_files ops input_path =
              copy_files ops path
          | _ -> assert false)
 
+let with_string_formatter f =
+  let buf = Buffer.create 0 in
+  let fmt = Stdlib.Format.formatter_of_buffer buf in
+  f fmt;
+  Buffer.contents buf
+
 let run ~input ~output =
   let ops = match output with None -> dry_run | Some root -> real_ops ~root in
   let posts = load_all_posts (input // "posts") in
@@ -206,7 +221,23 @@ let run ~input ~output =
   ops.mkdir "posts";
   List.iter posts ~f:(fun post ->
       let path = "posts" // post.basename in
-      let contents = "\n" in
+      let env =
+        Map.of_alist_exn
+          (module String)
+          [
+            ("title", post.title);
+            ("author", post.author);
+            ("date", date_to_rss_string (post_pubdate post));
+            ("prettytags", String.concat ~sep:", " (Set.to_list post.tags));
+            ("body", "BODY");
+            ("hn", "HN");
+          ]
+      in
+
+      let contents =
+        with_string_formatter (fun fmt ->
+            Template.process env ~input:"templates/post.html" ~output:fmt)
+      in
       ops.create_file ~path ~contents);
   ops.mkdir "tags";
   Set.iter all_tags ~f:(fun tag ->
