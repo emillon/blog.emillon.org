@@ -1,3 +1,5 @@
+open StdLabels
+
 module Cmdliner_let_syntax = struct
   let ( let+ ) x f =
     let open Cmdliner.Term in
@@ -33,30 +35,43 @@ let dry_run =
 
 let read_file path = In_channel.with_open_bin path In_channel.input_all
 
-type post = { yaml : Yaml.value; basename : string }
+type post = { yaml : Yaml.value; basename : string; tags : string list }
 
 let load_post path =
   let contents = read_file path in
   let yaml = Yaml.of_string_exn contents in
   let basename = Filename.basename path in
-  { yaml; basename }
+  let tags =
+    Yaml.Util.find_exn "tags" yaml
+    |> Option.get |> Yaml.Util.to_string_exn
+    |> String.split_on_char ~sep:','
+    |> List.map ~f:String.trim
+  in
+  { yaml; basename; tags }
 
 let load_all_posts path =
-  Sys.readdir path |> Array.to_list |> List.sort String.compare
-  |> List.map (fun base -> Filename.concat path base)
-  |> List.map load_post
+  Sys.readdir path |> Array.to_list
+  |> List.sort ~cmp:String.compare
+  |> List.map ~f:(fun base -> load_post (Filename.concat path base))
 
 let run ~input ~output =
   let ops = match output with None -> dry_run | Some root -> real_ops ~root in
   let posts = load_all_posts (Filename.concat input "posts") in
+  let all_tags =
+    posts
+    |> List.concat_map ~f:(fun p -> p.tags)
+    |> List.sort_uniq ~cmp:String.compare
+  in
   ops.mkdir ".";
   ops.mkdir "posts";
-  List.iter
-    (fun post ->
+  List.iter posts ~f:(fun post ->
       let path = Filename.concat "posts" post.basename in
       let contents = "\n" in
+      ops.create_file ~path ~contents);
+  List.iter all_tags ~f:(fun tag ->
+      let path = Filename.concat "tags" tag in
+      let contents = "\n" in
       ops.create_file ~path ~contents)
-    posts
 
 let info = Cmdliner.Cmd.info "blog"
 
