@@ -13,6 +13,7 @@
   output/img/github.png
   output/img/grey_wash_wall.png
   output/img/linkedin.png
+  output/index.html
   output/posts/2011-11-11-hello-world.mdwn
   output/posts/2011-11-21-hakyll-101.mdwn
   output/posts/2011-11-28-unicode-math-greek-symbols-you-name-it.mdwn
@@ -152,3 +153,38 @@
   
   </ul>
   <a href="http://blog.emillon.org/tag/ocaml.xml">Feed</a>
+
+  $ cat output/index.html
+  <div class="about">
+      <h1>About this blog</h1>
+      <p>
+      Hello! I am a French computer scientist specialized in formal methods.
+      </p>
+  
+      <p>
+      This blog is mostly about security, types, functional programming and free
+      software.
+      </p>
+  
+      <div id="posts">
+      I recently wrote about the following things:
+      <ul class="postList">
+          <li>
+      <span class="postDate">Fri, 11 Nov 2011 00:00:00 UT</span> <a href="permalink">Hello, world !</a>
+  </li>
+  <li>
+      <span class="postDate">Mon, 21 Nov 2011 00:00:00 UT</span> <a href="permalink">Hakyll 101</a>
+  </li>
+  <li>
+      <span class="postDate">Mon, 28 Nov 2011 00:00:00 UT</span> <a href="permalink">Unicode : Math, greek, symbols - you name it !</a>
+  </li>
+  
+      </ul>
+      <p><a href="/posts.html">See the rest&hellip;</a></p>
+      </div>
+  
+      <h1>Tags</h1>
+      <div>
+          TAGCLOUD
+      </div>
+  </div>

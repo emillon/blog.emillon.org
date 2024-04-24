@@ -215,6 +215,48 @@ let with_string_formatter f =
   f fmt;
   Buffer.contents buf
 
+module Templates = struct
+  let render input l =
+    let env = Map.of_alist_exn (module String) l in
+    with_string_formatter (fun fmt -> Template.process env ~input ~output:fmt)
+
+  let post (post : post) =
+    render "templates/post.html"
+      [
+        ("title", post.title);
+        ("author", post.author);
+        ("date", date_to_rss_string (post_pubdate post));
+        ("prettytags", String.concat ~sep:", " (Set.to_list post.tags));
+        ("body", "BODY");
+      ]
+
+  let post_items posts =
+    with_string_formatter (fun fmt ->
+        List.iter posts ~f:(fun post ->
+            let env =
+              Map.of_alist_exn
+                (module String)
+                [
+                  ("date", date_to_rss_string (post_pubdate post));
+                  ("url", post_permalink post);
+                  ("title", post.title);
+                ]
+            in
+            Template.process env ~input:"templates/postitem.html" ~output:fmt))
+
+  let posts posts ~title ~feed =
+    render "templates/posts.html"
+      [
+        ("title", title);
+        ("posts", post_items posts);
+        ("feed", Uri.to_string feed);
+      ]
+
+  let index posts =
+    render "templates/index.html"
+      [ ("posts", post_items posts); ("tagcloud", "TAGCLOUD") ]
+end
+
 let run ~input ~output =
   let ops = match output with None -> dry_run | Some root -> real_ops ~root in
   let posts = load_all_posts (input // "posts") in
@@ -231,57 +273,22 @@ let run ~input ~output =
   ops.mkdir "posts";
   List.iter posts ~f:(fun post ->
       let path = "posts" // post.basename in
-      let env =
-        Map.of_alist_exn
-          (module String)
-          [
-            ("title", post.title);
-            ("author", post.author);
-            ("date", date_to_rss_string (post_pubdate post));
-            ("prettytags", String.concat ~sep:", " (Set.to_list post.tags));
-            ("body", "BODY");
-          ]
-      in
-      let contents =
-        with_string_formatter (fun fmt ->
-            Template.process env ~input:"templates/post.html" ~output:fmt)
-      in
+      let contents = Templates.post post in
       ops.create_file ~path ~contents);
   ops.mkdir "tags";
   List.iter all_tags ~f:(fun tag ->
       let path = "tags" // Printf.sprintf "%s.html" tag in
-      let posts_s =
-        with_string_formatter (fun fmt ->
-            let posts = Map.find_multi tag_map tag in
-            List.iter posts ~f:(fun post ->
-                let env =
-                  Map.of_alist_exn
-                    (module String)
-                    [
-                      ("date", date_to_rss_string (post_pubdate post));
-                      ("url", post_permalink post);
-                      ("title", post.title);
-                    ]
-                in
-                Template.process env ~input:"templates/postitem.html"
-                  ~output:fmt))
-      in
-      let env =
-        Map.of_alist_exn
-          (module String)
-          [
-            ("title", Printf.sprintf "Posts tagged %S" tag);
-            ("posts", posts_s);
-            ("feed", Uri.to_string (tag_feed feed_config tag));
-          ]
-      in
       let contents =
-        with_string_formatter (fun fmt ->
-            Template.process env ~input:"templates/posts.html" ~output:fmt)
+        Templates.posts
+          (Map.find_multi tag_map tag)
+          ~title:(Printf.sprintf "Posts tagged %S" tag)
+          ~feed:(tag_feed feed_config tag)
       in
       ops.create_file ~path ~contents);
   ops.create_file ~path:"rss.xml" ~contents:rss_feed;
-  copy_files ops "static"
+  copy_files ops "static";
+  let index_contents = Templates.index (List.take posts 3) in
+  ops.create_file ~path:"index.html" ~contents:index_contents
 
 let info = Cmdliner.Cmd.info "blog"
 
