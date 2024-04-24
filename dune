@@ -1,6 +1,6 @@
 (executable
  (public_name blog)
- (libraries base cmdliner ptime stdio tyxml uri unix yaml))
+ (libraries base cmarkit cmdliner ptime stdio tyxml uri unix yaml))
 
 (ocamllex template)
 

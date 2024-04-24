@@ -132,7 +132,26 @@
   
   <p>Tagged as: meta.</p>
   
-  BODY
+  <hr>
+  <h2>title: Hello, world !
+  author: Etienne Millon
+  tags: meta</h2>
+  <pre><code class="language-{.haskell}">blog :: IO ()
+  blog =
+    putStrLn &quot;Hello, world !&quot;
+  </code></pre>
+  <p>This is my first attempt at blogging, I still don't know what to expect.
+  I will probably write about the following topics :</p>
+  <ul>
+  <li>Programming, especially using <a href="http://caml.inria.fr/">functional</a> <a href="http://www.haskell.org/">languages</a>.</li>
+  <li>Development of the <a href="http://www.debian.org/">Debian</a> operating system.</li>
+  <li><a href="http://en.wikipedia.org/wiki/Static_program_analysis">Static analysis</a> of software.</li>
+  <li>Computer security.</li>
+  </ul>
+  <p>Like some of <a href="http://blog.chmd.fr/going-static.html">my</a> <a href="http://nicdumz.fr/blog/2010/12/why-blogofile/">friends</a>, I decided to use a
+  static blog generator. The first series of posts will be about setting this up
+  with <a href="http://jaspervdj.be/hakyll/">hakyll</a>, git and S3. Stay tuned !</p>
+  
   
 
   $ cat output/tags/ocaml.html

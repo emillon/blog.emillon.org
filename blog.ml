@@ -44,6 +44,7 @@ type post = {
   tags : Set.M(String).t;
   title : string;
   author : string;
+  body : Cmarkit.Doc.t;
 }
 
 let load_post path =
@@ -64,7 +65,8 @@ let load_post path =
     Yaml.Util.find_exn "author" yaml
     |> Option.value_exn |> Yaml.Util.to_string_exn
   in
-  { basename; tags; title; author }
+  let body = Cmarkit.Doc.of_string contents in
+  { basename; tags; title; author; body }
 
 type feed_config = {
   title : string;
@@ -227,7 +229,7 @@ module Templates = struct
         ("author", post.author);
         ("date", date_to_rss_string (post_pubdate post));
         ("prettytags", String.concat ~sep:", " (Set.to_list post.tags));
-        ("body", "BODY");
+        ("body", Cmarkit_html.of_doc ~safe:true post.body);
       ]
 
   let post_items posts =
