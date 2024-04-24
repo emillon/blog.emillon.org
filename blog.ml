@@ -230,10 +230,8 @@ let run ~input ~output =
             ("date", date_to_rss_string (post_pubdate post));
             ("prettytags", String.concat ~sep:", " (Set.to_list post.tags));
             ("body", "BODY");
-            ("hn", "HN");
           ]
       in
-
       let contents =
         with_string_formatter (fun fmt ->
             Template.process env ~input:"templates/post.html" ~output:fmt)

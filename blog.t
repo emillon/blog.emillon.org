@@ -133,12 +133,6 @@
   
   BODY
   
-  
-  <hr>
-  
-  You can see the comments about this article
-  <a href="https://news.ycombinator.com/item?id=HN">on Hacker News</a>.
-  
 
   $ cat output/tags/ocaml
   

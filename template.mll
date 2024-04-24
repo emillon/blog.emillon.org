@@ -1,29 +1,37 @@
 {
   open Base
   open Stdio
+
+  let active_output env ids =
+    List.for_all ids ~f:(Map.mem env)
 }
 let id = ['a'-'z']+
 
-rule template env ofmt = parse
+rule template env stack ofmt = parse
 | [^ '$']+
-{ Stdlib.Format.fprintf ofmt "%s" (Lexing.lexeme lexbuf);
-  template env ofmt lexbuf
+{
+    if active_output env stack then
+      Stdlib.Format.fprintf ofmt "%s" (Lexing.lexeme lexbuf);
+    template env stack ofmt lexbuf
 }
-| "$if(" id ")$"
-{ template env ofmt lexbuf
+| "$if(" (id as id) ")$"
+{
+    template env (id::stack) ofmt lexbuf
 }
 | "$endif$"
-{ template env ofmt lexbuf
+{
+    template env (List.tl_exn stack) ofmt lexbuf
 }
 | '$' (id as id) '$'
 {
-  match Map.find env id with
-  | None -> Printf.ksprintf failwith "Unknown variable: %s" id
-  | Some v ->
-    begin
-      Stdlib.Format.fprintf ofmt "%s" v;
-      template env ofmt lexbuf
-    end
+    if active_output env stack then
+      match Map.find env id with
+      | None -> Printf.ksprintf failwith "Unknown variable: %s" id
+      | Some v ->
+        begin
+          Stdlib.Format.fprintf ofmt "%s" v;
+          template env stack ofmt lexbuf
+        end
 }
 | eof { () }
 
@@ -31,7 +39,8 @@ rule template env ofmt = parse
   let process env ~input ~output =
     In_channel.with_file input ~f:(fun ic ->
       let lexbuf = Lexing.from_channel ic in
-      template env output lexbuf;
+      let stack = [] in
+      template env stack output lexbuf;
       Stdlib.Format.pp_print_flush output ()
     )
 }
