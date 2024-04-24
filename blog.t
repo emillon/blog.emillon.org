@@ -20,6 +20,7 @@
   output/posts/2011-12-14-what-s-in-an-adt.mdwn
   output/posts/2012-01-17-zsh-suffix-aliases.mdwn
   output/posts/2012-08-30-stripe-ctf-2.0.mdwn
+  output/posts/2012-10-18-comonadic-life.lhs
   output/posts/2014-05-13-resizing-a-lvm-partition.mdwn
   output/posts/2014-05-21-making-type-inference-explode.mdwn
   output/posts/2014-06-05-bring-your-own-switch.mdwn
@@ -27,18 +28,25 @@
   output/posts/2014-11-27-converting-a-dance-dance-revolution-mat-to-usb.mdwn
   output/posts/2014-12-27-on-the-curl-sh-pattern.mdwn
   output/posts/2015-04-03-santa-made-me-learn-rails-in-a-week.mdwn
+  output/posts/2015-08-20-a-lens-based-st20-emulator.lhs
   output/posts/2016-01-12-in-python-default-values-are-evaluated-at-import-time.mdwn
   output/posts/2017-02-01-nabomamo-2016-writeup.mdwn
   output/posts/2020-08-03-fuzzing-ocamlformat-with-afl-and-crowbar.mdwn
   output/robots.txt
   output/rss.xml
+  output/tags/algebra.html
   output/tags/avr.html
   output/tags/bot.html
+  output/tags/comonad.html
+  output/tags/conway.html
   output/tags/ctf.html
   output/tags/ddr.html
   output/tags/debian.html
+  output/tags/emulator.html
   output/tags/fuzzing.html
   output/tags/haskell.html
+  output/tags/lenses.html
+  output/tags/life.html
   output/tags/linux.html
   output/tags/lvm.html
   output/tags/meta.html
@@ -83,7 +91,11 @@
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Thu, 30 Aug 2012 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Resizing a LVM partition</title><link>permalink</link><description>
+  </description><pubDate>Thu, 30 Aug 2012 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Comonadic Life</title><link>permalink</link><description>
+  <![CDATA[
+  description
+  ]]>
+  </description><pubDate>Thu, 18 Oct 2012 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Resizing a LVM partition</title><link>permalink</link><description>
   <![CDATA[
   description
   ]]>
@@ -111,7 +123,11 @@
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Fri, 3 Apr 2015 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>In Python, default values are evaluated at import time</title><link>permalink</link><description>
+  </description><pubDate>Fri, 3 Apr 2015 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>A lens-based ST20 emulator</title><link>permalink</link><description>
+  <![CDATA[
+  description
+  ]]>
+  </description><pubDate>Thu, 20 Aug 2015 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>In Python, default values are evaluated at import time</title><link>permalink</link><description>
   <![CDATA[
   description
   ]]>

@@ -83,7 +83,9 @@ let readdir path =
 
 let load_all_posts path =
   readdir path
-  |> List.filter ~f:(fun s -> Stdlib.Filename.check_suffix s ".mdwn")
+  |> List.filter ~f:(fun s ->
+         Stdlib.Filename.check_suffix s ".mdwn"
+         || Stdlib.Filename.check_suffix s ".lhs")
   |> List.map ~f:load_post
 
 let post_permalink _post = "permalink"
