@@ -31,27 +31,27 @@
   output/posts/2020-08-03-fuzzing-ocamlformat-with-afl-and-crowbar.mdwn
   output/robots.txt
   output/rss.xml
-  output/tags/avr
-  output/tags/bot
-  output/tags/ctf
-  output/tags/ddr
-  output/tags/debian
-  output/tags/fuzzing
-  output/tags/haskell
-  output/tags/linux
-  output/tags/lvm
-  output/tags/meta
-  output/tags/nabomamo
-  output/tags/ocaml
-  output/tags/python
-  output/tags/rails
-  output/tags/secretsanta
-  output/tags/security
-  output/tags/slack
-  output/tags/stripe
-  output/tags/tex
-  output/tags/types
-  output/tags/zsh
+  output/tags/avr.html
+  output/tags/bot.html
+  output/tags/ctf.html
+  output/tags/ddr.html
+  output/tags/debian.html
+  output/tags/fuzzing.html
+  output/tags/haskell.html
+  output/tags/linux.html
+  output/tags/lvm.html
+  output/tags/meta.html
+  output/tags/nabomamo.html
+  output/tags/ocaml.html
+  output/tags/python.html
+  output/tags/rails.html
+  output/tags/secretsanta.html
+  output/tags/security.html
+  output/tags/slack.html
+  output/tags/stripe.html
+  output/tags/tex.html
+  output/tags/types.html
+  output/tags/zsh.html
 
   $ cat output/rss.xml
   <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>Enter the void *</title><link>http://blog.emillon.org</link><description>
@@ -134,5 +134,21 @@
   BODY
   
 
-  $ cat output/tags/ocaml
+  $ cat output/tags/ocaml.html
+  <h1>Posts tagged "ocaml"</h1>
+  <ul class="postList">
+      <li>
+      <span class="postDate">Mon, 3 Aug 2020 00:00:00 UT</span> <a href="permalink">Fuzzing OCamlFormat with AFL and Crowbar</a>
+  </li>
+  <li>
+      <span class="postDate">Wed, 1 Feb 2017 00:00:00 UT</span> <a href="permalink">NaBoMaMo 2016 writeup</a>
+  </li>
+  <li>
+      <span class="postDate">Wed, 21 May 2014 00:00:00 UT</span> <a href="permalink">Making type inference explode</a>
+  </li>
+  <li>
+      <span class="postDate">Wed, 14 Dec 2011 00:00:00 UT</span> <a href="permalink">What's in an ADT ?</a>
+  </li>
   
+  </ul>
+  <a href="http://blog.emillon.org/tag/ocaml.xml">Feed</a>
