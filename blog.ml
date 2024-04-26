@@ -261,8 +261,6 @@ module Templates = struct
       [ ("posts", post_items posts); ("tagcloud", "TAGCLOUD") ]
 end
 
-let set_extension s ~ext = Stdlib.Filename.chop_extension s ^ ext
-
 let create_tag_html ops tag posts =
   let path = "tags" // Printf.sprintf "%s.html" tag in
   let contents =
@@ -275,6 +273,21 @@ let create_tag_html ops tag posts =
 let create_tag_feed ops tag posts =
   let path = "feeds" // Printf.sprintf "%s.xml" tag in
   let contents = rss_feed posts feed_config in
+  ops.create_file ~path ~contents
+
+let directory_exists path =
+  Stdlib.Sys.file_exists path && Stdlib.Sys.is_directory path
+
+let create_post_assets ops path =
+  ops.mkdir path;
+  List.iter (readdir path) ~f:(fun path ->
+      ops.create_file ~path ~contents:(In_channel.read_all path))
+
+let create_post ops post =
+  let chopped = "posts" // post.basename |> Stdlib.Filename.chop_extension in
+  let path = chopped ^ ".html" in
+  if directory_exists chopped then create_post_assets ops chopped;
+  let contents = Templates.post post in
   ops.create_file ~path ~contents
 
 let run ~input ~output =
@@ -291,10 +304,7 @@ let run ~input ~output =
   let rss_feed = rss_feed posts feed_config in
   ops.mkdir ".";
   ops.mkdir "posts";
-  List.iter posts ~f:(fun post ->
-      let path = "posts" // post.basename |> set_extension ~ext:".html" in
-      let contents = Templates.post post in
-      ops.create_file ~path ~contents);
+  List.iter posts ~f:(create_post ops);
   ops.mkdir "tags";
   ops.mkdir "feeds";
   List.iter all_tags ~f:(fun tag ->

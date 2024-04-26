@@ -53,9 +53,16 @@
   output/posts/2014-06-05-bring-your-own-switch.html
   output/posts/2014-11-21-my-part-of-work-in-debian-jessie.html
   output/posts/2014-11-27-converting-a-dance-dance-revolution-mat-to-usb.html
+  output/posts/2014-11-27-converting-a-dance-dance-revolution-mat-to-usb/assembled.jpg
+  output/posts/2014-11-27-converting-a-dance-dance-revolution-mat-to-usb/inside.jpg
+  output/posts/2014-11-27-converting-a-dance-dance-revolution-mat-to-usb/mat.jpg
+  output/posts/2014-11-27-converting-a-dance-dance-revolution-mat-to-usb/wires.jpg
   output/posts/2014-12-27-on-the-curl-sh-pattern.html
   output/posts/2015-04-03-santa-made-me-learn-rails-in-a-week.html
+  output/posts/2015-04-03-santa-made-me-learn-rails-in-a-week/nested.png
   output/posts/2015-08-20-a-lens-based-st20-emulator.html
+  output/posts/2015-08-20-a-lens-based-st20-emulator/t00f.png
+  output/posts/2015-08-20-a-lens-based-st20-emulator/t03.png
   output/posts/2016-01-12-in-python-default-values-are-evaluated-at-import-time.html
   output/posts/2017-02-01-nabomamo-2016-writeup.html
   output/posts/2020-08-03-fuzzing-ocamlformat-with-afl-and-crowbar.html
