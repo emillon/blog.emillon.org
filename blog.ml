@@ -313,6 +313,8 @@ let run ~input ~output =
       create_tag_feed ops tag posts);
   ops.create_file ~path:"rss.xml" ~contents:rss_feed;
   copy_files ops "static";
+  let posts_contents = Templates.index posts in
+  ops.create_file ~path:"posts.html" ~contents:posts_contents;
   let index_contents = Templates.index (List.take posts 3) in
   ops.create_file ~path:"index.html" ~contents:index_contents
 

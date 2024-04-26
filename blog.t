@@ -41,6 +41,7 @@
   output/img/grey_wash_wall.png
   output/img/linkedin.png
   output/index.html
+  output/posts.html
   output/posts/2011-11-11-hello-world.html
   output/posts/2011-11-21-hakyll-101.html
   output/posts/2011-11-28-unicode-math-greek-symbols-you-name-it.html
