@@ -4,4 +4,6 @@ blog
 blog.hi
 blog.o
 dist
-result
+result*
+.direnv
+_build
