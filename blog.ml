@@ -261,6 +261,8 @@ module Templates = struct
       [ ("posts", post_items posts); ("tagcloud", "TAGCLOUD") ]
 end
 
+let set_extension s ~ext = Stdlib.Filename.chop_extension s ^ ext
+
 let run ~input ~output =
   let ops = match output with None -> dry_run | Some root -> real_ops ~root in
   let posts = load_all_posts (input // "posts") in
@@ -276,7 +278,7 @@ let run ~input ~output =
   ops.mkdir ".";
   ops.mkdir "posts";
   List.iter posts ~f:(fun post ->
-      let path = "posts" // post.basename in
+      let path = "posts" // post.basename |> set_extension ~ext:".html" in
       let contents = Templates.post post in
       ops.create_file ~path ~contents);
   ops.mkdir "tags";

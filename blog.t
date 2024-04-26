@@ -14,24 +14,24 @@
   output/img/grey_wash_wall.png
   output/img/linkedin.png
   output/index.html
-  output/posts/2011-11-11-hello-world.mdwn
-  output/posts/2011-11-21-hakyll-101.mdwn
-  output/posts/2011-11-28-unicode-math-greek-symbols-you-name-it.mdwn
-  output/posts/2011-12-14-what-s-in-an-adt.mdwn
-  output/posts/2012-01-17-zsh-suffix-aliases.mdwn
-  output/posts/2012-08-30-stripe-ctf-2.0.mdwn
-  output/posts/2012-10-18-comonadic-life.lhs
-  output/posts/2014-05-13-resizing-a-lvm-partition.mdwn
-  output/posts/2014-05-21-making-type-inference-explode.mdwn
-  output/posts/2014-06-05-bring-your-own-switch.mdwn
-  output/posts/2014-11-21-my-part-of-work-in-debian-jessie.mdwn
-  output/posts/2014-11-27-converting-a-dance-dance-revolution-mat-to-usb.mdwn
-  output/posts/2014-12-27-on-the-curl-sh-pattern.mdwn
-  output/posts/2015-04-03-santa-made-me-learn-rails-in-a-week.mdwn
-  output/posts/2015-08-20-a-lens-based-st20-emulator.lhs
-  output/posts/2016-01-12-in-python-default-values-are-evaluated-at-import-time.mdwn
-  output/posts/2017-02-01-nabomamo-2016-writeup.mdwn
-  output/posts/2020-08-03-fuzzing-ocamlformat-with-afl-and-crowbar.mdwn
+  output/posts/2011-11-11-hello-world.html
+  output/posts/2011-11-21-hakyll-101.html
+  output/posts/2011-11-28-unicode-math-greek-symbols-you-name-it.html
+  output/posts/2011-12-14-what-s-in-an-adt.html
+  output/posts/2012-01-17-zsh-suffix-aliases.html
+  output/posts/2012-08-30-stripe-ctf-2.0.html
+  output/posts/2012-10-18-comonadic-life.html
+  output/posts/2014-05-13-resizing-a-lvm-partition.html
+  output/posts/2014-05-21-making-type-inference-explode.html
+  output/posts/2014-06-05-bring-your-own-switch.html
+  output/posts/2014-11-21-my-part-of-work-in-debian-jessie.html
+  output/posts/2014-11-27-converting-a-dance-dance-revolution-mat-to-usb.html
+  output/posts/2014-12-27-on-the-curl-sh-pattern.html
+  output/posts/2015-04-03-santa-made-me-learn-rails-in-a-week.html
+  output/posts/2015-08-20-a-lens-based-st20-emulator.html
+  output/posts/2016-01-12-in-python-default-values-are-evaluated-at-import-time.html
+  output/posts/2017-02-01-nabomamo-2016-writeup.html
+  output/posts/2020-08-03-fuzzing-ocamlformat-with-afl-and-crowbar.html
   output/robots.txt
   output/rss.xml
   output/tags/algebra.html
@@ -141,7 +141,7 @@
   ]]>
   </description><pubDate>Mon, 3 Aug 2020 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item></channel></rss>
 
-  $ cat output/posts/2011-11-11-hello-world.mdwn
+  $ cat output/posts/2011-11-11-hello-world.html
   <h1>Hello, world !</h1>
   
   <p>by <em>Etienne Millon</em> on <strong>Fri, 11 Nov 2011 00:00:00 UT</strong></p>
