@@ -263,6 +263,20 @@ end
 
 let set_extension s ~ext = Stdlib.Filename.chop_extension s ^ ext
 
+let create_tag_html ops tag posts =
+  let path = "tags" // Printf.sprintf "%s.html" tag in
+  let contents =
+    Templates.posts posts
+      ~title:(Printf.sprintf "Posts tagged %S" tag)
+      ~feed:(tag_feed feed_config tag)
+  in
+  ops.create_file ~path ~contents
+
+let create_tag_feed ops tag posts =
+  let path = "feeds" // Printf.sprintf "%s.xml" tag in
+  let contents = rss_feed posts feed_config in
+  ops.create_file ~path ~contents
+
 let run ~input ~output =
   let ops = match output with None -> dry_run | Some root -> real_ops ~root in
   let posts = load_all_posts (input // "posts") in
@@ -282,15 +296,11 @@ let run ~input ~output =
       let contents = Templates.post post in
       ops.create_file ~path ~contents);
   ops.mkdir "tags";
+  ops.mkdir "feeds";
   List.iter all_tags ~f:(fun tag ->
-      let path = "tags" // Printf.sprintf "%s.html" tag in
-      let contents =
-        Templates.posts
-          (Map.find_multi tag_map tag)
-          ~title:(Printf.sprintf "Posts tagged %S" tag)
-          ~feed:(tag_feed feed_config tag)
-      in
-      ops.create_file ~path ~contents);
+      let posts = Map.find_multi tag_map tag in
+      create_tag_html ops tag posts;
+      create_tag_feed ops tag posts);
   ops.create_file ~path:"rss.xml" ~contents:rss_feed;
   copy_files ops "static";
   let index_contents = Templates.index (List.take posts 3) in

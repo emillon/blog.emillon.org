@@ -5,6 +5,33 @@
   output/css/extra.css
   output/css/syntax.css
   output/favicon.ico
+  output/feeds/algebra.xml
+  output/feeds/avr.xml
+  output/feeds/bot.xml
+  output/feeds/comonad.xml
+  output/feeds/conway.xml
+  output/feeds/ctf.xml
+  output/feeds/ddr.xml
+  output/feeds/debian.xml
+  output/feeds/emulator.xml
+  output/feeds/fuzzing.xml
+  output/feeds/haskell.xml
+  output/feeds/lenses.xml
+  output/feeds/life.xml
+  output/feeds/linux.xml
+  output/feeds/lvm.xml
+  output/feeds/meta.xml
+  output/feeds/nabomamo.xml
+  output/feeds/ocaml.xml
+  output/feeds/python.xml
+  output/feeds/rails.xml
+  output/feeds/secretsanta.xml
+  output/feeds/security.xml
+  output/feeds/slack.xml
+  output/feeds/stripe.xml
+  output/feeds/tex.xml
+  output/feeds/types.xml
+  output/feeds/zsh.xml
   output/fonts/glyphicons-halflings-regular.eot
   output/fonts/glyphicons-halflings-regular.svg
   output/fonts/glyphicons-halflings-regular.ttf
