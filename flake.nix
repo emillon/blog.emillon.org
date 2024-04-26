@@ -37,7 +37,7 @@
         };
         devShells.new = pkgs.mkShell {
           buildInputs = newDeps
-            ++ (with pkgs.ocamlPackages; [ ocaml-lsp ocamlformat_0_26_1 ]);
+            ++ (with pkgs.ocamlPackages; [ merlin ocamlformat_0_26_1 ]);
           inputsFrom = [ blogEngineNew ];
         };
       });
