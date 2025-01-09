@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Enter the void * - Adding a patch to a Debian package</title>
+        <link rel="stylesheet" type="text/css" href="../css/bootstrap.css" />
+        <link rel="stylesheet" type="text/css" href="../css/extra.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+        <link rel="alternate" type="application/rss+xml" title="Enter the void *" href="../rss.xml" />
+        <link rel="shortcut icon" href="../favicon.ico" />
+        <link href="http://fonts.googleapis.com/css?family=Merriweather:400,300" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <div class="header container">
+            <h1 class="maintitle">Enter the void *</h1>
+               <div class="nav-hdr">
+                   <ul>
+                      <li><a href="../">Home</a></li>
+                      <li><a href="../posts.html">All posts</a></li>
+                      <li><a href="../rss.xml">Feed</a></li>
+                      <li><a href="https://github.com/emillon">Github</a></li>
+                      <li><a href="https://qa.debian.org/developer.php?login=me%40emillon.org">Debian</a></li>
+                      <li><a href="https://twitter.com/etiennemillon">Twitter</a></li>
+                   </ul>
+                </div>
+        </div>
+        <div class="maincontainer container">
+          <div class="col-md-8 col-md-offset-2">
+            <h1>Adding a patch to a Debian package</h1>
+
+<p>by <em>Etienne Millon</em> on <strong>No date</strong></p>
+
+<p>Tagged as: <a title="All pages tagged 'debian'." href="../tags/debian.html" rel="tag">debian</a>.</p>
+
+<p>A few years ago, I decided to step up and maintain <a href="https://qa.debian.org/developer.php?login=etienne.millon%40gmail.com">a few packages in
+Debian</a>.</p>
+<p>The community is great, and I highly recommend it to everyone
+interested.</p>
+<p>Being a maintainer is a</p>
+<p>Most of the necessary work is quite easy, but it can be quite</p>
+<p>So, I received a <a href="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=667429">bug report</a> by e-mail, stating that zsnes FTBFS (“Fails To
+Build From Source”) with gcc-4.7. This is a problem, because when the default
+gcc in unstable will be 4.7, the build farms won’t be able to do their job on
+zsnes.</p>
+<p>According to Matthias, the error message is :</p>
+<pre><code>tools/depbuild.cpp: In function 'void dependency_calculate(const char*, stat&amp;)':
+tools/depbuild.cpp:168:37: error: 'F_OK' was not declared in this scope
+tools/depbuild.cpp:168:41: error: 'access' was not declared in this scope</code></pre>
+<p>The <a href="http://gcc.gnu.org/gcc-4.7/porting_to.html">porting guide</a> linked in the
+bug report states that it is because <code>unistd.h</code> is not included by other headers
+anymore. This sounds good : the fix will probably be a one-line patch.</p>
+<p>Let’s fix this bug ! The logical steps are :</p>
+<ul>
+<li>reproduce the bug</li>
+<li>prepare a fix</li>
+<li>check that the bug is fixed</li>
+<li>post the fix to the Bug Tracking System</li>
+<li>upload a package containing the fix</li>
+</ul>
+<h2 id="reproduce-the-bug">Reproduce the bug</h2>
+<p>To build the package with <code>CC=gcc-4.7 CXX=g++-4.7</code>, I will manually invoke
+<code>debian/rules</code> to build the package. Because I use <a href="http://honk.sigxcpu.org/projects/git-buildpackage/manual-html/gbp.html">git-buildpackage</a>, I have
+to manually apply all debian-specific patches before :</p>
+<pre><code>  % dquilt push -qa
+Applying patch 0001-gcc-fno-rtti.patch
+Applying patch 0002-replace_crc32.patch
+Applying patch 0003-gcc-4.3-ftbfs.patch
+Applying patch 0004-manpage-in-usr-share-man.patch
+Applying patch 0005-hyphens-as-minus-signs-in-manpage.patch
+Applying patch 0006-spelling-error-separately.patch
+Applying patch 0007-removed-license-in-html-doc.patch
+Applying patch 0008-manpage-debugger.patch
+Applying patch 0009-hat-events.patch
+Applying patch 0010-Fix-build-with-libpng-1.5.patch
+Applying patch 0011-Don-t-strip-binaries-upstream.patch
+Now at patch 0011-Don-t-strip-binaries-upstream.patch
+  % CC=gcc-4.7 CXX=g++-4.7 ./debian/rules build
+dh build --sourcedirectory=src --with autoreconf
+   dh_testdir -O--sourcedirectory=src
+   dh_autoreconf -O--sourcedirectory=src
+   debian/rules override_dh_auto_configure
+make[1]: Entering directory `/tmp/zsnes'
+dh_auto_configure --sourcedirectory=src -- \
+                LIBS=&quot;&quot; CFLAGS=-m32 LDFLAGS=-lpthread --enable-opengl \
+                --disable-cpucheck --enable-release \
+                --enable-libao force_arch=i486
+ ... configure output ...
+Configure complete, now type 'make' and pray.
+
+make[1]: Leaving directory `/tmp/zsnes'
+   dh_auto_build -O--sourcedirectory=src
+make[1]: Entering directory `/tmp/zsnes/src'
+g++-4.7 -m32 -pipe -I. -I/usr/local/include -I/usr/include -D__UNIXSDL__  -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT  -D__LIBAO__ -D__OPENGL__ -march=i486 -O3 -fomit-frame-pointer -fprefetch-loop-arrays -fforce-addr -D__RELEASE__ -fno-rtti -o tools/fileutil.o -c tools/fileutil.cpp
+tools/fileutil.cpp:1:0: warning: -fprefetch-loop-arrays not supported for this target (try -march switches) [enabled by default]
+g++-4.7 -m32 -pipe -I. -I/usr/local/include -I/usr/include -D__UNIXSDL__  -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT  -D__LIBAO__ -D__OPENGL__ -march=i486 -O3 -fomit-frame-pointer -fprefetch-loop-arrays -fforce-addr -D__RELEASE__ -fno-rtti -o tools/strutil.o -c tools/strutil.cpp
+tools/strutil.cpp:1:0: warning: -fprefetch-loop-arrays not supported for this target (try -march switches) [enabled by default]
+g++-4.7 -m32 -pipe -I. -I/usr/local/include -I/usr/include -D__UNIXSDL__  -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT  -D__LIBAO__ -D__OPENGL__ -march=i486 -O3 -fomit-frame-pointer -fprefetch-loop-arrays -fforce-addr -D__RELEASE__ -fno-rtti -o tools/depbuild tools/depbuild.cpp tools/fileutil.o tools/strutil.o
+tools/depbuild.cpp:1:0: warning: -fprefetch-loop-arrays not supported for this target (try -march switches) [enabled by default]
+tools/depbuild.cpp: In function 'void dependency_calculate(const char*, stat&amp;)':
+tools/depbuild.cpp:168:37: error: 'F_OK' was not declared in this scope
+tools/depbuild.cpp:168:41: error: 'access' was not declared in this scope
+make[1]: *** [tools/depbuild] Error 1
+make[1]: Leaving directory `/tmp/zsnes/src'
+dh_auto_build: make -j1 returned exit code 2
+make: *** [build] Error 2</code></pre>
+<p>Bug confirmed ! Let’s clean the tree and…</p>
+<h2 id="prepare-a-fix">Prepare a fix</h2>
+<p>Zsnes uses the new “3.0 (quilt)” format, so to add a new patch I just have to
+add a new patch in <code>debian/patches</code>, add its name to <code>debian/patches/series</code>. It
+could be done manually or with <code>dquilt</code>, but I prefer using <code>gbp-pq</code> which comes
+with <code>git-buildpackage</code>. It’s a tool which can converts git commits to a “plain”
+patch queue, (as the famous <a href="http://mercurial.selenic.com/wiki/MqExtension">patch queues</a> in Mercurial) :</p>
+<p><code>gbp-pq import</code> creates a git branch (named <code>patch-queue/master</code>) from the
+current patch queue. <code>gbp-pq export</code> converts this branch to named patches in
+<code>debian/patches</code>.</p>
+<pre><code>   % gbp-pq import
+gbp:info: Trying to apply patches at 'e8b572dc10dcc44f01e5254d8bb93330215e5050'
+Switched to branch 'patch-queue/master'
+gbp:info: Patches listed in 'debian/patches/series' imported on 'patch-queue/master'
+   % vim src/tools/depbuild.cpp 
+[ ... add #include &lt;unistd.h&gt; line ... ]
+   % git commit -av</code></pre>
+<p>This commit will be the new patch, so let’s be quite verbose about changes :</p>
+<pre><code>Fix build with gcc 4.7
+
+Headers in the new C++ library do not implicitly import unistd.h, so it is
+necessary to do it in the source.
+
+Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=667429</code></pre>
+<p>The last line is a <a href="http://dep.debian.net/deps/dep3/">DEP-3</a> field. While it is optional, it is good practice to
+include it to track your patch. <code>gbp-pq</code> will automatically add <code>Subject</code>,
+<code>Author</code> and <code>Date</code> from the commit metadata.</p>
+<p>Once the commit is done, we’re still on the patch queue branch. The next step is
+to export it to master as a new patch :</p>
+<pre><code>   % gbp-pq export
+gbp:info: On 'patch-queue/master', switching to 'master'
+Switched to branch 'master'
+Your branch is ahead of 'origin/master' by 1 commit.
+gbp:info: Regenerating patch queue in 'debian/patches/'.
+# On branch master
+# Your branch is ahead of 'origin/master' by 1 commit.
+#
+# Changes not staged for commit:
+#   (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+#   (use &quot;git checkout -- &lt;file&gt;...&quot; to discard changes in working directory)
+#
+#       modified:   debian/patches/series
+#
+# Untracked files:
+#   (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)
+#
+#       debian/patches/0012-Fix-build-with-gcc-4.7.patch
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)</code></pre>
+<p>Not only we’ll add all those changes to the git index, but we also have to
+update <code>debian/changelog</code>. As always, there’s a tool for this ! <code>dch</code> will bump
+the last edit date, and add a new changelog line with a “Closes: #nnnnnn”
+command. When the package will be uploaded, this will automatically close the
+bug in the BTS. Note that this is not a new changelog entry : I already had a
+fix for <a href="http://bugs.debian.org/438384">#438384</a> ready.</p>
+<pre><code>   % git add debian/patches/*
+   % dch --closes 667429
+[ ... vim opens, edit the last entry ... ]
+   % git diff</code></pre>
+<div class="sourceCode" id="cb7"><pre class="sourceCode diff"><code class="sourceCode diff"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">diff --git a/debian/changelog b/debian/changelog</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>index ee7fa6d..1c2b6ff 100644</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="dt">--- a/debian/changelog</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="dt">+++ b/debian/changelog</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="dt">@@ -1,8 +1,10 @@</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a> zsnes (1.510+bz2-3) unstable; urgency=low</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="st">-  * New patch to handle the nostrip build option (Closes: #438384)</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="va">+  * New patches :</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="va">+    - handle the nostrip build option (Closes: #438384)</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="va">+    - fix FTBFS with gcc 4.7 (Closes: #667429)</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="st">- -- Etienne Millon &lt;etienne.millon@gmail.com&gt;  Sun, 04 Mar 2012 15:28:00 +0100</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="va">+ -- Etienne Millon &lt;etienne.millon@gmail.com&gt;  Thu, 12 Apr 2012 22:10:45 +0200</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a> zsnes (1.510+bz2-2) unstable; urgency=low</span></code></pre></div>
+<pre><code>  % git add debian/changelog 
+  % git commit</code></pre>
+<h2 id="check-that-the-bug-is-fixed">Check that the bug is fixed</h2>
+<p>This time, <code>./debian/rules build</code> correctly builds the package. The fix was
+correct. If it was incorrect, it would be necessary to reiterate the above steps
+until a fix was found (using <code>git commit --amend</code> on the patch queue branch to
+edit the last patch).</p>
+<p>In that particular case, it was easy to guess that a one-line fix would be
+enough, but for more complex bugs it may be worth to directly hack on
+<code>patch-queue/master</code>.</p>
+<h2 id="post-the-fix-to-the-bug-tracking-system">Post the fix to the Bug Tracking System</h2>
+<p>To avoid duplication of work, and to allow other users to use your work, it is
+best practice to post this patch. The BTS accepts commands on
+<code>control@bugs.debian.org</code></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode email"><code class="sourceCode email"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">From:</span> Etienne Millon <span class="va">&lt;etienne.millon@gmail.com&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="bu">To:</span> <span class="va">667429@bugs.debian.org</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="bu">Cc:</span> </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="bu">Bcc:</span> <span class="va">control@bugs.debian.org</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="bu">Subject:</span> Re: Bug#667429: zsnes: ftbfs with GCC-4.7</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>tag 667429 + patch </span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>thanks </span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>Hello,</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>This patch fixes the problem and will be included in the next upload.</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>Thanks for this bug report.</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>-- </span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>Etienne Millon</span></code></pre></div>
+<h2 id="upload-a-package-containing-the-fix">Upload a package containing the fix</h2>
+<h2 id="conclusion">Conclusion</h2>
+<p>It’s awesome. <a href="http://www.debian.org/intro/help">Do it !</a>.</p>
+
+
+
+          </div>
+        </div>
+        <div class="footer container">
+            <p>
+                I love feedback! Feel free to catch me on twitter
+                (<a href="https://twitter.com/etiennemillon">@etiennemillon</a>)
+                or drop me mail (me AT emillon DOT org).
+            </p>
+        </div>
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-51676253-1', 'emillon.org');
+          ga('send', 'pageview');
+
+        </script>
+    </body>
+</html>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Enter the void * - YC W13</title>
+        <link rel="stylesheet" type="text/css" href="../css/bootstrap.css" />
+        <link rel="stylesheet" type="text/css" href="../css/extra.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+        <link rel="alternate" type="application/rss+xml" title="Enter the void *" href="../rss.xml" />
+        <link rel="shortcut icon" href="../favicon.ico" />
+        <link href="http://fonts.googleapis.com/css?family=Merriweather:400,300" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <div class="header container">
+            <h1 class="maintitle">Enter the void *</h1>
+               <div class="nav-hdr">
+                   <ul>
+                      <li><a href="../">Home</a></li>
+                      <li><a href="../posts.html">All posts</a></li>
+                      <li><a href="../rss.xml">Feed</a></li>
+                      <li><a href="https://github.com/emillon">Github</a></li>
+                      <li><a href="https://qa.debian.org/developer.php?login=me%40emillon.org">Debian</a></li>
+                      <li><a href="https://twitter.com/etiennemillon">Twitter</a></li>
+                   </ul>
+                </div>
+        </div>
+        <div class="maincontainer container">
+          <div class="col-md-8 col-md-offset-2">
+            <h1>YC W13</h1>
+
+<p>by <em>Etienne Millon</em> on <strong>No date</strong></p>
+
+<p>Tagged as: .</p>
+
+<p>Y Combinator is a seed accelerator for startups located in San Francisco Bay
+Area. Put simply, the Bay Area is the best place to start a technology startup
+and YC is the best accelerator there.</p>
+<p>Since 2010, I have been working on and off with my friend <a href="https://research.facebook.com/researchers/911353072242054/gabriel-synnaeve/">Gabriel Synnaeve</a> on
+a product that could become a company. The idea is that we receive data everyday
+from a lot of sources, and a lot are not directly relevant to you. Our goal is
+to aggregate this feeds and sort them according to how likely you’re going to
+read them. Our pitch became the following:</p>
+<blockquote>
+<p>Cloverfeed is a website and a mobile application to rank and filter entries
+from all your feeds: RSS, Facebook, Twitter, social news… It’s like a spam
+filter and “priority inbox” for all your notifications. With this service, we
+want to empower our users to be more efficient reading their news feeds,
+starting with ourselves.</p>
+</blockquote>
+<p>Doing this would be nice, but was a lot of work. We were both preparing our PhD
+and unwilling to jump the boat and work on this full-time, so the idea cooked a
+few years.</p>
+<p>In August 2012, we saw the usual “apply for YC” announce on <a href="https://news.ycombinator.com/">Hacker News</a> and
+decided to apply. It would mean moving to California in January but by then we
+would both have graduated and officially on the job market. The perfect time to
+start a company.</p>
+<p>Getting into YC is a two-step process. First, you have to fill an application
+form that explains who you are, what you are going to work on, and why you’ll
+succeed. Then, you’re invited to present your project at Y Combinator
+headquarters in California. If the interview goes well you’re invited to work
+<a href="http://www.ycombinator.com/atyc/">at YC</a> on your product.</p>
+<h3 id="the-application">The application</h3>
+<p><a href="yc/app.html">Here</a> is our application for YC W13, with some parts redacted.
+Some questions were straightforward to answer, but others are quite tough to
+answer. The hard part is to show that we will stick together.</p>
+<p>A few beers later the application was done, though. I distinctly remember
+spending a lot of takes on the video. Staying serious while pitching to a webcam
+is not so easy…</p>
+<p>In parallel to the application, we started to build a prototype. Our goal was to
+have an MVP by December, between the interview and YC itself. We used a quite
+standard Python web stack using Pyramid. It was the first time we used an
+asynchronous task queue in a project (to fetch feeds and compute indexes), and
+Celery gave us its share of headaches.</p>
+<p>TODO gab
+machine learning backend: clojure, tika, scikit-learn</p>
+<p>We used mostly things we were comfortable with, but assembling stuff together is
+always challenging :)</p>
+<p>At this point we weren’t so sure about our application. We had no traction, no
+users, almost no prototype. We did this mostly so we have a canvas for future
+applications for YC as well as other accelerators since the format is mostly the
+same.</p>
+<p>It turned out better than expected as we got an email inviting us to an
+interview in Mountain View.</p>
+<h3 id="lets-go-to-silicon-valley">Let’s go to Silicon Valley</h3>
+<p>There is a relatively short period of time between the notification and the
+interview itself, so we had to get ready and quick. For me, Silicon Valley was
+<em>terra incognita</em> but fortunately Gabriel had already gone there a few times. He
+was fortunate enough to meet Arjun Vasan, who was at the time at the head of the
+aptly-named Hacker Fortress. Staying there was a natural choice as it would be a
+great opportunity to work on our project there.</p>
+<h3 id="the-interview">The interview</h3>
+<h3 id="the-product">The product</h3>
+<p>Here is what the home looks like</p>
+<figure>
+<img src="http://i.imgur.com/Q9tVx.png" alt="Cloverfeed inbox, sorted" />
+<figcaption aria-hidden="true">Cloverfeed inbox, sorted</figcaption>
+</figure>
+<p>and here what it would look if unsorted
+for this user</p>
+<figure>
+<img src="http://i.imgur.com/uHJda.png" alt="Cloverfeed inbox, unsorted" />
+<figcaption aria-hidden="true">Cloverfeed inbox, unsorted</figcaption>
+</figure>
+<h3 id="the-future">The future</h3>
+
+
+
+          </div>
+        </div>
+        <div class="footer container">
+            <p>
+                I love feedback! Feel free to catch me on twitter
+                (<a href="https://twitter.com/etiennemillon">@etiennemillon</a>)
+                or drop me mail (me AT emillon DOT org).
+            </p>
+        </div>
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-51676253-1', 'emillon.org');
+          ga('send', 'pageview');
+
+        </script>
+    </body>
+</html>
