@@ -10,6 +10,7 @@
         packageName = "blog";
         newDeps = with pkgs.ocamlPackages; [
           pkgs.html-tidy
+          pkgs.libxml2
           base
           cmarkit
           cmdliner
