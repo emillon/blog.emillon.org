@@ -212,15 +212,22 @@ module Templates = struct
     let env = Map.of_alist_exn (module String) l in
     with_string_formatter (fun fmt -> Template.process env ~input ~output:fmt)
 
+  let default ~title ~body =
+    render "templates/default.html" [ ("title", title); ("body", body) ]
+
   let post (post : post) =
-    render "templates/post.html"
-      [
-        ("title", post.title);
-        ("author", post.author);
-        ("date", date_to_rss_string (post_pubdate post));
-        ("prettytags", String.concat ~sep:", " (Set.to_list post.tags));
-        ("body", Cmarkit_html.of_doc ~safe:true post.body);
-      ]
+    let title = post.title in
+    let body =
+      render "templates/post.html"
+        [
+          ("title", title);
+          ("author", post.author);
+          ("date", date_to_rss_string (post_pubdate post));
+          ("prettytags", String.concat ~sep:", " (Set.to_list post.tags));
+          ("body", Cmarkit_html.of_doc ~safe:true post.body);
+        ]
+    in
+    default ~title ~body
 
   let post_items posts =
     with_string_formatter (fun fmt ->
@@ -237,16 +244,22 @@ module Templates = struct
             Template.process env ~input:"templates/postitem.html" ~output:fmt))
 
   let posts posts ~title ~feed =
-    render "templates/posts.html"
-      [
-        ("title", title);
-        ("posts", post_items posts);
-        ("feed", Uri.to_string feed);
-      ]
+    let body =
+      render "templates/posts.html"
+        [
+          ("title", title);
+          ("posts", post_items posts);
+          ("feed", Uri.to_string feed);
+        ]
+    in
+    default ~body ~title
 
   let index posts =
-    render "templates/index.html"
-      [ ("posts", post_items posts); ("tagcloud", "TAGCLOUD") ]
+    let body =
+      render "templates/index.html"
+        [ ("posts", post_items posts); ("tagcloud", "TAGCLOUD") ]
+    in
+    default ~body ~title:"Home"
 end
 
 let create_tag_html ops tag posts =

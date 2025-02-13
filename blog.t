@@ -357,162 +357,361 @@
   </rss>
 
   $ pp_html output/posts/2011-11-11-hello-world.html
-  line 1 column 1 - Warning: missing <!DOCTYPE> declaration
-  line 1 column 1 - Warning: inserting implicit <body>
-  line 1 column 1 - Warning: inserting missing 'title' element
-  <!DOCTYPE html>
-  <html>
+  <?xml version="1.0" encoding="utf-8"?>
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     <head>
       <meta name="generator" content=
-      "HTML Tidy for HTML5 for Linux version 5.8.0">
-      <title></title>
+      "HTML Tidy for HTML5 for Linux version 5.8.0" />
+      <meta http-equiv="Content-Type" content=
+      "text/html; charset=utf-8" />
+      <title>
+        Enter the void * - Hello, world !
+      </title>
+      <link rel="stylesheet" type="text/css" href=
+      "/css/bootstrap.css" />
+      <link rel="stylesheet" type="text/css" href="/css/extra.css" />
+      <link rel="stylesheet" type="text/css" href=
+      "/css/syntax.css" />
+      <link rel="alternate" type="application/rss+xml" title=
+      "Enter the void *" href="/rss.xml" />
+      <link rel="shortcut icon" href="/favicon.ico" />
+      <link href=
+      "http://fonts.googleapis.com/css?family=Merriweather:400,300"
+      rel="stylesheet" type="text/css" />
     </head>
     <body>
-      <h1>
-        Hello, world !
-      </h1>
-      <p>
-        by <em>Etienne Millon</em> on <strong>Fri, 11 Nov 2011
-        00:00:00 UT</strong>
-      </p>
-      <p>
-        Tagged as: meta.
-      </p>
-      <hr>
-      <h2>
-        title: Hello, world ! author: Etienne Millon tags: meta
-      </h2>
-      <pre><code class="language-{.haskell}">blog :: IO ()
+      <div class="header container">
+        <h1 class="maintitle">
+          Enter the void *
+        </h1>
+        <div class="nav-hdr">
+          <ul>
+            <li>
+              <a href="/">Home</a>
+            </li>
+            <li>
+              <a href="/posts.html">All posts</a>
+            </li>
+            <li>
+              <a href="/rss.xml">Feed</a>
+            </li>
+            <li>
+              <a href="https://github.com/emillon">Github</a>
+            </li>
+            <li>
+              <a href=
+              "https://qa.debian.org/developer.php?login=me%40emillon.org">
+              Debian</a>
+            </li>
+            <li>
+              <a href="https://twitter.com/etiennemillon">Twitter</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="maincontainer container">
+        <div class="col-md-8 col-md-offset-2">
+          <h1>
+            Hello, world !
+          </h1>
+          <p>
+            by <em>Etienne Millon</em> on <strong>Fri, 11 Nov 2011
+            00:00:00 UT</strong>
+          </p>
+          <p>
+            Tagged as: meta.
+          </p>
+          <hr />
+          <h2>
+            title: Hello, world ! author: Etienne Millon tags: meta
+          </h2>
+          <pre><code class="language-{.haskell}">blog :: IO ()
   blog =
     putStrLn "Hello, world !"
   </code></pre>
-      <p>
-        This is my first attempt at blogging, I still don't know what
-        to expect. I will probably write about the following topics :
-      </p>
-      <ul>
-        <li>Programming, especially using <a href=
-        "http://caml.inria.fr/">functional</a> <a href=
-        "http://www.haskell.org/">languages</a>.
-        </li>
-        <li>Development of the <a href=
-        "http://www.debian.org/">Debian</a> operating system.
-        </li>
-        <li>
-          <a href=
-          "http://en.wikipedia.org/wiki/Static_program_analysis">Static
-          analysis</a> of software.
-        </li>
-        <li>Computer security.
-        </li>
-      </ul>
-      <p>
-        Like some of <a href=
-        "http://blog.chmd.fr/going-static.html">my</a> <a href=
-        "http://nicdumz.fr/blog/2010/12/why-blogofile/">friends</a>,
-        I decided to use a static blog generator. The first series of
-        posts will be about setting this up with <a href=
-        "http://jaspervdj.be/hakyll/">hakyll</a>, git and S3. Stay
-        tuned !
-      </p>
-    </body>
-  </html>
-  [1]
-
-  $ pp_html output/tags/ocaml.html
-  line 1 column 1 - Warning: missing <!DOCTYPE> declaration
-  line 1 column 1 - Warning: inserting implicit <body>
-  line 1 column 1 - Warning: inserting missing 'title' element
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <meta name="generator" content=
-      "HTML Tidy for HTML5 for Linux version 5.8.0">
-      <title></title>
-    </head>
-    <body>
-      <h1>
-        Posts tagged "ocaml"
-      </h1>
-      <ul class="postList">
-        <li>
-          <span class="postDate">Fri, 26 Jul 2024 00:00:00 UT</span>
-          <a href="permalink">Introducing tree-sitter-dune</a>
-        </li>
-        <li>
-          <span class="postDate">Mon, 3 Aug 2020 00:00:00 UT</span>
-          <a href="permalink">Fuzzing OCamlFormat with AFL and
-          Crowbar</a>
-        </li>
-        <li>
-          <span class="postDate">Wed, 1 Feb 2017 00:00:00 UT</span>
-          <a href="permalink">NaBoMaMo 2016 writeup</a>
-        </li>
-        <li>
-          <span class="postDate">Wed, 21 May 2014 00:00:00 UT</span>
-          <a href="permalink">Making type inference explode</a>
-        </li>
-        <li>
-          <span class="postDate">Wed, 14 Dec 2011 00:00:00 UT</span>
-          <a href="permalink">What's in an ADT ?</a>
-        </li>
-      </ul><a href="http://blog.emillon.org/tag/ocaml.xml">Feed</a>
-    </body>
-  </html>
-  [1]
-
-  $ pp_html output/index.html
-  line 1 column 1 - Warning: missing <!DOCTYPE> declaration
-  line 1 column 1 - Warning: inserting implicit <body>
-  line 1 column 1 - Warning: inserting missing 'title' element
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <meta name="generator" content=
-      "HTML Tidy for HTML5 for Linux version 5.8.0">
-      <title></title>
-    </head>
-    <body>
-      <div class="about">
-        <h1>
-          About this blog
-        </h1>
-        <p>
-          Hello! I am a French computer scientist specialized in
-          formal methods.
-        </p>
-        <p>
-          This blog is mostly about security, types, functional
-          programming and free software.
-        </p>
-        <div id="posts">
-          I recently wrote about the following things:
-          <ul class="postList">
-            <li>
-              <span class="postDate">Fri, 11 Nov 2011 00:00:00
-              UT</span> <a href="permalink">Hello, world !</a>
+          <p>
+            This is my first attempt at blogging, I still don't know
+            what to expect. I will probably write about the following
+            topics :
+          </p>
+          <ul>
+            <li>Programming, especially using <a href=
+            "http://caml.inria.fr/">functional</a> <a href=
+            "http://www.haskell.org/">languages</a>.
+            </li>
+            <li>Development of the <a href="http://www.debian.org/">
+              Debian</a> operating system.
             </li>
             <li>
-              <span class="postDate">Mon, 21 Nov 2011 00:00:00
-              UT</span> <a href="permalink">Hakyll 101</a>
+              <a href=
+              "http://en.wikipedia.org/wiki/Static_program_analysis">Static
+              analysis</a> of software.
             </li>
-            <li>
-              <span class="postDate">Mon, 28 Nov 2011 00:00:00
-              UT</span> <a href="permalink">Unicode : Math, greek,
-              symbols - you name it !</a>
+            <li>Computer security.
             </li>
           </ul>
           <p>
-            <a href="/posts.html">See the rest…</a>
+            Like some of <a href=
+            "http://blog.chmd.fr/going-static.html">my</a> <a href=
+            "http://nicdumz.fr/blog/2010/12/why-blogofile/">friends</a>,
+            I decided to use a static blog generator. The first
+            series of posts will be about setting this up with
+            <a href="http://jaspervdj.be/hakyll/">hakyll</a>, git and
+            S3. Stay tuned !
           </p>
         </div>
-        <h1>
-          Tags
-        </h1>
-        <div>
-          TAGCLOUD
-        </div>
       </div>
+      <div class="footer container">
+        <p>
+          I love feedback! Feel free to catch me on twitter (<a href=
+          "https://twitter.com/etiennemillon">@etiennemillon</a>) or
+          drop me mail (me AT emillon DOT org).
+        </p>
+      </div>
+      <script>
+      <![CDATA[
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  
+            ga('create', 'UA-51676253-1', 'emillon.org');
+            ga('send', 'pageview');
+  
+      ]]>
+      </script>
     </body>
   </html>
-  [1]
+
+  $ pp_html output/tags/ocaml.html
+  <?xml version="1.0" encoding="utf-8"?>
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+      <meta name="generator" content=
+      "HTML Tidy for HTML5 for Linux version 5.8.0" />
+      <meta http-equiv="Content-Type" content=
+      "text/html; charset=utf-8" />
+      <title>
+        Enter the void * - Posts tagged "ocaml"
+      </title>
+      <link rel="stylesheet" type="text/css" href=
+      "/css/bootstrap.css" />
+      <link rel="stylesheet" type="text/css" href="/css/extra.css" />
+      <link rel="stylesheet" type="text/css" href=
+      "/css/syntax.css" />
+      <link rel="alternate" type="application/rss+xml" title=
+      "Enter the void *" href="/rss.xml" />
+      <link rel="shortcut icon" href="/favicon.ico" />
+      <link href=
+      "http://fonts.googleapis.com/css?family=Merriweather:400,300"
+      rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+      <div class="header container">
+        <h1 class="maintitle">
+          Enter the void *
+        </h1>
+        <div class="nav-hdr">
+          <ul>
+            <li>
+              <a href="/">Home</a>
+            </li>
+            <li>
+              <a href="/posts.html">All posts</a>
+            </li>
+            <li>
+              <a href="/rss.xml">Feed</a>
+            </li>
+            <li>
+              <a href="https://github.com/emillon">Github</a>
+            </li>
+            <li>
+              <a href=
+              "https://qa.debian.org/developer.php?login=me%40emillon.org">
+              Debian</a>
+            </li>
+            <li>
+              <a href="https://twitter.com/etiennemillon">Twitter</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="maincontainer container">
+        <div class="col-md-8 col-md-offset-2">
+          <h1>
+            Posts tagged "ocaml"
+          </h1>
+          <ul class="postList">
+            <li>
+              <span class="postDate">Fri, 26 Jul 2024 00:00:00
+              UT</span> <a href="permalink">Introducing
+              tree-sitter-dune</a>
+            </li>
+            <li>
+              <span class="postDate">Mon, 3 Aug 2020 00:00:00
+              UT</span> <a href="permalink">Fuzzing OCamlFormat with
+              AFL and Crowbar</a>
+            </li>
+            <li>
+              <span class="postDate">Wed, 1 Feb 2017 00:00:00
+              UT</span> <a href="permalink">NaBoMaMo 2016 writeup</a>
+            </li>
+            <li>
+              <span class="postDate">Wed, 21 May 2014 00:00:00
+              UT</span> <a href="permalink">Making type inference
+              explode</a>
+            </li>
+            <li>
+              <span class="postDate">Wed, 14 Dec 2011 00:00:00
+              UT</span> <a href="permalink">What's in an ADT ?</a>
+            </li>
+          </ul><a href=
+          "http://blog.emillon.org/tag/ocaml.xml">Feed</a>
+        </div>
+      </div>
+      <div class="footer container">
+        <p>
+          I love feedback! Feel free to catch me on twitter (<a href=
+          "https://twitter.com/etiennemillon">@etiennemillon</a>) or
+          drop me mail (me AT emillon DOT org).
+        </p>
+      </div>
+      <script>
+      <![CDATA[
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  
+            ga('create', 'UA-51676253-1', 'emillon.org');
+            ga('send', 'pageview');
+  
+      ]]>
+      </script>
+    </body>
+  </html>
+
+  $ pp_html output/index.html
+  <?xml version="1.0" encoding="utf-8"?>
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+      <meta name="generator" content=
+      "HTML Tidy for HTML5 for Linux version 5.8.0" />
+      <meta http-equiv="Content-Type" content=
+      "text/html; charset=utf-8" />
+      <title>
+        Enter the void * - Home
+      </title>
+      <link rel="stylesheet" type="text/css" href=
+      "/css/bootstrap.css" />
+      <link rel="stylesheet" type="text/css" href="/css/extra.css" />
+      <link rel="stylesheet" type="text/css" href=
+      "/css/syntax.css" />
+      <link rel="alternate" type="application/rss+xml" title=
+      "Enter the void *" href="/rss.xml" />
+      <link rel="shortcut icon" href="/favicon.ico" />
+      <link href=
+      "http://fonts.googleapis.com/css?family=Merriweather:400,300"
+      rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+      <div class="header container">
+        <h1 class="maintitle">
+          Enter the void *
+        </h1>
+        <div class="nav-hdr">
+          <ul>
+            <li>
+              <a href="/">Home</a>
+            </li>
+            <li>
+              <a href="/posts.html">All posts</a>
+            </li>
+            <li>
+              <a href="/rss.xml">Feed</a>
+            </li>
+            <li>
+              <a href="https://github.com/emillon">Github</a>
+            </li>
+            <li>
+              <a href=
+              "https://qa.debian.org/developer.php?login=me%40emillon.org">
+              Debian</a>
+            </li>
+            <li>
+              <a href="https://twitter.com/etiennemillon">Twitter</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="maincontainer container">
+        <div class="col-md-8 col-md-offset-2">
+          <div class="about">
+            <h1>
+              About this blog
+            </h1>
+            <p>
+              Hello! I am a French computer scientist specialized in
+              formal methods.
+            </p>
+            <p>
+              This blog is mostly about security, types, functional
+              programming and free software.
+            </p>
+            <div id="posts">
+              I recently wrote about the following things:
+              <ul class="postList">
+                <li>
+                  <span class="postDate">Fri, 11 Nov 2011 00:00:00
+                  UT</span> <a href="permalink">Hello, world !</a>
+                </li>
+                <li>
+                  <span class="postDate">Mon, 21 Nov 2011 00:00:00
+                  UT</span> <a href="permalink">Hakyll 101</a>
+                </li>
+                <li>
+                  <span class="postDate">Mon, 28 Nov 2011 00:00:00
+                  UT</span> <a href="permalink">Unicode : Math,
+                  greek, symbols - you name it !</a>
+                </li>
+              </ul>
+              <p>
+                <a href="/posts.html">See the rest…</a>
+              </p>
+            </div>
+            <h1>
+              Tags
+            </h1>
+            <div>
+              TAGCLOUD
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer container">
+        <p>
+          I love feedback! Feel free to catch me on twitter (<a href=
+          "https://twitter.com/etiennemillon">@etiennemillon</a>) or
+          drop me mail (me AT emillon DOT org).
+        </p>
+      </div>
+      <script>
+      <![CDATA[
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  
+            ga('create', 'UA-51676253-1', 'emillon.org');
+            ga('send', 'pageview');
+  
+      ]]>
+      </script>
+    </body>
+  </html>
