@@ -21,7 +21,7 @@
         packages.new = blogEngineNew;
         devShells.new = pkgs.mkShell {
           buildInputs = newDeps
-            ++ (with pkgs.ocamlPackages; [ merlin ocamlformat_0_26_1 ]);
+            ++ (with pkgs.ocamlPackages; [ merlin ocamlformat_0_26_2 ]);
           inputsFrom = [ blogEngineNew ];
         };
         packages.default = blogEngine;

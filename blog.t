@@ -13,8 +13,10 @@
   output/feeds/ctf.xml
   output/feeds/ddr.xml
   output/feeds/debian.xml
+  output/feeds/dune.xml
   output/feeds/emulator.xml
   output/feeds/fuzzing.xml
+  output/feeds/hacking-days.xml
   output/feeds/haskell.xml
   output/feeds/lenses.xml
   output/feeds/life.xml
@@ -30,6 +32,7 @@
   output/feeds/slack.xml
   output/feeds/stripe.xml
   output/feeds/tex.xml
+  output/feeds/tree-sitter.xml
   output/feeds/types.xml
   output/feeds/zsh.xml
   output/fonts/glyphicons-halflings-regular.eot
@@ -67,6 +70,7 @@
   output/posts/2016-01-12-in-python-default-values-are-evaluated-at-import-time.html
   output/posts/2017-02-01-nabomamo-2016-writeup.html
   output/posts/2020-08-03-fuzzing-ocamlformat-with-afl-and-crowbar.html
+  output/posts/2024-07-26-introducing-tree-sitter-dune.html
   output/robots.txt
   output/rss.xml
   output/tags/algebra.html
@@ -77,8 +81,10 @@
   output/tags/ctf.html
   output/tags/ddr.html
   output/tags/debian.html
+  output/tags/dune.html
   output/tags/emulator.html
   output/tags/fuzzing.html
+  output/tags/hacking-days.html
   output/tags/haskell.html
   output/tags/lenses.html
   output/tags/life.html
@@ -94,6 +100,7 @@
   output/tags/slack.html
   output/tags/stripe.html
   output/tags/tex.html
+  output/tags/tree-sitter.html
   output/tags/types.html
   output/tags/zsh.html
 
@@ -174,7 +181,11 @@
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Mon, 3 Aug 2020 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item></channel></rss>
+  </description><pubDate>Mon, 3 Aug 2020 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Introducing tree-sitter-dune</title><link>permalink</link><description>
+  <![CDATA[
+  description
+  ]]>
+  </description><pubDate>Fri, 26 Jul 2024 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item></channel></rss>
 
   $ cat output/posts/2011-11-11-hello-world.html
   <h1>Hello, world !</h1>
@@ -209,6 +220,9 @@
   <h1>Posts tagged "ocaml"</h1>
   <ul class="postList">
       <li>
+      <span class="postDate">Fri, 26 Jul 2024 00:00:00 UT</span> <a href="permalink">Introducing tree-sitter-dune</a>
+  </li>
+  <li>
       <span class="postDate">Mon, 3 Aug 2020 00:00:00 UT</span> <a href="permalink">Fuzzing OCamlFormat with AFL and Crowbar</a>
   </li>
   <li>
