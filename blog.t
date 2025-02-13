@@ -118,17 +118,21 @@
     <channel>
       <title>Enter the void *</title>
       <link>http://blog.emillon.org</link>
-      <description><![CDATA[
+      <description>
+  <![CDATA[
   Yet another random hacker
-  ]]></description>
+  ]]>
+  </description>
       <atom:link href="http://blog.emillon.org/rss.xml" rel="self" type="application/rss+xml"/>
       <lastBuildDate>Fri, 11 Nov 2011 00:00:00 UT</lastBuildDate>
       <item>
         <title>Hello, world !</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Fri, 11 Nov 2011 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -136,9 +140,11 @@
       <item>
         <title>Hakyll 101</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Mon, 21 Nov 2011 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -146,9 +152,11 @@
       <item>
         <title>Unicode : Math, greek, symbols - you name it !</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Mon, 28 Nov 2011 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -156,9 +164,11 @@
       <item>
         <title>What's in an ADT ?</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Wed, 14 Dec 2011 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -166,9 +176,11 @@
       <item>
         <title>ZSH suffix aliases</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Tue, 17 Jan 2012 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -176,9 +188,11 @@
       <item>
         <title>Stripe CTF 2.0 (partial) writeup</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Thu, 30 Aug 2012 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -186,9 +200,11 @@
       <item>
         <title>Comonadic Life</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Thu, 18 Oct 2012 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -196,9 +212,11 @@
       <item>
         <title>Resizing a LVM partition</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Tue, 13 May 2014 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -206,9 +224,11 @@
       <item>
         <title>Making type inference explode</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Wed, 21 May 2014 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -216,9 +236,11 @@
       <item>
         <title>Bring your own switch</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Thu, 5 Jun 2014 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -226,9 +248,11 @@
       <item>
         <title>My part of work in Debian Jessie</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Fri, 21 Nov 2014 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -236,9 +260,11 @@
       <item>
         <title>Converting a Dance Dance Revolution mat to USB</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Thu, 27 Nov 2014 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -246,9 +272,11 @@
       <item>
         <title>On the curl | sh pattern</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Sat, 27 Dec 2014 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -256,9 +284,11 @@
       <item>
         <title>Santa made me learn Rails in a week</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Fri, 3 Apr 2015 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -266,9 +296,11 @@
       <item>
         <title>A lens-based ST20 emulator</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Thu, 20 Aug 2015 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -276,9 +308,11 @@
       <item>
         <title>In Python, default values are evaluated at import time</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Tue, 12 Jan 2016 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -286,9 +320,11 @@
       <item>
         <title>NaBoMaMo 2016 writeup</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Wed, 1 Feb 2017 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -296,9 +332,11 @@
       <item>
         <title>Fuzzing OCamlFormat with AFL and Crowbar</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Mon, 3 Aug 2020 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
@@ -306,9 +344,11 @@
       <item>
         <title>Introducing tree-sitter-dune</title>
         <link>permalink</link>
-        <description><![CDATA[
+        <description>
+  <![CDATA[
   description
-  ]]></description>
+  ]]>
+  </description>
         <pubDate>Fri, 26 Jul 2024 00:00:00 UT</pubDate>
         <guid>permalink</guid>
         <dc:creator>Etienne Millon</dc:creator>
