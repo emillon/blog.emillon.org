@@ -5,4 +5,8 @@
 (ocamllex template)
 
 (cram
- (deps blog.exe (source_tree posts) (source_tree static) (source_tree templates)))
+ (deps
+  blog.exe
+  (source_tree posts)
+  (source_tree static)
+  (source_tree templates)))
