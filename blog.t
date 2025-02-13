@@ -689,7 +689,52 @@
               Tags
             </h1>
             <div>
-              TAGCLOUD
+              <a style="font-size: 70%;" href=
+              "tags/algebra.html">algebra</a><a style=
+              "font-size: 70%;" href="tags/avr.html">avr</a><a style=
+              "font-size: 70%;" href="tags/bot.html">bot</a><a style=
+              "font-size: 70%;" href=
+              "tags/comonad.html">comonad</a><a style=
+              "font-size: 70%;" href=
+              "tags/conway.html">conway</a><a style="font-size: 70%;"
+              href="tags/ctf.html">ctf</a><a style="font-size: 70%;"
+              href="tags/ddr.html">ddr</a><a style="font-size: 70%;"
+              href="tags/debian.html">debian</a><a style=
+              "font-size: 70%;" href=
+              "tags/dune.html">dune</a><a style="font-size: 70%;"
+              href="tags/emulator.html">emulator</a><a style=
+              "font-size: 70%;" href=
+              "tags/fuzzing.html">fuzzing</a><a style=
+              "font-size: 70%;" href=
+              "tags/hacking-days.html">hacking-days</a><a style=
+              "font-size: 137%;" href=
+              "tags/haskell.html">haskell</a><a style=
+              "font-size: 70%;" href=
+              "tags/lenses.html">lenses</a><a style="font-size: 70%;"
+              href="tags/life.html">life</a><a style=
+              "font-size: 115%;" href=
+              "tags/linux.html">linux</a><a style="font-size: 70%;"
+              href="tags/lvm.html">lvm</a><a style="font-size: 92%;"
+              href="tags/meta.html">meta</a><a style=
+              "font-size: 70%;" href=
+              "tags/nabomamo.html">nabomamo</a><a style=
+              "font-size: 160%;" href=
+              "tags/ocaml.html">ocaml</a><a style="font-size: 70%;"
+              href="tags/python.html">python</a><a style=
+              "font-size: 70%;" href=
+              "tags/rails.html">rails</a><a style="font-size: 70%;"
+              href="tags/secretsanta.html">secretsanta</a><a style=
+              "font-size: 92%;" href=
+              "tags/security.html">security</a><a style=
+              "font-size: 70%;" href=
+              "tags/slack.html">slack</a><a style="font-size: 70%;"
+              href="tags/stripe.html">stripe</a><a style=
+              "font-size: 70%;" href="tags/tex.html">tex</a><a style=
+              "font-size: 70%;" href=
+              "tags/tree-sitter.html">tree-sitter</a><a style=
+              "font-size: 70%;" href=
+              "tags/types.html">types</a><a style="font-size: 70%;"
+              href="tags/zsh.html">zsh</a>
             </div>
           </div>
         </div>

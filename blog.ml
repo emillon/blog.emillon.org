@@ -207,6 +207,8 @@ let with_string_formatter f =
   f fmt;
   Buffer.contents buf
 
+let tag_href tag = "tags" // Printf.sprintf "%s.html" tag
+
 module Templates = struct
   let render input l =
     let env = Map.of_alist_exn (module String) l in
@@ -254,16 +256,41 @@ module Templates = struct
     in
     default ~body ~title
 
-  let index posts =
+  let index posts ~tags =
+    let tag_cloud =
+      match tags with
+      | None -> ""
+      | Some tag_map ->
+          let min_size = 70. in
+          let max_size = 160. in
+          let lengths =
+            Map.map tag_map ~f:(fun l -> Float.of_int (List.length l))
+          in
+          let min, max =
+            Map.fold lengths ~init:(Float.max_value, Float.min_value)
+              ~f:(fun ~key:_ ~data (min, max) ->
+                (Float.min min data, Float.max max data))
+          in
+          let normalized =
+            Map.map lengths ~f:(fun len ->
+                let r = (len -. min) /. (max -. min) in
+                Float.to_int (min_size +. (r *. (max_size -. min_size))))
+          in
+          Map.to_alist normalized
+          |> List.map ~f:(fun (tag, size) ->
+                 Printf.sprintf {|<a style="font-size: %d%%;" href="%s">%s</a>|}
+                   size (tag_href tag) tag)
+          |> String.concat
+    in
     let body =
       render "templates/index.html"
-        [ ("posts", post_items posts); ("tagcloud", "TAGCLOUD") ]
+        [ ("posts", post_items posts); ("tagcloud", tag_cloud) ]
     in
     default ~body ~title:"Home"
 end
 
 let create_tag_html ops tag posts =
-  let path = "tags" // Printf.sprintf "%s.html" tag in
+  let path = tag_href tag in
   let contents =
     Templates.posts posts
       ~title:(Printf.sprintf "Posts tagged %S" tag)
@@ -314,9 +341,11 @@ let run ~input ~output =
       create_tag_feed ops tag posts);
   ops.create_file ~path:"rss.xml" ~contents:rss_feed;
   copy_files ops "static";
-  let posts_contents = Templates.index posts in
+  let posts_contents = Templates.index posts ~tags:None in
   ops.create_file ~path:"posts.html" ~contents:posts_contents;
-  let index_contents = Templates.index (List.take posts 3) in
+  let index_contents =
+    Templates.index (List.take posts 3) ~tags:(Some tag_map)
+  in
   ops.create_file ~path:"index.html" ~contents:index_contents
 
 let info = Cmdliner.Cmd.info "blog"
