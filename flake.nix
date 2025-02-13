@@ -8,7 +8,18 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         packageName = "blog";
-        newDeps = with pkgs.ocamlPackages; [ base cmarkit cmdliner ptime stdio tyxml uri yaml ];
+        newDeps = with pkgs.ocamlPackages; [
+          pkgs.html-tidy
+          pkgs.libxml2
+          base
+          cmarkit
+          cmdliner
+          ptime
+          stdio
+          tyxml
+          uri
+          yaml
+        ];
         blogEngine = pkgs.haskellPackages.callCabal2nix "blog" self rec { };
         blogEngineNew = pkgs.ocamlPackages.buildDunePackage {
           version = "n/a";

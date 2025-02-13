@@ -1,3 +1,11 @@
+  $ pp_html () {
+  >   tidy -q --indent yes "$1"
+  > }
+
+  $ pp_xml () {
+  >   xmllint --pretty 1 "$1"
+  > }
+
   $ ./blog.exe -i . -o output
 
   $ find output -type f | sort
@@ -104,171 +112,407 @@
   output/tags/types.html
   output/tags/zsh.html
 
-  $ cat output/rss.xml
-  <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>Enter the void *</title><link>http://blog.emillon.org</link><description>
+  $ pp_xml output/rss.xml
+  <?xml version="1.0"?>
+  <rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+    <channel>
+      <title>Enter the void *</title>
+      <link>http://blog.emillon.org</link>
+      <description>
   <![CDATA[
   Yet another random hacker
   ]]>
-  </description><atom:link href="http://blog.emillon.org/rss.xml" rel="self" type="application/rss+xml"></atom:link><lastBuildDate>Fri, 11 Nov 2011 00:00:00 UT</lastBuildDate><item><title>Hello, world !</title><link>permalink</link><description>
+  </description>
+      <atom:link href="http://blog.emillon.org/rss.xml" rel="self" type="application/rss+xml"/>
+      <lastBuildDate>Fri, 11 Nov 2011 00:00:00 UT</lastBuildDate>
+      <item>
+        <title>Hello, world !</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Fri, 11 Nov 2011 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Hakyll 101</title><link>permalink</link><description>
+  </description>
+        <pubDate>Fri, 11 Nov 2011 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>Hakyll 101</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Mon, 21 Nov 2011 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Unicode : Math, greek, symbols - you name it !</title><link>permalink</link><description>
+  </description>
+        <pubDate>Mon, 21 Nov 2011 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>Unicode : Math, greek, symbols - you name it !</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Mon, 28 Nov 2011 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>What's in an ADT ?</title><link>permalink</link><description>
+  </description>
+        <pubDate>Mon, 28 Nov 2011 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>What's in an ADT ?</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Wed, 14 Dec 2011 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>ZSH suffix aliases</title><link>permalink</link><description>
+  </description>
+        <pubDate>Wed, 14 Dec 2011 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>ZSH suffix aliases</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Tue, 17 Jan 2012 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Stripe CTF 2.0 (partial) writeup</title><link>permalink</link><description>
+  </description>
+        <pubDate>Tue, 17 Jan 2012 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>Stripe CTF 2.0 (partial) writeup</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Thu, 30 Aug 2012 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Comonadic Life</title><link>permalink</link><description>
+  </description>
+        <pubDate>Thu, 30 Aug 2012 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>Comonadic Life</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Thu, 18 Oct 2012 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Resizing a LVM partition</title><link>permalink</link><description>
+  </description>
+        <pubDate>Thu, 18 Oct 2012 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>Resizing a LVM partition</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Tue, 13 May 2014 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Making type inference explode</title><link>permalink</link><description>
+  </description>
+        <pubDate>Tue, 13 May 2014 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>Making type inference explode</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Wed, 21 May 2014 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Bring your own switch</title><link>permalink</link><description>
+  </description>
+        <pubDate>Wed, 21 May 2014 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>Bring your own switch</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Thu, 5 Jun 2014 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>My part of work in Debian Jessie</title><link>permalink</link><description>
+  </description>
+        <pubDate>Thu, 5 Jun 2014 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>My part of work in Debian Jessie</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Fri, 21 Nov 2014 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Converting a Dance Dance Revolution mat to USB</title><link>permalink</link><description>
+  </description>
+        <pubDate>Fri, 21 Nov 2014 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>Converting a Dance Dance Revolution mat to USB</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Thu, 27 Nov 2014 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>On the curl | sh pattern</title><link>permalink</link><description>
+  </description>
+        <pubDate>Thu, 27 Nov 2014 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>On the curl | sh pattern</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Sat, 27 Dec 2014 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Santa made me learn Rails in a week</title><link>permalink</link><description>
+  </description>
+        <pubDate>Sat, 27 Dec 2014 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>Santa made me learn Rails in a week</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Fri, 3 Apr 2015 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>A lens-based ST20 emulator</title><link>permalink</link><description>
+  </description>
+        <pubDate>Fri, 3 Apr 2015 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>A lens-based ST20 emulator</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Thu, 20 Aug 2015 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>In Python, default values are evaluated at import time</title><link>permalink</link><description>
+  </description>
+        <pubDate>Thu, 20 Aug 2015 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>In Python, default values are evaluated at import time</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Tue, 12 Jan 2016 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>NaBoMaMo 2016 writeup</title><link>permalink</link><description>
+  </description>
+        <pubDate>Tue, 12 Jan 2016 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>NaBoMaMo 2016 writeup</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Wed, 1 Feb 2017 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Fuzzing OCamlFormat with AFL and Crowbar</title><link>permalink</link><description>
+  </description>
+        <pubDate>Wed, 1 Feb 2017 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>Fuzzing OCamlFormat with AFL and Crowbar</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Mon, 3 Aug 2020 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item><item><title>Introducing tree-sitter-dune</title><link>permalink</link><description>
+  </description>
+        <pubDate>Mon, 3 Aug 2020 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+      <item>
+        <title>Introducing tree-sitter-dune</title>
+        <link>permalink</link>
+        <description>
   <![CDATA[
   description
   ]]>
-  </description><pubDate>Fri, 26 Jul 2024 00:00:00 UT</pubDate><guid>permalink</guid><dc:creator>Etienne Millon</dc:creator></item></channel></rss>
+  </description>
+        <pubDate>Fri, 26 Jul 2024 00:00:00 UT</pubDate>
+        <guid>permalink</guid>
+        <dc:creator>Etienne Millon</dc:creator>
+      </item>
+    </channel>
+  </rss>
 
-  $ cat output/posts/2011-11-11-hello-world.html
-  <h1>Hello, world !</h1>
-  
-  <p>by <em>Etienne Millon</em> on <strong>Fri, 11 Nov 2011 00:00:00 UT</strong></p>
-  
-  <p>Tagged as: meta.</p>
-  
-  <hr>
-  <h2>title: Hello, world !
-  author: Etienne Millon
-  tags: meta</h2>
-  <pre><code class="language-{.haskell}">blog :: IO ()
+  $ pp_html output/posts/2011-11-11-hello-world.html
+  line 1 column 1 - Warning: missing <!DOCTYPE> declaration
+  line 1 column 1 - Warning: inserting implicit <body>
+  line 1 column 1 - Warning: inserting missing 'title' element
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta name="generator" content=
+      "HTML Tidy for HTML5 for Linux version 5.8.0">
+      <title></title>
+    </head>
+    <body>
+      <h1>
+        Hello, world !
+      </h1>
+      <p>
+        by <em>Etienne Millon</em> on <strong>Fri, 11 Nov 2011
+        00:00:00 UT</strong>
+      </p>
+      <p>
+        Tagged as: meta.
+      </p>
+      <hr>
+      <h2>
+        title: Hello, world ! author: Etienne Millon tags: meta
+      </h2>
+      <pre><code class="language-{.haskell}">blog :: IO ()
   blog =
-    putStrLn &quot;Hello, world !&quot;
+    putStrLn "Hello, world !"
   </code></pre>
-  <p>This is my first attempt at blogging, I still don't know what to expect.
-  I will probably write about the following topics :</p>
-  <ul>
-  <li>Programming, especially using <a href="http://caml.inria.fr/">functional</a> <a href="http://www.haskell.org/">languages</a>.</li>
-  <li>Development of the <a href="http://www.debian.org/">Debian</a> operating system.</li>
-  <li><a href="http://en.wikipedia.org/wiki/Static_program_analysis">Static analysis</a> of software.</li>
-  <li>Computer security.</li>
-  </ul>
-  <p>Like some of <a href="http://blog.chmd.fr/going-static.html">my</a> <a href="http://nicdumz.fr/blog/2010/12/why-blogofile/">friends</a>, I decided to use a
-  static blog generator. The first series of posts will be about setting this up
-  with <a href="http://jaspervdj.be/hakyll/">hakyll</a>, git and S3. Stay tuned !</p>
-  
-  
-
-  $ cat output/tags/ocaml.html
-  <h1>Posts tagged "ocaml"</h1>
-  <ul class="postList">
-      <li>
-      <span class="postDate">Fri, 26 Jul 2024 00:00:00 UT</span> <a href="permalink">Introducing tree-sitter-dune</a>
-  </li>
-  <li>
-      <span class="postDate">Mon, 3 Aug 2020 00:00:00 UT</span> <a href="permalink">Fuzzing OCamlFormat with AFL and Crowbar</a>
-  </li>
-  <li>
-      <span class="postDate">Wed, 1 Feb 2017 00:00:00 UT</span> <a href="permalink">NaBoMaMo 2016 writeup</a>
-  </li>
-  <li>
-      <span class="postDate">Wed, 21 May 2014 00:00:00 UT</span> <a href="permalink">Making type inference explode</a>
-  </li>
-  <li>
-      <span class="postDate">Wed, 14 Dec 2011 00:00:00 UT</span> <a href="permalink">What's in an ADT ?</a>
-  </li>
-  
-  </ul>
-  <a href="http://blog.emillon.org/tag/ocaml.xml">Feed</a>
-
-  $ cat output/index.html
-  <div class="about">
-      <h1>About this blog</h1>
       <p>
-      Hello! I am a French computer scientist specialized in formal methods.
+        This is my first attempt at blogging, I still don't know what
+        to expect. I will probably write about the following topics :
       </p>
-  
-      <p>
-      This blog is mostly about security, types, functional programming and free
-      software.
-      </p>
-  
-      <div id="posts">
-      I recently wrote about the following things:
-      <ul class="postList">
-          <li>
-      <span class="postDate">Fri, 11 Nov 2011 00:00:00 UT</span> <a href="permalink">Hello, world !</a>
-  </li>
-  <li>
-      <span class="postDate">Mon, 21 Nov 2011 00:00:00 UT</span> <a href="permalink">Hakyll 101</a>
-  </li>
-  <li>
-      <span class="postDate">Mon, 28 Nov 2011 00:00:00 UT</span> <a href="permalink">Unicode : Math, greek, symbols - you name it !</a>
-  </li>
-  
+      <ul>
+        <li>Programming, especially using <a href=
+        "http://caml.inria.fr/">functional</a> <a href=
+        "http://www.haskell.org/">languages</a>.
+        </li>
+        <li>Development of the <a href=
+        "http://www.debian.org/">Debian</a> operating system.
+        </li>
+        <li>
+          <a href=
+          "http://en.wikipedia.org/wiki/Static_program_analysis">Static
+          analysis</a> of software.
+        </li>
+        <li>Computer security.
+        </li>
       </ul>
-      <p><a href="/posts.html">See the rest&hellip;</a></p>
-      </div>
-  
-      <h1>Tags</h1>
-      <div>
+      <p>
+        Like some of <a href=
+        "http://blog.chmd.fr/going-static.html">my</a> <a href=
+        "http://nicdumz.fr/blog/2010/12/why-blogofile/">friends</a>,
+        I decided to use a static blog generator. The first series of
+        posts will be about setting this up with <a href=
+        "http://jaspervdj.be/hakyll/">hakyll</a>, git and S3. Stay
+        tuned !
+      </p>
+    </body>
+  </html>
+  [1]
+
+  $ pp_html output/tags/ocaml.html
+  line 1 column 1 - Warning: missing <!DOCTYPE> declaration
+  line 1 column 1 - Warning: inserting implicit <body>
+  line 1 column 1 - Warning: inserting missing 'title' element
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta name="generator" content=
+      "HTML Tidy for HTML5 for Linux version 5.8.0">
+      <title></title>
+    </head>
+    <body>
+      <h1>
+        Posts tagged "ocaml"
+      </h1>
+      <ul class="postList">
+        <li>
+          <span class="postDate">Fri, 26 Jul 2024 00:00:00 UT</span>
+          <a href="permalink">Introducing tree-sitter-dune</a>
+        </li>
+        <li>
+          <span class="postDate">Mon, 3 Aug 2020 00:00:00 UT</span>
+          <a href="permalink">Fuzzing OCamlFormat with AFL and
+          Crowbar</a>
+        </li>
+        <li>
+          <span class="postDate">Wed, 1 Feb 2017 00:00:00 UT</span>
+          <a href="permalink">NaBoMaMo 2016 writeup</a>
+        </li>
+        <li>
+          <span class="postDate">Wed, 21 May 2014 00:00:00 UT</span>
+          <a href="permalink">Making type inference explode</a>
+        </li>
+        <li>
+          <span class="postDate">Wed, 14 Dec 2011 00:00:00 UT</span>
+          <a href="permalink">What's in an ADT ?</a>
+        </li>
+      </ul><a href="http://blog.emillon.org/tag/ocaml.xml">Feed</a>
+    </body>
+  </html>
+  [1]
+
+  $ pp_html output/index.html
+  line 1 column 1 - Warning: missing <!DOCTYPE> declaration
+  line 1 column 1 - Warning: inserting implicit <body>
+  line 1 column 1 - Warning: inserting missing 'title' element
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta name="generator" content=
+      "HTML Tidy for HTML5 for Linux version 5.8.0">
+      <title></title>
+    </head>
+    <body>
+      <div class="about">
+        <h1>
+          About this blog
+        </h1>
+        <p>
+          Hello! I am a French computer scientist specialized in
+          formal methods.
+        </p>
+        <p>
+          This blog is mostly about security, types, functional
+          programming and free software.
+        </p>
+        <div id="posts">
+          I recently wrote about the following things:
+          <ul class="postList">
+            <li>
+              <span class="postDate">Fri, 11 Nov 2011 00:00:00
+              UT</span> <a href="permalink">Hello, world !</a>
+            </li>
+            <li>
+              <span class="postDate">Mon, 21 Nov 2011 00:00:00
+              UT</span> <a href="permalink">Hakyll 101</a>
+            </li>
+            <li>
+              <span class="postDate">Mon, 28 Nov 2011 00:00:00
+              UT</span> <a href="permalink">Unicode : Math, greek,
+              symbols - you name it !</a>
+            </li>
+          </ul>
+          <p>
+            <a href="/posts.html">See the rest…</a>
+          </p>
+        </div>
+        <h1>
+          Tags
+        </h1>
+        <div>
           TAGCLOUD
+        </div>
       </div>
-  </div>
+    </body>
+  </html>
+  [1]
