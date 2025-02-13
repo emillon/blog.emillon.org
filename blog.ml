@@ -1,18 +1,6 @@
 open Base
 open Stdio
 
-module Cmdliner_let_syntax = struct
-  let ( let+ ) x f =
-    let open Cmdliner.Term in
-    const f $ x
-
-  let pair x y = (x, y)
-
-  let ( and+ ) x y =
-    let open Cmdliner.Term in
-    const pair $ x $ y
-end
-
 let ( // ) = Stdlib.Filename.concat
 
 type ops = {
@@ -321,7 +309,7 @@ let run ~input ~output =
 let info = Cmdliner.Cmd.info "blog"
 
 let term =
-  let open Cmdliner_let_syntax in
+  let open Cmdliner.Term.Syntax in
   let+ input =
     let open Cmdliner.Arg in
     required & opt (some string) None & info [ "i" ]
