@@ -417,8 +417,8 @@
             Hello, world !
           </h1>
           <p>
-            by <em>Etienne Millon</em> on <strong>Fri, 11 Nov 2011
-            00:00:00 UT</strong>
+            by <em>Etienne Millon</em> on <strong>11 Nov
+            2011</strong>
           </p>
           <p>
             Tagged as: meta.

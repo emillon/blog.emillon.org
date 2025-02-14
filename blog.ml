@@ -119,6 +119,10 @@ let date_to_rss_string date =
     (weekday_to_string weekday)
     d (month_name m) y
 
+let date_to_short_string date =
+  let y, m, d = date in
+  Printf.sprintf "%d %s %d" d (month_name m) y
+
 let post_to_rss_item (post : post) ~config =
   let open Tyxml.Xml in
   node "item"
@@ -224,7 +228,7 @@ module Templates = struct
         [
           ("title", title);
           ("author", post.author);
-          ("date", date_to_rss_string (post_pubdate post));
+          ("date", date_to_short_string (post_pubdate post));
           ("prettytags", String.concat ~sep:", " (Set.to_list post.tags));
           ("body", Cmarkit_html.of_doc ~safe:true post.body);
         ]
