@@ -3,29 +3,53 @@ open Stdio
 
 let ( // ) = Stdlib.Filename.concat
 
-type ops = {
-  mkdir : string -> unit;
-  create_file : path:string -> contents:string -> unit;
-}
+let readdir path =
+  Stdlib.Sys.readdir path |> Array.to_list
+  |> List.sort ~compare:String.compare
+  |> List.map ~f:(fun base -> path // base)
 
-let real_ops ~root =
-  let real_mkdir path = Stdlib.Sys.mkdir path 0o755 in
-  let mkdir path =
-    let full_path = match path with "." -> root | _ -> root // path in
-    real_mkdir full_path
-  in
-  let create_file ~path ~contents =
-    Out_channel.write_all (root // path) ~data:contents
-  in
-  { mkdir; create_file }
+module Ops = struct
+  type t = {
+    mkdir : string -> unit;
+    create_file : path:string -> contents:string -> unit;
+  }
 
-let dry_run =
-  let mkdir path = printf "mkdir %S\n" path in
-  let create_file ~path ~contents =
-    let hash = Stdlib.Digest.string contents |> Stdlib.Digest.to_hex in
-    printf "create_file %S (hash: %s)\n" path hash
-  in
-  { mkdir; create_file }
+  let mkdir t = t.mkdir
+  let create_file t = t.create_file
+
+  let rec copy_files ops input_path =
+    readdir input_path
+    |> List.iter ~f:(fun path ->
+           let out_path = String.chop_prefix_exn ~prefix:"static/" path in
+           let s = Unix.stat path in
+           match s.st_kind with
+           | S_REG ->
+               create_file ops ~path:out_path
+                 ~contents:(In_channel.read_all path)
+           | S_DIR ->
+               mkdir ops out_path;
+               copy_files ops path
+           | _ -> assert false)
+
+  let real ~root =
+    let real_mkdir path = Stdlib.Sys.mkdir path 0o755 in
+    let mkdir path =
+      let full_path = match path with "." -> root | _ -> root // path in
+      real_mkdir full_path
+    in
+    let create_file ~path ~contents =
+      Out_channel.write_all (root // path) ~data:contents
+    in
+    { mkdir; create_file }
+
+  let dry_run =
+    let mkdir path = printf "mkdir %S\n" path in
+    let create_file ~path ~contents =
+      let hash = Stdlib.Digest.string contents |> Stdlib.Digest.to_hex in
+      printf "create_file %S (hash: %s)\n" path hash
+    in
+    { mkdir; create_file }
+end
 
 type post = {
   basename : string;
@@ -63,11 +87,6 @@ type feed_config = {
   author_email : string;
   root : Uri.t;
 }
-
-let readdir path =
-  Stdlib.Sys.readdir path |> Array.to_list
-  |> List.sort ~compare:String.compare
-  |> List.map ~f:(fun base -> path // base)
 
 let load_all_posts path =
   readdir path
@@ -192,19 +211,6 @@ let feed_config =
     root = Uri.of_string "http://blog.emillon.org";
   }
 
-let rec copy_files ops input_path =
-  readdir input_path
-  |> List.iter ~f:(fun path ->
-         let out_path = String.chop_prefix_exn ~prefix:"static/" path in
-         let s = Unix.stat path in
-         match s.st_kind with
-         | S_REG ->
-             ops.create_file ~path:out_path ~contents:(In_channel.read_all path)
-         | S_DIR ->
-             ops.mkdir out_path;
-             copy_files ops path
-         | _ -> assert false)
-
 let with_string_formatter f =
   let buf = Buffer.create 0 in
   let fmt = Stdlib.Format.formatter_of_buffer buf in
@@ -300,30 +306,32 @@ let create_tag_html ops tag posts =
       ~title:(Printf.sprintf "Posts tagged %S" tag)
       ~feed:(tag_feed feed_config tag)
   in
-  ops.create_file ~path ~contents
+  Ops.create_file ops ~path ~contents
 
 let create_tag_feed ops tag posts =
   let path = "feeds" // Printf.sprintf "%s.xml" tag in
   let contents = rss_feed posts feed_config in
-  ops.create_file ~path ~contents
+  Ops.create_file ops ~path ~contents
 
 let directory_exists path =
   Stdlib.Sys.file_exists path && Stdlib.Sys.is_directory path
 
 let create_post_assets ops path =
-  ops.mkdir path;
+  Ops.mkdir ops path;
   List.iter (readdir path) ~f:(fun path ->
-      ops.create_file ~path ~contents:(In_channel.read_all path))
+      Ops.create_file ops ~path ~contents:(In_channel.read_all path))
 
 let create_post ops post =
   let chopped = "posts" // post.basename |> Stdlib.Filename.chop_extension in
   let path = chopped ^ ".html" in
   if directory_exists chopped then create_post_assets ops chopped;
   let contents = Templates.post post in
-  ops.create_file ~path ~contents
+  Ops.create_file ops ~path ~contents
 
 let run ~input ~output =
-  let ops = match output with None -> dry_run | Some root -> real_ops ~root in
+  let ops =
+    match output with None -> Ops.dry_run | Some root -> Ops.real ~root
+  in
   let posts = load_all_posts (input // "posts") in
   let tag_map =
     List.fold posts
@@ -334,23 +342,23 @@ let run ~input ~output =
   in
   let all_tags = Map.keys tag_map in
   let rss_feed = rss_feed posts feed_config in
-  ops.mkdir ".";
-  ops.mkdir "posts";
+  Ops.mkdir ops ".";
+  Ops.mkdir ops "posts";
   List.iter posts ~f:(create_post ops);
-  ops.mkdir "tags";
-  ops.mkdir "feeds";
+  Ops.mkdir ops "tags";
+  Ops.mkdir ops "feeds";
   List.iter all_tags ~f:(fun tag ->
       let posts = Map.find_multi tag_map tag in
       create_tag_html ops tag posts;
       create_tag_feed ops tag posts);
-  ops.create_file ~path:"rss.xml" ~contents:rss_feed;
-  copy_files ops "static";
+  Ops.create_file ops ~path:"rss.xml" ~contents:rss_feed;
+  Ops.copy_files ops "static";
   let posts_contents = Templates.index posts ~tags:None in
-  ops.create_file ~path:"posts.html" ~contents:posts_contents;
+  Ops.create_file ops ~path:"posts.html" ~contents:posts_contents;
   let index_contents =
     Templates.index (List.take posts 3) ~tags:(Some tag_map)
   in
-  ops.create_file ~path:"index.html" ~contents:index_contents
+  Ops.create_file ops ~path:"index.html" ~contents:index_contents
 
 let info = Cmdliner.Cmd.info "blog"
 
