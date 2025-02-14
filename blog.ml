@@ -244,10 +244,53 @@ let rss_feed posts config =
   in
   Stdlib.Format.asprintf "%a" (pp ()) root
 
-let tag_feed config tag =
-  Uri.with_path config.root
-    (let path = Uri.path config.root in
-     path // "tag" // Printf.sprintf "%s.xml" tag)
+let render_post_items posts =
+  with_string_formatter (fun fmt ->
+      List.iter posts ~f:(fun post ->
+          let env =
+            Map.of_alist_exn
+              (module String)
+              [
+                ("date", date_to_rss_string (Post.pub_date post));
+                ("url", Post.permalink post);
+                ("title", post.title);
+              ]
+          in
+          Template.process env ~input:"templates/postitem.html" ~output:fmt))
+
+let render_post_list posts ~title ~feed =
+  let body =
+    render_template "templates/posts.html"
+      [
+        ("title", title);
+        ("posts", render_post_items posts);
+        ("feed", Uri.to_string feed);
+      ]
+  in
+  render_default ~body ~title
+
+module Tag = struct
+  let feed config tag =
+    Uri.with_path config.root
+      (let path = Uri.path config.root in
+       path // "tag" // Printf.sprintf "%s.xml" tag)
+
+  let href tag = "tags" // Printf.sprintf "%s.html" tag
+
+  let create_html ops feed_config tag posts =
+    let path = href tag in
+    let contents =
+      render_post_list posts
+        ~title:(Printf.sprintf "Posts tagged %S" tag)
+        ~feed:(feed feed_config tag)
+    in
+    Ops.create_file ops ~path ~contents
+
+  let create_feed ops feed_config tag posts =
+    let path = "feeds" // Printf.sprintf "%s.xml" tag in
+    let contents = rss_feed posts feed_config in
+    Ops.create_file ops ~path ~contents
+end
 
 let feed_config =
   {
@@ -258,36 +301,9 @@ let feed_config =
     root = Uri.of_string "http://blog.emillon.org";
   }
 
-let tag_href tag = "tags" // Printf.sprintf "%s.html" tag
-
 module Templates = struct
   (* TODO: inline *)
   let render = render_template
-
-  let post_items posts =
-    with_string_formatter (fun fmt ->
-        List.iter posts ~f:(fun post ->
-            let env =
-              Map.of_alist_exn
-                (module String)
-                [
-                  ("date", date_to_rss_string (Post.pub_date post));
-                  ("url", Post.permalink post);
-                  ("title", post.title);
-                ]
-            in
-            Template.process env ~input:"templates/postitem.html" ~output:fmt))
-
-  let posts posts ~title ~feed =
-    let body =
-      render "templates/posts.html"
-        [
-          ("title", title);
-          ("posts", post_items posts);
-          ("feed", Uri.to_string feed);
-        ]
-    in
-    render_default ~body ~title
 
   let index posts ~tags =
     let tag_cloud =
@@ -312,29 +328,15 @@ module Templates = struct
           Map.to_alist normalized
           |> List.map ~f:(fun (tag, size) ->
                  Printf.sprintf {|<a style="font-size: %d%%;" href="%s">%s</a>|}
-                   size (tag_href tag) tag)
+                   size (Tag.href tag) tag)
           |> String.concat
     in
     let body =
       render "templates/index.html"
-        [ ("posts", post_items posts); ("tagcloud", tag_cloud) ]
+        [ ("posts", render_post_items posts); ("tagcloud", tag_cloud) ]
     in
     render_default ~body ~title:"Home"
 end
-
-let create_tag_html ops tag posts =
-  let path = tag_href tag in
-  let contents =
-    Templates.posts posts
-      ~title:(Printf.sprintf "Posts tagged %S" tag)
-      ~feed:(tag_feed feed_config tag)
-  in
-  Ops.create_file ops ~path ~contents
-
-let create_tag_feed ops tag posts =
-  let path = "feeds" // Printf.sprintf "%s.xml" tag in
-  let contents = rss_feed posts feed_config in
-  Ops.create_file ops ~path ~contents
 
 let run ~input ~output =
   let ops =
@@ -357,8 +359,8 @@ let run ~input ~output =
   Ops.mkdir ops "feeds";
   List.iter all_tags ~f:(fun tag ->
       let posts = Map.find_multi tag_map tag in
-      create_tag_html ops tag posts;
-      create_tag_feed ops tag posts);
+      Tag.create_html ops feed_config tag posts;
+      Tag.create_feed ops feed_config tag posts);
   Ops.create_file ops ~path:"rss.xml" ~contents:rss_feed;
   Ops.copy_files ops "static";
   let posts_contents = Templates.index posts ~tags:None in
