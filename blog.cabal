@@ -13,6 +13,7 @@ executable blog
                     bytestring,
                     directory,
                     filepath,
+                    pandoc,
                     hakyll,
                     MissingH,
                     mtl,
