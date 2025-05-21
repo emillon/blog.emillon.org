@@ -570,7 +570,7 @@ a forensics/reverse engineering challenge. I participated in the 2015 edition.
 Though I did not manage to complete it, I made an emulator for the exotic ST20
 architecture, which is probably worth describing here.</p>
 <figure>
-<img src="2015-08-20-a-lens-based-st20-emulator/t00f.png" alt="Some programs will loop. It’s OK." />
+<img src="/img/st20/t00f.png" alt="Some programs will loop. It’s OK." />
 <figcaption aria-hidden="true">Some programs will loop. It’s OK.</figcaption>
 </figure>
 <p>Note that this emulator is not really optimized for pure speed. In the actual
@@ -1284,7 +1284,7 @@ twice.</p>
 80000124 LDPI</code></pre>
 <p>For the graph output, I assume that you have already seen graphviz output:</p>
 <figure>
-<img src="2015-08-20-a-lens-based-st20-emulator/t03.png" alt="T03 with dot driver" />
+<img src="/img/st20/t03.png" alt="T03 with dot driver" />
 <figcaption aria-hidden="true">T03 with dot driver</figcaption>
 </figure>
 <p>The introduction image was done using the same output but an alternative layout

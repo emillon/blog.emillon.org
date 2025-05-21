@@ -110,7 +110,7 @@ constraints from the “edit event” form, but also removing or adding some.</p
 <p>I found the <a href="https://github.com/nathanvda/cocoon">cocoon</a> gem which works fine for this, and I could build this kind
 of form:</p>
 <figure>
-<img src="2015-04-03-santa-made-me-learn-rails-in-a-week/nested.png" alt="Nested forms with cocoon" />
+<img src="/img/rails/nested.png" alt="Nested forms with cocoon" />
 <figcaption aria-hidden="true">Nested forms with cocoon</figcaption>
 </figure>
 <p>To send email in my Python script MVP, I just piped stuff to <code>sendmail</code>.
