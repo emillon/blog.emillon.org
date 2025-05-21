@@ -38,7 +38,7 @@ Needless to say, I do not have a parallel port on my computer anymore, so some
 conversion is required. I also happen to have a USB development board on hand,
 so a possible solution is to program it to drive the Playstation mat.
 
-![A DDR mat with unusual connectors](THIS/mat.jpg)
+![A DDR mat with unusual connectors](/img/ddr/mat.jpg)
 
 On the above picture, two things are connected to the parallel port: the DDR mat
 and a female SNES connector. The driver indeed supported several gamepads, even
@@ -46,7 +46,7 @@ of different types.
 
 The first step was to note the pinout of the existing connection:
 
-![Strange things inside the connector](THIS/inside.jpg)
+![Strange things inside the connector](/img/ddr/inside.jpg)
 
     DB25
 
@@ -112,10 +112,10 @@ this does not constrain the choice.
 So, let's connect the DDR mat to the microcontroller. As the board already has
 male pin headers for breadboard usage, I soldered female pin headers to wires.
 
-![Female pin headers on wires. A bit backwards, I know.](THIS/wires.jpg)
+![Female pin headers on wires. A bit backwards, I know.](/img/ddr/wires.jpg)
 
 ![The completed adapter. The spoon was used to unplug the board from a piece of
-breadboard. And for breakfast, earlier.](THIS/assembled.jpg)
+breadboard. And for breakfast, earlier.](/img/ddr/assembled.jpg)
 
 ## Programming the teensy++
 

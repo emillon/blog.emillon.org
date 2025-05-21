@@ -130,7 +130,7 @@ constraints from the "edit event" form, but also removing or adding some.
 I found the [cocoon] gem which works fine for this, and I could build this kind
 of form:
 
-![Nested forms with cocoon](THIS/nested.png)
+![Nested forms with cocoon](/img/rails/nested.png)
 
 [cocoon]: https://github.com/nathanvda/cocoon
 

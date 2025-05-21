@@ -191,4 +191,4 @@ and find the same layout:
 
 ![TLPPalette]
 
-[TLPPalette]: THIS/palette.png
+[TLPPalette]: /drafts/dte/palette.png

@@ -9,7 +9,7 @@ a forensics/reverse engineering challenge. I participated in the 2015 edition.
 Though I did not manage to complete it, I made an emulator for the exotic ST20
 architecture, which is probably worth describing here.
 
-![Some programs will loop. It's OK.](THIS/t00f.png)
+![Some programs will loop. It's OK.](/img/st20/t00f.png)
 
 Note that this emulator is not really optimized for pure speed. In the actual
 challenge I actually had to rewrite it as pure Haskell (i.e., removing the
@@ -859,7 +859,7 @@ twice.
 
 For the graph output, I assume that you have already seen graphviz output:
 
-![T03 with dot driver](THIS/t03.png)
+![T03 with dot driver](/img/st20/t03.png)
 
 The introduction image was done using the same output but an alternative layout
 engines.
