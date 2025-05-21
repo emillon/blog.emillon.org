@@ -71,7 +71,6 @@ renderPosts tags = do
                           ]
         x2 <- saveSnapshot "content" x1
         finalRenderer "templates/post.html" ctx x2
-  copyAssets "posts"
 
 renderPostsList :: Rules ()
 renderPostsList = void $ do
@@ -161,17 +160,6 @@ makeDrafts tags = do
             pandocCompiler >>=
             loadAndApplyTemplate "templates/default.html" defaultContext >>=
             relativizeUrls
-    copyAssets "drafts"
-
-copyAssets :: String -> Rules ()
-copyAssets base =
-    void $ match pattern $ do
-        route idRoute
-        compile copyFileCompiler
-    where
-        pattern = foldr1 (.||.) $ map makePat extensions
-        makePat ext = fromGlob $ base ++ "/*/*." ++ ext
-        extensions = ["gif", "jpg", "png"]
 
 buildTemplates :: Rules ()
 buildTemplates =
