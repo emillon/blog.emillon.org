@@ -1,0 +1,282 @@
+---
+title: Nix syntax for OCaml users
+author: Etienne Millon
+tags: nix, ocaml
+---
+
+The nix language is sometimes described as "JSON with functions". That's a good
+start, but here's my take as an OCaml programmer.
+
+## Literals
+
+Integers and booleans look the same as they do in OCaml: `1`, `true`, `false`.
+Nix also has `null`.
+
+Strings can be double-quoted, like `"this"`. There's also a multiline string literal which looks like this:
+
+```nix
+''
+   First line
+   second line
+     - third line
+''
+```
+
+It strips leading white space (the most it can). This is unlike OCaml's `{|raw
+strings|}` which capture everything between `{|` and `|}`.
+
+Both syntaxes support interpolation using `${ ... }`, which doesn't exist in
+OCaml (but can be emulated using a ppx).
+
+## Types
+
+Nix is dynamically typed and OCaml is statically typed.
+
+## Evaluation
+
+Nix is lazy and OCaml is eager.
+
+## Lists
+
+Nix has lists, which are enclosed between `[` and `]` with no separator.
+
+```nix
+[ 1 2 3 ]
+```
+
+```ocaml
+[1; 2; 3]
+```
+
+Sometimes this requires adding parentheses if a function call is present.
+
+
+```nix
+[ 5 (f x) ]
+```
+
+```ocaml
+[5; f x]
+```
+
+(`::` does not exist in nix)
+
+## Attribute sets
+
+The other compound value is attribute sets, or attrsets. They're maps where keys are strings.
+Syntax wise, they're enclosed between `{` and `}` and each key/value pair is
+terminated with `;`.
+The OCaml equivalent could be something like a record, but since nix is dynamic
+this is only a syntactic comparison.
+
+```nix
+{
+  a = 2;
+  b = 3;
+}
+```
+
+```ocaml
+{
+  a = 2;
+  b = 3
+}
+```
+
+These fields can be accessed using dot notation, like in OCaml: `attrSet.a`.
+
+They can be nested: not only the expression `a.x.y` is the attribute `y` of `a.x`, but this can also be used in definitions.
+
+```nix
+# This:
+{
+  a.x = 3;
+  a.y = 4;
+  b = 5;
+}
+
+# is short for:
+{
+  a =
+    {
+      x = 3;
+      y = 4;
+    };
+  b = 5;
+}
+```
+
+Any string can be used as a key, even if it does not correspond to a nix
+identifier. In that case it is quoted, like `attrSet."some string"`.
+
+Keys can also be dynamic by using interpolation. For example `attrSet."${key}"`
+will evaluate to `attrSet.x` if `key` evaluates to `"x"`.
+
+These are combined in a common idiom in flakes (a type of nix files):
+
+```nix
+{
+  packages."${system}".default = myPackage;
+}
+```
+
+## Misc
+
+<table><tr class="header"><th>Construct</th><th>Nix</th><th>OCaml</th><th>Remarks</th></tr><tr><td>
+
+`let` bindings
+
+</td><td>
+
+```nix
+let
+  x = 3;
+  y = 5;
+in
+expr
+```
+
+</td><td>
+
+```ocaml
+let x = 3 in
+let y = 5 in
+expr
+```
+
+</td><td>
+
+It is possible to access previous bindings defined in the same `let`/`in`.
+
+</td></tr><tr><td>
+
+`with`
+
+</td><td>
+
+```nix
+with pkgs;
+[ cowsay protobuf ]
+```
+
+</td><td>
+
+```ocaml
+let open Pkgs in
+[cowsay; protobuf]
+```
+
+</td><td>
+
+Local open: identifiers are looked up in this attrset.
+Here, `cowsay` means `pkgs.cowsay` and `protobuf` means `pkgs.protobuf`.
+If the identifiers are not found in `pkgs`, they will be searched in the outer scope.
+
+</td></tr><tr><td>
+
+`inherit`
+
+</td><td>
+
+```nix
+{
+  inherit x y;
+  z = 5;
+}
+```
+</td><td>
+
+```ocaml
+{
+  x;
+  y;
+  z = 5;
+}
+```
+
+</td><td>
+
+This is equivalent to `x = x` where the first `x` is the attribute name and the
+second `x` is the value.
+
+</td></tr><tr><td>
+
+`inherit(id)`
+
+</td><td>
+
+```nix
+{
+  name = "hello";
+  inherit(meta) version;
+}
+```
+</td><td>
+
+```ocaml
+{
+  name = "hello";
+  version = meta.version;
+}
+```
+
+</td><td>
+
+Similar to a plain `inherit` but the value is picked from an explicit attrset
+instead of the whole scope.
+
+</td></tr></table>
+
+TODO import
+
+<!--
+<table><tr class="header"><th>Nix</th><th>OCaml</th></tr><tr><td>
+</td><td>
+</td></tr></table>
+-->
+
+## Functions
+
+This is a nix function that takes two arguments `a` and `b` and returns `a` and
+`b`.
+
+```nix
+a: b: a + b
+```
+
+This corresponds to
+
+```ocaml
+fun a b -> a + b
+```
+
+Functions are curried and take only one argument. There's no shortcut to accept
+several arguments at once (like `fun a b ->` instead of `fun a -> fun b ->`),
+and no shortcut define a named function (`let add a b =` instead of `let add =
+fun a b ->`).
+
+A common pattern is to pass an attrset as single argument. This corresponds to named arguments.
+
+<!--
+<table><tr class="header"><th>Nix</th><th>OCaml</th></tr><tr><td>
+</td><td>
+</td></tr></table>
+-->
+
+<table> <tr class="header"> <th> Nix </th> <th> OCaml </th> </tr> <tr> <td>
+
+```nix
+{ name, version }:
+```
+
+</td><td>
+
+```ocaml
+fun ~name ~version ->
+```
+
+</td></tr></table>
+
+A default value can be provided. This corresponds to optional arguments.
+
+TODO named arguments.
