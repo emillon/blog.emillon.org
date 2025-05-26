@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Enter the void * - Nix syntax for OCaml users</title>
+        <link rel="stylesheet" type="text/css" href="../css/bootstrap.css" />
+        <link rel="stylesheet" type="text/css" href="../css/extra.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+        <link rel="alternate" type="application/rss+xml" title="Enter the void *" href="../rss.xml" />
+        <link rel="shortcut icon" href="../favicon.ico" />
+        <link href="http://fonts.googleapis.com/css?family=Merriweather:400,300" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <div class="header container">
+            <h1 class="maintitle">Enter the void *</h1>
+               <div class="nav-hdr">
+                   <ul>
+                      <li><a href="../">Home</a></li>
+                      <li><a href="../posts.html">All posts</a></li>
+                      <li><a href="../rss.xml">Feed</a></li>
+                      <li><a href="https://github.com/emillon">Github</a></li>
+                      <li><a href="https://qa.debian.org/developer.php?login=me%40emillon.org">Debian</a></li>
+                      <li><a href="https://twitter.com/etiennemillon">Twitter</a></li>
+                   </ul>
+                </div>
+        </div>
+        <div class="maincontainer container">
+          <div class="col-md-8 col-md-offset-2">
+            <h1>Nix syntax for OCaml users</h1>
+
+<p>by <em>Etienne Millon</em> on <strong>No date</strong></p>
+
+<p>Tagged as: <a title="All pages tagged 'ocaml'." href="../tags/ocaml.html" rel="tag">ocaml</a>.</p>
+
+<p>The nix language is sometimes described as “JSON with functions”. That’s a good
+start, but here’s my take as an OCaml programmer.</p>
+<h2 id="literals">Literals</h2>
+<p>Integers and booleans look the same as they do in OCaml: <code>1</code>, <code>true</code>, <code>false</code>.
+Nix also has <code>null</code>.</p>
+<p>Strings can be double-quoted, like <code>"this"</code>. There’s also a multiline string literal which looks like this:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="st">''</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="st">   First line</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="st">   second line</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="st">     - third line</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="st">''</span></span></code></pre></div>
+<p>It strips leading white space (the most it can). This is unlike OCaml’s <code>{|raw strings|}</code> which capture everything between <code>{|</code> and <code>|}</code>.</p>
+<p>Both syntaxes support interpolation using <code>${ ... }</code>, which doesn’t exist in
+OCaml (but can be emulated using a ppx).</p>
+<h2 id="types">Types</h2>
+<p>Nix is dynamically typed and OCaml is statically typed.</p>
+<h2 id="evaluation">Evaluation</h2>
+<p>Nix is lazy and OCaml is eager.</p>
+<h2 id="lists">Lists</h2>
+<p>Nix has lists, which are enclosed between <code>[</code> and <code>]</code> with no separator.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">[</span> <span class="dv">1</span> <span class="dv">2</span> <span class="dv">3</span> <span class="op">]</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>[<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>]</span></code></pre></div>
+<p>Sometimes this requires adding parentheses if a function call is present.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="op">[</span> <span class="dv">5</span> <span class="op">(</span>f x<span class="op">)</span> <span class="op">]</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>[<span class="dv">5</span>; f x]</span></code></pre></div>
+<p>(<code>::</code> does not exist in nix)</p>
+<h2 id="attribute-sets">Attribute sets</h2>
+<p>The other compound value is attribute sets, or attrsets. They’re maps where keys are strings.
+Syntax wise, they’re enclosed between <code>{</code> and <code>}</code> and each key/value pair is
+terminated with <code>;</code>.
+The OCaml equivalent could be something like a record, but since nix is dynamic
+this is only a syntactic comparison.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">a</span> <span class="op">=</span> <span class="dv">2</span><span class="op">;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">b</span> <span class="op">=</span> <span class="dv">3</span><span class="op">;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  a = <span class="dv">2</span>;</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  b = <span class="dv">3</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>These fields can be accessed using dot notation, like in OCaml: <code>attrSet.a</code>.</p>
+<p>They can be nested: not only the expression <code>a.x.y</code> is the attribute <code>y</code> of <code>a.x</code>, but this can also be used in definitions.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This:</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">a</span>.<span class="va">x</span> <span class="op">=</span> <span class="dv">3</span><span class="op">;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="va">a</span>.<span class="va">y</span> <span class="op">=</span> <span class="dv">4</span><span class="op">;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="va">b</span> <span class="op">=</span> <span class="dv">5</span><span class="op">;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co"># is short for:</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="va">a</span> <span class="op">=</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>      <span class="va">x</span> <span class="op">=</span> <span class="dv">3</span><span class="op">;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>      <span class="va">y</span> <span class="op">=</span> <span class="dv">4</span><span class="op">;</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">};</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="va">b</span> <span class="op">=</span> <span class="dv">5</span><span class="op">;</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Any string can be used as a key, even if it does not correspond to a nix
+identifier. In that case it is quoted, like <code>attrSet."some string"</code>.</p>
+<p>Keys can also be dynamic by using interpolation. For example <code>attrSet."${key}"</code>
+will evaluate to <code>attrSet.x</code> if <code>key</code> evaluates to <code>"x"</code>.</p>
+<p>These are combined in a common idiom in flakes (a type of nix files):</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">packages</span>.<span class="st">&quot;</span><span class="sc">${</span>system<span class="sc">}</span><span class="st">&quot;</span>.<span class="va">default</span> <span class="op">=</span> myPackage<span class="op">;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="misc">Misc</h2>
+<table>
+<tr class="header">
+<th>
+Construct
+</th>
+<th>
+Nix
+</th>
+<th>
+OCaml
+</th>
+<th>
+Remarks
+</th>
+</tr>
+<tr>
+<td>
+<p><code>let</code> bindings</p>
+</td>
+<td>
+<div class="sourceCode" id="cb10"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">x</span> <span class="op">=</span> <span class="dv">3</span><span class="op">;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">y</span> <span class="op">=</span> <span class="dv">5</span><span class="op">;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="kw">in</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>expr</span></code></pre></div>
+</td>
+<td>
+<div class="sourceCode" id="cb11"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> x = <span class="dv">3</span> <span class="kw">in</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> y = <span class="dv">5</span> <span class="kw">in</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>expr</span></code></pre></div>
+</td>
+<td>
+<p>It is possible to access previous bindings defined in the same <code>let</code>/<code>in</code>.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><code>with</code></p>
+</td>
+<td>
+<div class="sourceCode" id="cb12"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">with</span> pkgs<span class="op">;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="op">[</span> cowsay protobuf <span class="op">]</span></span></code></pre></div>
+</td>
+<td>
+<div class="sourceCode" id="cb13"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">open</span> Pkgs <span class="kw">in</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>[cowsay; protobuf]</span></code></pre></div>
+</td>
+<td>
+<p>Local open: identifiers are looked up in this attrset.
+Here, <code>cowsay</code> means <code>pkgs.cowsay</code> and <code>protobuf</code> means <code>pkgs.protobuf</code>.
+If the identifiers are not found in <code>pkgs</code>, they will be searched in the outer scope.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><code>inherit</code></p>
+</td>
+<td>
+<div class="sourceCode" id="cb14"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">inherit</span> x y<span class="op">;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">z</span> <span class="op">=</span> <span class="dv">5</span><span class="op">;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</td>
+<td>
+<div class="sourceCode" id="cb15"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  x;</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  y;</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  z = <span class="dv">5</span>;</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+</td>
+<td>
+<p>This is equivalent to <code>x = x</code> where the first <code>x</code> is the attribute name and the
+second <code>x</code> is the value.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><code>inherit(id)</code></p>
+</td>
+<td>
+<div class="sourceCode" id="cb16"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">name</span> <span class="op">=</span> <span class="st">&quot;hello&quot;</span><span class="op">;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">inherit</span><span class="op">(</span>meta<span class="op">)</span> version<span class="op">;</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</td>
+<td>
+<div class="sourceCode" id="cb17"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  name = <span class="st">&quot;hello&quot;</span>;</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  version = meta.version;</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+</td>
+<td>
+<p>Similar to a plain <code>inherit</code> but the value is picked from an explicit attrset
+instead of the whole scope.</p>
+</td>
+</tr>
+</table>
+<p>TODO import</p>
+<!--
+<table><tr class="header"><th>Nix</th><th>OCaml</th></tr><tr><td>
+</td><td>
+</td></tr></table>
+-->
+<h2 id="functions">Functions</h2>
+<p>This is a nix function that takes two arguments <code>a</code> and <code>b</code> and returns <code>a</code> and
+<code>b</code>.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="va">a</span><span class="op">:</span> <span class="va">b</span><span class="op">:</span> a <span class="op">+</span> b</span></code></pre></div>
+<p>This corresponds to</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">fun</span> a b -&gt; a + b</span></code></pre></div>
+<p>Functions are curried and take only one argument. There’s no shortcut to accept
+several arguments at once (like <code>fun a b -&gt;</code> instead of <code>fun a -&gt; fun b -&gt;</code>),
+and no shortcut define a named function (<code>let add a b =</code> instead of <code>let add = fun a b -&gt;</code>).</p>
+<p>A common pattern is to pass an attrset as single argument. This corresponds to named arguments.</p>
+<!--
+<table><tr class="header"><th>Nix</th><th>OCaml</th></tr><tr><td>
+</td><td>
+</td></tr></table>
+-->
+<table>
+<tr class="header">
+<th>
+Nix
+</th>
+<th>
+OCaml
+</th>
+</tr>
+<tr>
+<td>
+<div class="sourceCode" id="cb20"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="op">{</span> <span class="va">name</span><span class="op">,</span> <span class="va">version</span> <span class="op">}</span>:</span></code></pre></div>
+</td>
+<td>
+<div class="sourceCode" id="cb21"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">fun</span> ~name ~version -&gt;</span></code></pre></div>
+</td>
+</tr>
+</table>
+<p>A default value can be provided. This corresponds to optional arguments.</p>
+<p>TODO named arguments.</p>
+
+
+
+          </div>
+        </div>
+        <div class="footer container">
+            <p>
+                I love feedback! Feel free to catch me on twitter
+                (<a href="https://twitter.com/etiennemillon">@etiennemillon</a>)
+                or drop me mail (me AT emillon DOT org).
+            </p>
+        </div>
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-51676253-1', 'emillon.org');
+          ga('send', 'pageview');
+
+        </script>
+    </body>
+</html>
