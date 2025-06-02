@@ -1,0 +1,56 @@
+---
+title: Using rclone mount with systemd on nixos
+author: Etienne Millon
+tags: rclone, systemd, nix
+---
+
+I recently added a b2 remote to one of my nixos systems. I found some docs
+recommending a systemd service but this felt like the wrong abstraction.
+
+So I opted to turn that into a systemd mount. In the spirit of "let's write a
+blog post so that I don't forget", here's how to do it.
+
+Here's the nix module. Replace the contents of `let` with your configuration.
+I'm mounting a b2 bucket, but this should work with another kind of remote.
+
+```nix
+{ pkgs, lib, ... }:
+let
+  mountPoint = "/mnt/where";
+  remoteName = "rclone-remote-name";
+  bucketName = "bucket-name";
+  configFile = "/etc/rclone-mnt.conf";
+in
+{
+  environment.systemPackages = with pkgs;[
+    rclone
+  ];
+  systemd.mounts = lib.singleton {
+    where = mountPoint;
+    what = "${remoteName}:${bucketName}";
+    type = "rclone";
+    options = "_netdev,args2env,allow_other,vfs-cache-mode=full,config=${configFile}";
+  };
+  systemd.automounts = lib.singleton {
+    where = mountPoint;
+    wantedBy = [ "multi-user.target" ];
+  };
+}
+```
+
+And the contents of `/etc/rclone-mnt.conf` (not managed by nix to avoid secrets
+going to the store - I haven't found a way for rclone to read the b2 key from a
+file).
+
+```
+[rclone-remote-name]
+type = b2
+hard_delete = True
+account = 01234
+key = 5678
+```
+
+With this in place, nixos will attempt to mount the remote when ready
+(`"multi-user.target"` - apparently you rarely want to use `"default.target"`)
+and it knows that it requires network access (the `"network-online.target"` is
+implied by the pseudo option `_netdev`).
