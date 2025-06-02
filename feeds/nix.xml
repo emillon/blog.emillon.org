@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Enter the void *</title>
+        <link>http://blog.emillon.org</link>
+        <description><![CDATA[Yet another random hacker]]></description>
+        <atom:link href="http://blog.emillon.org/feeds/nix.xml" rel="self"
+                   type="application/rss+xml" />
+        <lastBuildDate>Mon, 02 Jun 2025 00:00:00 UT</lastBuildDate>
+        <item>
+    <title>Using rclone mount with systemd on nixos</title>
+    <link>http://blog.emillon.org/posts/2025-06-02-using-rclone-mount-with-systemd-on-nixos.html</link>
+    <description><![CDATA[<p>I recently added a b2 remote to one of my nixos systems. I found some docs
+recommending a systemd service but this felt like the wrong abstraction.</p>
+<p>So I opted to turn that into a systemd mount. In the spirit of “let’s write a
+blog post so that I don’t forget”, here’s how to do it.</p>
+<p>Here’s the nix module. Replace the contents of <code>let</code> with your configuration.
+I’m mounting a b2 bucket, but this should work with another kind of remote.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">{</span> <span class="va">pkgs</span><span class="op">,</span> <span class="va">lib</span><span class="op">,</span> <span class="op">...</span> <span class="op">}</span>:</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">mountPoint</span> <span class="op">=</span> <span class="st">&quot;/mnt/where&quot;</span><span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="va">remoteName</span> <span class="op">=</span> <span class="st">&quot;rclone-remote-name&quot;</span><span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="va">bucketName</span> <span class="op">=</span> <span class="st">&quot;bucket-name&quot;</span><span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="va">configFile</span> <span class="op">=</span> <span class="st">&quot;/etc/rclone-mnt.conf&quot;</span><span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">in</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="va">environment</span>.<span class="va">systemPackages</span> <span class="op">=</span> <span class="kw">with</span> pkgs<span class="op">;[</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    rclone</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="op">];</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="va">systemd</span>.<span class="va">mounts</span> <span class="op">=</span> lib.singleton <span class="op">{</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="va">where</span> <span class="op">=</span> mountPoint<span class="op">;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="va">what</span> <span class="op">=</span> <span class="st">&quot;</span><span class="sc">${</span>remoteName<span class="sc">}</span><span class="st">:</span><span class="sc">${</span>bucketName<span class="sc">}</span><span class="st">&quot;</span><span class="op">;</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="va">type</span> <span class="op">=</span> <span class="st">&quot;rclone&quot;</span><span class="op">;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="va">options</span> <span class="op">=</span> <span class="st">&quot;_netdev,args2env,allow_other,vfs-cache-mode=full,config=</span><span class="sc">${</span>configFile<span class="sc">}</span><span class="st">&quot;</span><span class="op">;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="op">};</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="va">systemd</span>.<span class="va">automounts</span> <span class="op">=</span> lib.singleton <span class="op">{</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="va">where</span> <span class="op">=</span> mountPoint<span class="op">;</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="va">wantedBy</span> <span class="op">=</span> <span class="op">[</span> <span class="st">&quot;multi-user.target&quot;</span> <span class="op">];</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="op">};</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>And the contents of <code>/etc/rclone-mnt.conf</code> (not managed by nix to avoid secrets
+going to the store - I haven’t found a way for rclone to read the b2 key from a
+file).</p>
+<pre><code>[rclone-remote-name]
+type = b2
+hard_delete = True
+account = 01234
+key = 5678</code></pre>
+<p>With this in place, nixos will attempt to mount the remote when ready
+(<code>"multi-user.target"</code> - apparently you rarely want to use <code>"default.target"</code>)
+and it knows that it requires network access (the <code>"network-online.target"</code> is
+implied by the pseudo option <code>_netdev</code>).</p>]]></description>
+    <pubDate>Mon, 02 Jun 2025 00:00:00 UT</pubDate>
+    <guid>http://blog.emillon.org/posts/2025-06-02-using-rclone-mount-with-systemd-on-nixos.html</guid>
+    <dc:creator>Etienne Millon</dc:creator>
+</item>
+
+    </channel>
+</rss>
