@@ -195,8 +195,8 @@ made of 7 lowercase letters).</p>
 <span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> next_char(user, field, chars, prefix):</span>
 <span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> c <span class="kw">in</span> chars:</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>        q <span class="op">=</span> <span class="st">&quot;(SELECT COUNT(*) FROM users &quot;</span>\</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> <span class="st">&quot;WHERE username = '</span><span class="sc">{0}</span><span class="st">' &quot;</span>\</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>        q <span class="op">=</span> <span class="st">&quot;(SELECT COUNT(*) FROM users &quot;</span><span class="op">\</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> <span class="st">&quot;WHERE username = '</span><span class="sc">{0}</span><span class="st">' &quot;</span><span class="op">\</span></span>
 <span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> <span class="st">&quot;AND </span><span class="sc">{1}</span><span class="st"> LIKE '</span><span class="sc">{2}{3}</span><span class="st">%')&quot;</span></span>
 <span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> is_ok(q.<span class="bu">format</span>(user, field, prefix, c)):</span>
 <span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> c</span>
@@ -269,8 +269,8 @@ indication that he logs in often.</p>
 browser : by injecting a piece of javascript into the page, we’ll fill and
 submit the transfer form. The obvious vector is the username ; alas it is
 filtered :</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode ruby"><code class="sourceCode ruby"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="cf">unless</span> username <span class="kw">=~</span> <span class="ss">/^\w+$/</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  die(<span class="st">&quot;Invalid username. Usernames must match /^\w+$/&quot;</span>, <span class="wa">:register</span>)</span>
+<div class="sourceCode" id="cb15"><pre class="sourceCode ruby"><code class="sourceCode ruby"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="cf">unless</span> username <span class="op">=~</span> <span class="ss">/^</span><span class="sc">\w</span><span class="ss">+$/</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  die(<span class="st">&quot;Invalid username. Usernames must match /^</span><span class="sc">\w</span><span class="st">+$/&quot;</span>, <span class="wa">:register</span>)</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code></pre></div>
 <p>But as the password is presented, it is also a possibility. It turns out that it
 is not filtered, and thus exploitable.</p>

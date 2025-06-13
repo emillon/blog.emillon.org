@@ -63,7 +63,7 @@ to study how input size can alter the processing time and output type size. It
 explodes:</p>
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th>n</th>
 <th style="text-align: right;">wc -c</th>
 <th style="text-align: right;">time</th>
@@ -71,31 +71,31 @@ explodes:</p>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>1</td>
 <td style="text-align: right;">98</td>
 <td style="text-align: right;">15ms</td>
 <td style="text-align: right;">1</td>
 </tr>
-<tr class="even">
+<tr>
 <td>2</td>
 <td style="text-align: right;">167</td>
 <td style="text-align: right;">15ms</td>
 <td style="text-align: right;">2</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>3</td>
 <td style="text-align: right;">610</td>
 <td style="text-align: right;">15ms</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="even">
+<tr>
 <td>4</td>
 <td style="text-align: right;">11630</td>
 <td style="text-align: right;">38ms</td>
 <td style="text-align: right;">128</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>5</td>
 <td style="text-align: right;">4276270</td>
 <td style="text-align: right;">6.3s</td>
