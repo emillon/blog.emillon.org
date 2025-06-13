@@ -1,6 +1,5 @@
 ---
 title: Hello, world !
-author: Etienne Millon
 tags: meta
 ---
 

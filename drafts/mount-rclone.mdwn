@@ -1,6 +1,5 @@
 ---
 title: Using rclone mount with systemd on nixos
-author: Etienne Millon
 tags: rclone, systemd, nix
 ---
 

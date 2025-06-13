@@ -1,6 +1,5 @@
 ---
 title: Introducing tree-sitter-dune
-author: Etienne Millon
 tags: ocaml, dune, hacking-days, tree-sitter
 ---
 

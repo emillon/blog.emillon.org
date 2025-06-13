@@ -75,6 +75,12 @@ metaField f d =
 hnField :: Context a
 hnField = metaField "hn" empty
 
+fullName :: String
+fullName = "Etienne Millon"
+
+authorField :: Context a
+authorField = constField "author" fullName
+
 renderPosts :: Tags -> Rules ()
 renderPosts tags = do
   void $ match "posts/*" $ do
@@ -83,6 +89,7 @@ renderPosts tags = do
         x1 <- markdownCompiler
         let ctx = mconcat [ dateField "date" "%B %e, %Y"
                           , tagsField "prettytags" tags
+                          , authorField
                           , hnField
                           , defaultContext
                           ]
@@ -168,6 +175,7 @@ makeDrafts tags = do
             x <- markdownCompiler
             let ctx = mconcat [ constField "date" "No date"
                               , tagsField "prettytags" tags
+                              , authorField
                               , defaultContext
                               ]
             finalRenderer "templates/post.html" ctx x
@@ -198,7 +206,7 @@ feedConfiguration :: FeedConfiguration
 feedConfiguration = FeedConfiguration
     { feedTitle       = "Enter the void *"
     , feedDescription = "Yet another random hacker"
-    , feedAuthorName  = "Etienne Millon"
+    , feedAuthorName  = fullName
     , feedAuthorEmail = "me@emillon.org"
     , feedRoot        = "http://blog.emillon.org"
     }

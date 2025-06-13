@@ -1,6 +1,5 @@
 ---
 title: Closures are prepared statements
-author: Etienne Millon
 tags: ocaml
 ---
 

@@ -1,6 +1,5 @@
 ---
 title: Santa made me learn Rails in a week
-author: Etienne Millon
 tags: rails, secretsanta
 ---
 

@@ -1,6 +1,5 @@
 ---
 title: "Unicode : Math, greek, symbols - you name it !"
-author: Etienne Millon
 tags: linux
 ---
 

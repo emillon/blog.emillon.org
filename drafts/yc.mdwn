@@ -1,6 +1,5 @@
 ---
 title: YC W13
-author: Etienne Millon
 tags: yc, cloverfeed
 ---
 

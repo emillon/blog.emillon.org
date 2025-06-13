@@ -1,6 +1,5 @@
 ---
 title: Nix syntax for OCaml users
-author: Etienne Millon
 tags: nix, ocaml
 ---
 

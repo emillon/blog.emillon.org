@@ -1,6 +1,5 @@
 ---
 title: The size of types
-author: Etienne Millon
 tags: haskell
 ---
 

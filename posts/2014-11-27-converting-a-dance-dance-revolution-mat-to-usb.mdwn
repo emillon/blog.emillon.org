@@ -1,6 +1,5 @@
 ---
 title: Converting a Dance Dance Revolution mat to USB
-author: Etienne Millon
 tags: ddr, avr
 ---
 

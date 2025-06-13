@@ -1,6 +1,5 @@
 ---
 title: Resizing a LVM partition
-author: Etienne Millon
 tags: linux, lvm
 ---
 

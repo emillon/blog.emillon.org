@@ -1,6 +1,5 @@
 ---
 title: Hakyll 101
-author: Etienne Millon
 tags: meta, haskell
 ---
 

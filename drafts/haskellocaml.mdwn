@@ -1,6 +1,5 @@
 ---
 title: Haskell features that I miss in OCaml
-author: Etienne Millon
 tags: haskell, ocaml
 ---
 

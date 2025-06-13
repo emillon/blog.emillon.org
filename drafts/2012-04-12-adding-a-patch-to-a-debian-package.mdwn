@@ -1,6 +1,5 @@
 ---
 title: Adding a patch to a Debian package
-author: Etienne Millon
 tags: debian
 ---
 

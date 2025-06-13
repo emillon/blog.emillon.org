@@ -1,6 +1,5 @@
 ---
 title: Binary distros = static type systems
-author: Etienne Millon
 tags: none
 ---
 

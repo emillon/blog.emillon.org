@@ -1,6 +1,5 @@
 ---
 title: Podcast selection
-author: Etienne Millon
 tags: podcasts
 ---
 

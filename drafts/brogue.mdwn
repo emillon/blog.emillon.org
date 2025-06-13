@@ -1,6 +1,5 @@
 ---
 title: Parsing Brogue seed data with Parsec
-author: Etienne Millon
 tags: haskell parsec brogue 
 ---
 

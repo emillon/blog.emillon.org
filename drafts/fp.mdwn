@@ -1,6 +1,5 @@
 ---
 title: 
-author: Etienne Millon
 tags: fp, ocaml
 ---
 

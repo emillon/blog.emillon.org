@@ -1,6 +1,5 @@
 ---
 title: From OhLife to org-mode with Parsec
-author: Etienne Millon
 tags: haskell parsec org
 ---
 

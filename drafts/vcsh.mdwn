@@ -1,6 +1,5 @@
 ---
 title: "VCSH : Git goodness for dotfiles"
-author: Etienne Millon
 tags: git, dotfiles, vcsh
 ---
 

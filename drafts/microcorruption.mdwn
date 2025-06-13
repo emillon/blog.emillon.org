@@ -1,7 +1,3 @@
----
-author: Etienne Millon
----
-
 I've had loads of fun with the Microcorruption CTF that has been organized by
 Matasano and Square.
 

@@ -1,6 +1,5 @@
 ---
 title: What's in an ADT ?
-author: Etienne Millon
 tags: ocaml, haskell
 ---
 

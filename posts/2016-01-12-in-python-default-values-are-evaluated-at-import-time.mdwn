@@ -1,6 +1,5 @@
 ---
 title: In Python, default values are evaluated at import time
-author: Etienne Millon
 tags: python
 ---
 

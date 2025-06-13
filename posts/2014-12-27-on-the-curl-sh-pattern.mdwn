@@ -1,6 +1,5 @@
 ---
 title: On the curl | sh pattern
-author: Etienne Millon
 tags: security
 hn: 8804293
 ---

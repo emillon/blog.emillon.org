@@ -1,6 +1,5 @@
 ---
 title: Stripe CTF 2.0 (partial) writeup
-author: Etienne Millon
 tags: stripe, ctf, security
 ---
 

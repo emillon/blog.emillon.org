@@ -1,6 +1,5 @@
 ---
 title: My part of work in Debian Jessie
-author: Etienne Millon
 tags: debian
 ---
 

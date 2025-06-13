@@ -1,6 +1,5 @@
 ---
 title: ROM Hacking 101 altering strings
-author: Etienne Millon
 tags: romhack
 ---
 

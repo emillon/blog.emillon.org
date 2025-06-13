@@ -1,6 +1,5 @@
 ---
 title: A lens-based ST20 emulator
-author: Etienne Millon
 tags: haskell, emulator, lenses
 ---
 

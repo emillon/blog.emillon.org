@@ -1,6 +1,5 @@
 ---
 title: Comonadic Life
-author: Etienne Millon
 tags: haskell, conway, life, comonad, algebra
 ---
 

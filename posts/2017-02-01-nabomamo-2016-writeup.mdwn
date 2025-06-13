@@ -1,6 +1,5 @@
 ---
 title: NaBoMaMo 2016 writeup
-author: Etienne Millon
 tags: ocaml, nabomamo, slack, bot
 ---
 

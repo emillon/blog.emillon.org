@@ -1,6 +1,5 @@
 ---
 title: ZSH suffix aliases
-author: Etienne Millon
 tags: linux, zsh
 ---
 
